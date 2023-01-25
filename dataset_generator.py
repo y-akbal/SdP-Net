@@ -1,9 +1,5 @@
 import pandas as pd
-import torch
 import os
-from torch import nn as nn
-import torchvision
-from torch.utils.data import DataLoader, dataset, Dataset
 from torchvision.io import read_image
 
 
