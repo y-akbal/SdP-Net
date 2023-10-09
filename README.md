@@ -7,6 +7,9 @@
 This is actually a less serious weekend project called AT-Net which can be thought as a variation on Mobile-Net architecture. We start with a convolutional layer then use seperable convolutions. Finally use some encoder type transformer layers. Together with some register tokens and a class token. The convolution part is highly motivated by "Patches are all you need paper". This dude is trained on ImageNet1k dataset, we offer three different sizes: XS, S, L. 
 Enjoy AT-Net!!!
 
+# Training Details
+# Optimizers
+# Epochs - Batch Size
 
 
 I have reached --- accuracy on ---, and guess this happened where, at home on two GPUs!!!
