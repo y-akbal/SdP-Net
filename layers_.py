@@ -4,6 +4,10 @@ from torch.nn import functional as F
 from torch.nn.parameter import Parameter
 import torch.nn.functional as F
 
+## Here we will have layers to be used 
+## We shall mostly use the optimized torch layers
+## rather than coming up with our own implementations
+
 
 x = torch.rand(10, 3, 224, 224)
 
