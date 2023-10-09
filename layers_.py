@@ -15,7 +15,7 @@ nn.Conv2d(3, 3, kernel_size = 4, groups = 3,  padding = "same")(x).shape
 
 
 
-l = torch.rand(3, 23)
+l = torch.rand(3, 25)
 
 Q = torch.einsum("ij,bilk->bjlk", l, x) 
 T = (x.transpose(-3, -1) @ l).transpose(-3, -1)
