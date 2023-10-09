@@ -1,4 +1,4 @@
-# AT-Net (A Horse in DA-ConvNets)
+# A Horse in DA-ConvNets: AT-Net
 
 
 <a href="https://www.youtube.com/shorts/3BW1lBgtbbs" class="follow"> 
