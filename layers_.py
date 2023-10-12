@@ -65,20 +65,25 @@ class squeezer(nn.Module):
     def __init__(self, 
                  embedding_dim = 512,
                  squeeze_ratio = 5,
+                 activation = nn.GELU()
                  ):
         super().__init__()
-        self.conv = nn.Conv2d(embedding_dim, 
+        self.seq = nn.Sequential(nn.Conv2d(embedding_dim, 
                               embedding_dim, 
                               kernel_size = squeeze_ratio,
                               stride = squeeze_ratio,
                               groups = embedding_dim
-                              )
+                              ),
+                              nn.BatchNorm2d(embedding_dim),
+                              activation
+        )
+        
     def forward(self, x):
-        return self.conv(x)
+        return self.seq(x)
+"""
+squeezer(128, squeeze_ratio = 7)(torch.randn(1, 128, 224,224)).shape      
+"""
 
-"""
-squeezer(128, squeeze_ratio = 7).state_dict()["conv.weight"].shape       
-"""
 
 class encoder_layer(nn.Module):
     ## Here we embed H*W instead of the batch dimension 
@@ -96,7 +101,7 @@ class encoder_layer(nn.Module):
             nhead = n_head,
             activation = activation_func,
             batch_first = True,
-            dim_feedforward = 512,
+            dim_feedforward = 2*self.embedding_dim,
         )
     def forward(self, x):
         batch_size, C, _, _ = x.shape
