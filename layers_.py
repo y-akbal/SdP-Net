@@ -67,9 +67,9 @@ conv_mixer(200)(torch.randn(10, 200, 224,224)).std(1)
 
 class squeezer(nn.Module):
     def __init__(self, 
-                 embedding_dim,
-                 groups, 
-                 embedding_dim_mult_ratio = 3,
+                 embedding_dim = 512,
+                 groups = 128, 
+                 embedding_dim_mult_ratio = 2,
                  squeeze_ratio = 5,
                  ):
         super().__init__()
@@ -82,9 +82,7 @@ class squeezer(nn.Module):
     def forward(self, x):
         return self.conv(x)
 
-"""
-squeezer(100)(torch.randn(1, 100, 224,224)).shape
-"""    
+
 class encoder_layer(nn.Module):
     def __init__(self, 
                  embedding_dim, 
