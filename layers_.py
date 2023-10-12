@@ -18,11 +18,12 @@ class conv_int(nn.Module):
                               kernel_size = patch_size,
                               stride = patch_size
                               )
+        self.batch_norm = nn.BatchNorm2d(embedding_dim)
     def forward(self, x):
         x = self.conv(x)
-        return self.activation(x) 
-
-class mixer_conv(nn.Module):
+        x = self.conv(x)
+        return self.batch_norm(x) 
+    
     def __init__(self):
         
         ## depthwise
