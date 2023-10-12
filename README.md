@@ -11,6 +11,7 @@ This is actually a less serious weekend project called AT-Net which can be thoug
   <li>We do something because we want do that thing!!!,</li>
   <li> No promise to get very high accuracy,</li>
   <li> We would like to hybridize things,</li>
+  <li> In AT-Net We trust!</li>
   
 </ul> 
 Enjoy AT-Net!!!

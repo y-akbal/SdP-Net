@@ -11,6 +11,7 @@ import torch.nn.functional as F
 class conv_int(nn.Module):
     def __init__(self, embedding_dim = 100, patch_size = 4, activation = nn.GELU()):
         super().__init__()
+
         self.embedding_dim = embedding_dim
         self.activation = activation
         self.conv = nn.Conv2d(in_channels = 3, 
@@ -53,9 +54,7 @@ class conv_mixer(nn.Module):
     def forward(self, x_):
         x = self.conv2d(x_)
         x = self.activation(x)
-        x = self.batch_norm_1(x)
-        x += x_
-        x = self.conv1d(x)
+        x = self.conv1d(self.batch_norm_1(x)+x_)
         x = self.activation(x)
         x = self.batch_norm_2(x)
         return x
@@ -83,26 +82,21 @@ class squeezer(nn.Module):
 """
 squeezer(128, squeeze_ratio = 7)(torch.randn(1, 128, 224,224)).shape      
 """
-class first_encoder_layer(nn.Layer):
+class first_encoder_layer(nn.Module):
     def __init__(self, embedding_shape:tuple[int,int],
                  n_head:int = 8,
                  num_registers:int = 5,
-                 squeeze_ratio:int = 7, 
                  multiplication_factor:int = 2, 
                  activation_func = nn.GELU(),
-
                  ):
         super().__init__()
         ### -- ###
         self.embedding_dim = embedding_shape[0]*embedding_shape[1]
-        self.cls_registers = nn.Embedding(num_registers,
+        self.embedding = nn.Embedding(num_registers,
                                           self.embedding_dim)
-        ## -- ##
-        
+        self.num_register = num_registers
+        ### --- ##
         ### --- ###
-        self.squeezer = squeezer(self.embedding_dim, 
-                                 squeeze_ratio=squeeze_ratio,
-                                 activation = activation_func)
         ### --- ###
         self.transformer_encoder = nn.TransformerEncoderLayer(
             d_model = self.embedding_dim,
@@ -112,8 +106,43 @@ class first_encoder_layer(nn.Layer):
         )
         ### ---- ###
     def forward(self, x, y = None):
-        embeddings = self.embedding_dim(y)
-        return embeddings
+        B, C, _, _ = x.shape
+        
+        if y == None:
+            embeddings = self.embedding(torch.tensor([[i for i in range(self.num_registers)]]))
+        else:
+            embeddings = self.embedding(y)
+        x = x.view(B, C, self.embedding_dim)
+        return torch.cat((embeddings.repeat(B, 1, 1), x), 1)
+
+"""
+torch.manual_seed(0)
+first_encoder_layer((32,32))(torch.randn(128, 100, 32, 32), torch.tensor([[0]]))
+
+torch.cat((q,l), 1).shape
+
+
+q.shape
+l.shape
+
+torch.cat([q,l])
+
+l.shape
+
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
 class encoder_layer(nn.Module):
     ## Here we embed H*W instead of the batch dimension 
     ## this may sound a bit better however
