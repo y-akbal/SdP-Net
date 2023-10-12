@@ -46,7 +46,6 @@ class conv_mixer(nn.Module):
         self.conv1d = nn.Conv2d(in_channels = embedding_dim,
                                 out_channels = embedding_dim,
                                 kernel_size =1,
-
                                 )
         self.batch_norm_1 = nn.BatchNorm2d(embedding_dim)
         self.batch_norm_2 = nn.BatchNorm2d(embedding_dim)
@@ -61,9 +60,6 @@ class conv_mixer(nn.Module):
         x = self.batch_norm_2(x)
         return x
 
-"""
-conv_mixer(200)(torch.randn(10, 200, 224,224)).std(1)
-"""
 
 class squeezer(nn.Module):
     def __init__(self, 
@@ -84,28 +80,34 @@ class squeezer(nn.Module):
 
 
 class encoder_layer(nn.Module):
+    ## Here we embed H*W instead of the batch dimension 
+    ## this may sound a bit better however
+    ## it has some downsides as it is mosty affected by the size of the image
     def __init__(self, 
-                 embedding_dim, 
+                 embedding_shape, 
                  n_head,
                  activation_func = nn.GELU(),
                  ):
         super().__init__()
+        self.embedding_dim = embedding_shape[0]*embedding_shape[1]
         self.transformer_layer = nn.TransformerEncoderLayer(
-            d_model = embedding_dim,
+            d_model = self.embedding_dim,
             nhead = n_head,
             activation = activation_func,
             batch_first = True,
             dim_feedforward = 512,
         )
     def forward(self, x):
-        batch_size, C, H, W = x.shape
-        x = x.view(batch_size, C, H*W)
+        batch_size, C, _, _ = x.shape
+        x = x.view(batch_size, C, self.embedding_dim)
         x = self.transformer_layer(x)
         return x
 
-"""
-encoder_layer(100, 5)(torch.randn(1, 100, 10,10))
 
+
+
+
+"""
 x = torch.randn(1, 100, 100)
 nn.TransformerEncoderLayer(100,100)()
 encoder_layer = nn.TransformerEncoderLayer(d_model=512, 
