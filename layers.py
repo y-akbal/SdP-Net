@@ -146,8 +146,8 @@ class encoder_layer(nn.Module):
             dropout = dropout
         )
     def forward(self, x):
-        batch_size, C, _, _ = x.shape
-        x = x.view(batch_size, C, self.embedding_dim)
+        batch_size, C, H, W = x.shape
+        x = x.view(batch_size, C, H*W)
         x = self.transformer_layer(x)
         return x
 
