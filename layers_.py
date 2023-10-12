@@ -21,7 +21,7 @@ class conv_int(nn.Module):
         self.batch_norm = nn.BatchNorm2d(embedding_dim)
     def forward(self, x):
         x = self.conv(x)
-        x = self.conv(x)
+        x = self.activation(x)
         return self.batch_norm(x) 
 
 
