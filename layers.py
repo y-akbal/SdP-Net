@@ -109,10 +109,6 @@ class encoder_layer(nn.Module):
         x = self.transformer_layer(x)
         return x
 
-
-
-
-
 """
 x = torch.randn(1, 100, 100)
 nn.TransformerEncoderLayer(100,100)()
@@ -124,7 +120,11 @@ encoder_layer = nn.TransformerEncoderLayer(d_model=512,
 src = torch.rand(1, 5, 512)
 encoder_layer(src).std(2)
 torch.randn(1, 10, 23, 23)
-"""
-
+""""""
 nn.Conv2d(in_channels = 3, out_channels = 9, kernel_size = 4, stride = 4,
           groups =3)(torch.randn(10, 3, 224, 224)).shape
+"""
+
+
+if __name__ == "__main__":
+    print("pff")
