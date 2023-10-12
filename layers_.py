@@ -66,14 +66,19 @@ conv_mixer(200)(torch.randn(10, 200, 224,224)).std(1)
 """
 
 class squeezer(nn.Module):
-    def __init__(self, embedding_dim,
-                 squeeze_ratio = 5
+    def __init__(self, 
+                 embedding_dim,
+                 groups, 
+                 embedding_dim_mult_ratio = 3,
+                 squeeze_ratio = 5,
                  ):
         super().__init__()
         self.conv = nn.Conv2d(embedding_dim, 
-                              embedding_dim, 
+                              embedding_dim_mult_ratio*embedding_dim, 
                               kernel_size = squeeze_ratio,
-                              stride = squeeze_ratio)
+                              stride = squeeze_ratio,
+                              groups = groups
+                              )
     def forward(self, x):
         return self.conv(x)
 
@@ -114,3 +119,6 @@ src = torch.rand(1, 5, 512)
 encoder_layer(src).std(2)
 torch.randn(1, 10, 23, 23)
 """
+
+nn.Conv2d(in_channels = 256, out_channels = 512, kernel_size = 4, stride = 4,
+          groups = 128)(torch.randn(10, 256, 224, 224)).shape
