@@ -54,7 +54,7 @@ class conv_mixer(nn.Module):
     def forward(self, x_):
         x = self.conv2d(x_)
         x = self.activation(x)
-        x = self.conv1d(self.batch_norm_1(x)+x_)
+        x = self.conv1d(x_+self.batch_norm_1(x))
         x = self.activation(x)
         x = self.batch_norm_2(x)
         return x
@@ -132,17 +132,6 @@ l.shape
 """
 
 
-
-
-
-
-
-
-
-
-
-
-
 class encoder_layer(nn.Module):
     ## Here we embed H*W instead of the batch dimension 
     ## this may sound a bit better however
@@ -151,6 +140,7 @@ class encoder_layer(nn.Module):
                  embedding_shape:tuple[int, int], 
                  n_head:int,
                  activation_func = nn.GELU(),
+                 multiplication_factor:int = 2
                  ):
         super().__init__()
         self.embedding_dim = embedding_shape[0]*embedding_shape[1]
@@ -159,7 +149,7 @@ class encoder_layer(nn.Module):
             nhead = n_head,
             activation = activation_func,
             batch_first = True,
-            dim_feedforward = 2*self.embedding_dim,
+            dim_feedforward = multiplication_factor*self.embedding_dim,
         )
     def forward(self, x):
         batch_size, C, _, _ = x.shape
@@ -168,7 +158,7 @@ class encoder_layer(nn.Module):
         return x
 
 
-encoder_layer((32,32), 4)(torch.randn(32, 1024, 32, 32)).shape
+encoder_layer((32,32), 4).cuda()(torch.randn(32, 1024, 32, 32).cuda()).shape
 
 if __name__ == "__main__":
     print("pff")
