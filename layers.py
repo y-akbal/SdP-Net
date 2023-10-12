@@ -59,7 +59,13 @@ class conv_mixer(nn.Module):
         x = self.batch_norm_2(x)
         return x
 
-
+"""
+con = conv_mixer(512)
+k = 0
+for i in con.parameters():
+     k += i.shape.numel()
+print(k)
+""" 
 class squeezer(nn.Module):
     def __init__(self, 
                  embedding_dim = 512,
@@ -84,10 +90,11 @@ squeezer(128, squeeze_ratio = 7)(torch.randn(1, 128, 224,224)).shape
 """
 class first_encoder_layer(nn.Module):
     def __init__(self, embedding_shape:tuple[int,int],
-                 n_head:int = 8,
+                 n_head:int = 4,
                  num_registers:int = 5,
-                 multiplication_factor:int = 2, 
+                 multiplication_factor:int = 1, 
                  activation_func = nn.GELU(),
+                 dropout = 0.1
                  ):
         super().__init__()
         ### -- ###
@@ -103,6 +110,7 @@ class first_encoder_layer(nn.Module):
             nhead = n_head,
             dim_feedforward = multiplication_factor*self.embedding_dim, 
             activation = activation_func,
+            dropout = dropout
         )
         ### ---- ###
     def forward(self, x, y = None):
@@ -115,22 +123,6 @@ class first_encoder_layer(nn.Module):
         x = x.view(B, C, self.embedding_dim)
         return torch.cat((embeddings.repeat(B, 1, 1), x), 1)
 
-"""
-torch.manual_seed(0)
-first_encoder_layer((32,32))(torch.randn(128, 100, 32, 32), torch.tensor([[0]]))
-
-torch.cat((q,l), 1).shape
-
-
-q.shape
-l.shape
-
-torch.cat([q,l])
-
-l.shape
-
-"""
-
 
 class encoder_layer(nn.Module):
     ## Here we embed H*W instead of the batch dimension 
@@ -140,7 +132,8 @@ class encoder_layer(nn.Module):
                  embedding_shape:tuple[int, int], 
                  n_head:int,
                  activation_func = nn.GELU(),
-                 multiplication_factor:int = 2
+                 multiplication_factor:int = 2,
+                 dropout = 0.2
                  ):
         super().__init__()
         self.embedding_dim = embedding_shape[0]*embedding_shape[1]
@@ -150,6 +143,7 @@ class encoder_layer(nn.Module):
             activation = activation_func,
             batch_first = True,
             dim_feedforward = multiplication_factor*self.embedding_dim,
+            dropout = dropout
         )
     def forward(self, x):
         batch_size, C, _, _ = x.shape
@@ -158,7 +152,7 @@ class encoder_layer(nn.Module):
         return x
 
 
-encoder_layer((32,32), 4).cuda()(torch.randn(32, 1024, 32, 32).cuda()).shape
+#encoder_layer((32,32), 4).cuda()(torch.randn(32, 1024, 32, 32).cuda()).shape
 
 if __name__ == "__main__":
     print("pff")
