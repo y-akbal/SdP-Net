@@ -8,7 +8,7 @@ This is actually a less serious weekend project called AT-Net which can be thoug
  <h1> Our motto in AT-Net:</h1>
 
  <ul>
-  <li>We do something because we want that thing!!!,</li>
+  <li>We do something because we want do that thing!!!,</li>
   <li> No promise to get very high accuracy,</li>
   <li> We like to hybridize things,</li>
 </ul> 
