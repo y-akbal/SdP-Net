@@ -87,33 +87,33 @@ class first_encoder_layer(nn.Layer):
     def __init__(self, embedding_shape:tuple[int,int],
                  n_head:int = 8,
                  num_registers:int = 5,
-                 squeeze_ratio:int = 7,
-                 multiplication_factor:int = 2,
+                 squeeze_ratio:int = 7, 
+                 multiplication_factor:int = 2, 
                  activation_func = nn.GELU(),
 
                  ):
         super().__init__()
-
+        ### -- ###
         self.embedding_dim = embedding_shape[0]*embedding_shape[1]
         self.cls_registers = nn.Embedding(num_registers,
                                           self.embedding_dim)
-
+        ## -- ##
+        
+        ### --- ###
         self.squeezer = squeezer(self.embedding_dim, 
                                  squeeze_ratio=squeeze_ratio,
                                  activation = activation_func)
-
+        ### --- ###
         self.transformer_encoder = nn.TransformerEncoderLayer(
             d_model = self.embedding_dim,
             nhead = n_head,
             dim_feedforward = multiplication_factor*self.embedding_dim, 
             activation = activation_func,
         )
-
+        ### ---- ###
     def forward(self, x, y = None):
-        if y:
-            print("Hello mathafaka")
-        return x, y
-
+        embeddings = self.embedding_dim(y)
+        return embeddings
 class encoder_layer(nn.Module):
     ## Here we embed H*W instead of the batch dimension 
     ## this may sound a bit better however
