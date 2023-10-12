@@ -83,15 +83,44 @@ class squeezer(nn.Module):
 """
 squeezer(128, squeeze_ratio = 7)(torch.randn(1, 128, 224,224)).shape      
 """
+class first_encoder_layer(nn.Layer):
+    def __init__(self, embedding_shape:tuple[int,int],
+                 n_head:int = 8,
+                 num_registers:int = 5,
+                 squeeze_ratio:int = 7,
+                 multiplication_factor:int = 2,
+                 activation_func = nn.GELU(),
 
+                 ):
+        super().__init__()
+
+        self.embedding_dim = embedding_shape[0]*embedding_shape[1]
+        self.cls_registers = nn.Embedding(num_registers,
+                                          self.embedding_dim)
+
+        self.squeezer = squeezer(self.embedding_dim, 
+                                 squeeze_ratio=squeeze_ratio,
+                                 activation = activation_func)
+
+        self.transformer_encoder = nn.TransformerEncoderLayer(
+            d_model = self.embedding_dim,
+            nhead = n_head,
+            dim_feedforward = multiplication_factor*self.embedding_dim, 
+            activation = activation_func,
+        )
+
+    def forward(self, x, y = None):
+        if y:
+            print("Hello mathafaka")
+        return x, y
 
 class encoder_layer(nn.Module):
     ## Here we embed H*W instead of the batch dimension 
     ## this may sound a bit better however
     ## it has some downsides as it is mosty affected by the size of the image
     def __init__(self, 
-                 embedding_shape, 
-                 n_head,
+                 embedding_shape:tuple[int, int], 
+                 n_head:int,
                  activation_func = nn.GELU(),
                  ):
         super().__init__()
@@ -109,22 +138,8 @@ class encoder_layer(nn.Module):
         x = self.transformer_layer(x)
         return x
 
-"""
-x = torch.randn(1, 100, 100)
-nn.TransformerEncoderLayer(100,100)()
-encoder_layer = nn.TransformerEncoderLayer(d_model=512, 
-                                           nhead=8, 
-                                           batch_first = True,
-                                           activation = nn.GELU()
-                                           )
-src = torch.rand(1, 5, 512)
-encoder_layer(src).std(2)
-torch.randn(1, 10, 23, 23)
-""""""
-nn.Conv2d(in_channels = 3, out_channels = 9, kernel_size = 4, stride = 4,
-          groups =3)(torch.randn(10, 3, 224, 224)).shape
-"""
 
+encoder_layer((32,32), 4)(torch.randn(32, 1024, 32, 32)).shape
 
 if __name__ == "__main__":
     print("pff")
