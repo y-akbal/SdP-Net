@@ -64,20 +64,21 @@ class conv_mixer(nn.Module):
 class squeezer(nn.Module):
     def __init__(self, 
                  embedding_dim = 512,
-                 groups = 128, 
-                 embedding_dim_mult_ratio = 2,
                  squeeze_ratio = 5,
                  ):
         super().__init__()
         self.conv = nn.Conv2d(embedding_dim, 
-                              embedding_dim_mult_ratio*embedding_dim, 
+                              embedding_dim, 
                               kernel_size = squeeze_ratio,
                               stride = squeeze_ratio,
-                              groups = groups
+                              groups = embedding_dim
                               )
     def forward(self, x):
         return self.conv(x)
 
+"""
+squeezer(128, squeeze_ratio = 7).state_dict()["conv.weight"].shape       
+"""
 
 class encoder_layer(nn.Module):
     ## Here we embed H*W instead of the batch dimension 
@@ -120,5 +121,5 @@ encoder_layer(src).std(2)
 torch.randn(1, 10, 23, 23)
 """
 
-nn.Conv2d(in_channels = 256, out_channels = 512, kernel_size = 4, stride = 4,
-          groups = 128)(torch.randn(10, 256, 224, 224)).shape
+nn.Conv2d(in_channels = 3, out_channels = 9, kernel_size = 4, stride = 4,
+          groups =3)(torch.randn(10, 3, 224, 224)).shape
