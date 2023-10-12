@@ -24,6 +24,12 @@ class conv_int(nn.Module):
         x = self.activation(x)
         return self.batch_norm(x) 
 
+class res_jump(nn.Module):
+    def __init__(self, layer):
+        super().__init__()
+        self.layer = layer
+    def forward(self, x):
+        return x + self.layer(x)
 
 class conv_mixer(nn.Module):
     def __init__(self, 
