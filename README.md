@@ -8,9 +8,9 @@ This is actually a less serious weekend project called AT-Net which can be thoug
  <h1> Our motto in coming up with AT-Net:</h1>
 
  <ul>
-  <li>We do something because we want do that thing!!!,</li>
   <li> No promise to get very high accuracy,</li>
   <li> We would like to hybridize things,</li>
+  <li> We do bizzare combinations for the mere reason that we would like to!!!,</li>
   <li> In AT-Net We trust!</li>
   
 </ul> 
