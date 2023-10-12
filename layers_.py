@@ -23,9 +23,35 @@ class conv_int(nn.Module):
         x = self.conv(x)
         x = self.conv(x)
         return self.batch_norm(x) 
-    
-    def __init__(self):
-        
-        ## depthwise
-        ## 
 
+
+class conv_mixer(nn.Module):
+    def __init__(self, embedding_dim, 
+                 kernel_size = 5, 
+                 activation = nn.GELU()):
+        super().__init__()
+        self.conv2d = nn.Conv2d(in_channels = embedding_dim, 
+                              out_channels = embedding_dim,
+                              kernel_size = 5,
+                              groups = embedding_dim,
+                              padding = "same"
+                              )
+        self.conv1d = nn.Conv2d(in_channels = embedding_dim,
+                                out_channels = embedding_dim,
+                                kernel_size =1,
+
+                                )
+        self.batch_norm_1 = nn.BatchNorm2d(embedding_dim)
+        self.batch_norm_2 = nn.BatchNorm2d(embedding_dim)
+        self.activation = activation
+    def forward(self, x):
+        x_ = self.conv2d(x)
+        x = self.activation(x_)
+        x = self.batch_norm_1(x)
+        x += x_
+        x = self.conv1d(x)
+        x = self.activation(x)
+        x = self.batch_norm_2(x)
+        return x
+
+conv_mixer(10)(torch.randn(1, 10, 224,224)).shape
