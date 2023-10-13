@@ -82,7 +82,7 @@ model(torch.randn(8, 3, 224, 224).cuda(1), torch.tensor([[1]]).cuda(1)).shape
 
 
 k = 0
-for i in main_model(conv_mixer_repetation=10, transformer_encoder_repetation=5, patch_size=12, multiplication_factor=1).parameters():
+for i in main_model(conv_mixer_repetation=5, transformer_encoder_repetation=5, patch_size=8, multiplication_factor=2).parameters():
     k += i.shape.numel()
 print(k)
 
