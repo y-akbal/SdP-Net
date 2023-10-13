@@ -53,12 +53,12 @@ class main_model(nn.Module):
                                                 activation_func= activation,
                                                 dropout=dropout
                                                 )
-        self.encoder_rest= encoder_layer(embedding_shape= self.encoder_embedding_dim,
+        self.encoder_rest= nn.Sequential(*[encoder_layer(embedding_shape= self.encoder_embedding_dim,
                                         n_head = n_head,
                                         multiplication_factor= multiplication_factor,
                                         activation_func= activation,
                                         dropout=dropout,
-                                        )
+                                        ) for i in range(transformer_encoder_repetation-1)])
 
         
     def fun_encoder_dim(self, n:int)->int:
@@ -68,11 +68,15 @@ class main_model(nn.Module):
         x = self.conv_init(x)
         x = self.conv_mixer(x)
         #x = self.squeezer(x)
-        return self.encoder_init(x,y)
+        x = self.encoder_init(x,y)
+        return self.encoder_rest(x)
 
 torch.manual_seed(0)
-main_model(conv_mixer_repetation=10, patch_size=8)(torch.randn(1,3,224,224), torch.tensor([[1,0]])).shape
 
+k = 0
+for i in main_model(conv_mixer_repetation=10, transformer_encoder_repetation=10, patch_size=9).parameters():
+    k += i.shape.numel()
+print(k)
 
 
 if __name__ == "__main__":
