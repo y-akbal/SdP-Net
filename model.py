@@ -54,12 +54,11 @@ class main_model(nn.Module):
                                                 dropout=dropout
                                                 )
         self.encoder_rest= encoder_layer(embedding_shape= self.encoder_embedding_dim,
-                                            n_head = n_head,
-                                            multiplication_factor= multiplication_factor,
-                                            activation_func= activation,
-                                            dropout=dropout,
-
-        )
+                                        n_head = n_head,
+                                        multiplication_factor= multiplication_factor,
+                                        activation_func= activation,
+                                        dropout=dropout,
+                                        )
 
         
     def fun_encoder_dim(self, n:int)->int:
