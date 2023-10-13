@@ -99,9 +99,8 @@ class first_encoder_layer(nn.Module):
         super().__init__()
         ### -- ###
         self.embedding_dim = embedding_shape[0]*embedding_shape[1]
-        self.embedding = nn.Embedding(num_registers,
-                                          self.embedding_dim)
-        self.num_register = num_registers
+        self.embedding = nn.Embedding(num_registers, self.embedding_dim)
+        self.num_registers = num_registers
         ### --- ##
         ### --- ###
         ### --- ###

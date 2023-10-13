@@ -14,7 +14,7 @@ from layers import conv_int, conv_mixer, squeezer, first_encoder_layer, encoder_
 class main_model(nn.Module):
     def __init__(self, 
                  embedding_dim_conv:int = 512,
-                 image_size:tuple(int, int) = (224,224),
+                 image_size = (224,224),
                  n_head:int = 4,
                  conv_kernel_size:int = 5,
                  conv_mixer_repetation:int = 5, 
@@ -22,29 +22,33 @@ class main_model(nn.Module):
                  activation = nn.GELU("tanh"),
                  patch_size:int = 4,
                  dropout:float = 0.2,
-                 squeeze_ratio:int = 15,
                  num_register:int = 2,  
                  multiplication_factor:int = 2, 
+                 squeeze_ratio:int = 1,
                  ):
         super().__init__()
+        ## Here we go again ##
         self.patch_size = patch_size
         self.squeeze_ratio = squeeze_ratio
-        self.encoder_embedding_dim = tuple(map(self.encoder_dim, image_size))
+        self.encoder_embedding_dim = list(map(self.fun_encoder_dim, image_size))
         
 
         self.conv_init = conv_int(embedding_dim= embedding_dim_conv, 
-                                  patch_size = patch_size)
+                                  patch_size = patch_size,
+                                  activation = activation
+                                  )
         self.conv_mixer = nn.Sequential(*[conv_mixer(embedding_dim_conv, 
                                         kernel_size= conv_kernel_size)
                                         for i in range(conv_mixer_repetation)])
+        """
         self.squeezer = squeezer(embedding_dim= embedding_dim_conv,
                                  squeeze_ratio= squeeze_ratio,
                                  activation=  activation
                                  )
-        
+         """
         self.encoder_init = first_encoder_layer(embedding_shape= self.encoder_embedding_dim,
                                                 n_head = n_head,
-                                                num_registers= num_register,
+                                                num_registers = num_register,
                                                 multiplication_factor= multiplication_factor,
                                                 activation_func= activation,
                                                 dropout=dropout
@@ -58,16 +62,17 @@ class main_model(nn.Module):
         )
 
         
-    def encoder_dim(self, n:int)->int:
+    def fun_encoder_dim(self, n:int)->int:
         return math.floor(n/(self.patch_size*self.squeeze_ratio))
 
     def forward(self, x, y = None):
         x = self.conv_init(x)
         x = self.conv_mixer(x)
-        x = self.squeezer(x)
-        return self.encoder_init(x, y)
+        #x = self.squeezer(x)
+        return self.encoder_init(x,y)
 
-main_model(conv_mixer_repetation=10, squeeze_ratio= 3, patch_size=8)(x = torch.randn(1, 3, 224, 224)).shape
+torch.manual_seed(0)
+main_model(conv_mixer_repetation=10, patch_size=8)(torch.randn(1,3,224,224), torch.tensor([[1,0]])).shape
 
 
 
