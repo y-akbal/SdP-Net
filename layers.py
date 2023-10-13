@@ -112,11 +112,19 @@ class first_encoder_layer(nn.Module):
             dropout = dropout
         )
         ### ---- ###
+        self.register_buffer(
+            "num_register",
+            torch.tensor(
+                [i for i in range(self.num_registers-1)],
+                dtype=torch.int,
+                requires_grad=False,
+            ),
+        )
     def forward(self, x, y = None):
         B, C, _, _ = x.shape
         
         if y == None:
-            embeddings = self.embedding(torch.tensor([[i for i in range(self.num_registers)]]))
+            embeddings = self.embedding(self.num_register)
         else:
             embeddings = self.embedding(y)
         x = x.view(B, C, self.embedding_dim)

@@ -73,19 +73,20 @@ class main_model(nn.Module):
         x = self.encoder_init(x,y)
         return self.encoder_rest(x)
 
+"""
 torch.manual_seed(0)
-main_model(conv_mixer_repetation=5, transformer_encoder_repetation=10, patch_size=12)(torch.randn(32, 3, 224, 224), torch.tensor([[1]])).shape
+main_model(conv_mixer_repetation=5, transformer_encoder_repetation=10, patch_size=24)(torch.randn(32, 3, 224, 224), torch.tensor([[1]])).shape
 
-model = main_model(conv_mixer_repetation=5, transformer_encoder_repetation=10, patch_size=8, multiplication_factor=1).cuda(1)
+model = main_model(conv_mixer_repetation=5, transformer_encoder_repetation=10, patch_size=16, multiplication_factor=4).cuda(1)
 
 model(torch.randn(8, 3, 224, 224).cuda(1), torch.tensor([[1]]).cuda(1)).shape
 
 
 k = 0
-for i in main_model(conv_mixer_repetation=5, transformer_encoder_repetation=5, patch_size=8, multiplication_factor=2).parameters():
+for i in main_model(conv_mixer_repetation=10, transformer_encoder_repetation=10, patch_size=4, multiplication_factor=1, squeeze_ratio=4).parameters():
     k += i.shape.numel()
 print(k)
-
+"""
 
 if __name__ == "__main__":
     print("Ok boomer!!!")
