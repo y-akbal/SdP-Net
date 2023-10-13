@@ -40,12 +40,14 @@ class main_model(nn.Module):
         self.conv_mixer = nn.Sequential(*[conv_mixer(embedding_dim_conv, 
                                         kernel_size= conv_kernel_size)
                                         for i in range(conv_mixer_repetation)])
-        """
-        self.squeezer = squeezer(embedding_dim= embedding_dim_conv,
+        if squeeze_ratio == 1:
+            self.squeezer = lambda x: x
+        else:
+            self.squeezer = squeezer(embedding_dim= embedding_dim_conv,
                                  squeeze_ratio= squeeze_ratio,
                                  activation=  activation
                                  )
-         """
+        
         self.encoder_init = first_encoder_layer(embedding_shape= self.encoder_embedding_dim,
                                                 n_head = n_head,
                                                 num_registers = num_register,
@@ -67,14 +69,20 @@ class main_model(nn.Module):
     def forward(self, x, y = None):
         x = self.conv_init(x)
         x = self.conv_mixer(x)
-        #x = self.squeezer(x)
+        x = self.squeezer(x)
         x = self.encoder_init(x,y)
         return self.encoder_rest(x)
 
 torch.manual_seed(0)
+main_model(conv_mixer_repetation=5, transformer_encoder_repetation=10, patch_size=12)(torch.randn(32, 3, 224, 224), torch.tensor([[1]])).shape
+
+model = main_model(conv_mixer_repetation=5, transformer_encoder_repetation=10, patch_size=8, multiplication_factor=1).cuda(1)
+
+model(torch.randn(8, 3, 224, 224).cuda(1), torch.tensor([[1]]).cuda(1)).shape
+
 
 k = 0
-for i in main_model(conv_mixer_repetation=10, transformer_encoder_repetation=10, patch_size=9).parameters():
+for i in main_model(conv_mixer_repetation=10, transformer_encoder_repetation=5, patch_size=12, multiplication_factor=1).parameters():
     k += i.shape.numel()
 print(k)
 
