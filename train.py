@@ -32,8 +32,6 @@ data = DataLoader(CustomDataset(), batch_size = 8, shuffle = True, num_workers =
 data_ = tqdm(data)
 loss_ = 0
 for i, (x , y) in enumerate(data_):
-    
-    
     x = x.cuda()
     y = y.cuda()
     optimizer.zero_grad()
