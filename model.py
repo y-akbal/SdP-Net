@@ -9,8 +9,6 @@ import math
 from layers import conv_int, conv_mixer, squeezer, first_encoder_layer, encoder_layer
 
 
-
-
 class main_model(nn.Module):
     def __init__(self, 
                  embedding_dim_conv:int = 512,

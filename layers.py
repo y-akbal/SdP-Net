@@ -58,7 +58,6 @@ class conv_mixer(nn.Module):
         x = self.activation(x)
         x = self.batch_norm_2(x)
         return x
-
 """
 con = conv_mixer(512)
 k = 0
