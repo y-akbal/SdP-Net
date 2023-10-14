@@ -38,6 +38,17 @@ def return_transforms():
 
 transforms_train, transforms_test = return_transforms()
 
+
+
+def return_train_set(root_dir:str, 
+                     transformations = transforms_train):
+    Images = datasets.ImageFolder(root = root_dir,
+                                  transform = transformations,
+    )
+    dict_ = Images.class_to_idx
+    return Images, dict_
+
+
 class test_data(Dataset):
     def __init__(self, 
                  classes_dict:dict,
@@ -70,14 +81,6 @@ class test_data(Dataset):
     def __split__(self, n):
         return n.split()[0]
         
-
-
-def return_train_set(root_dir:str, transformations):
-    Images = datasets.ImageFolder(root = root_dir,
-                                  transform = transformations,
-    )
-    dict_ = Images.class_to_idx
-    return Images, dict_
 
 
 
