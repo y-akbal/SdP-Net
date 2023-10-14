@@ -5,6 +5,27 @@ from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 from torch import functional as F
 from tqdm import tqdm
+### --- ###
+import torch.backends.cudnn as cudnn
+import torch.distributed as dist
+import torch.nn as nn
+import torch.nn.parallel
+import torch.optim
+import torch.utils.data
+import torch.utils.data.distributed
+
+## --- ##
+
+import torchvision.datasets as datasets
+import torchvision.models as models
+import torchvision.transforms as transforms
+from torch.optim.lr_scheduler import StepLR
+from torch.utils.data import Subset
+
+## --- ###
+## We will do DDP training here!!!
+
+
 
 from model import main_model
 
@@ -44,3 +65,6 @@ for i, (x , y) in enumerate(data_):
 
 
 
+
+if __name__ == '__main__':
+    ## main()

@@ -1,13 +1,22 @@
 import pandas as pd
 import os
+import torchvision
 from torchvision.io import read_image
 from torch.utils.data import Dataset
+
+import torch
+import torchvision.datasets as datasets
+import torchvision.models as models
+import torchvision.transforms as transforms
+
+### Gotto define your transforms we may jit'em if needed 
 
 
 class test_data(Dataset):
     def __init__(self, csv_file = "/home/sahmaran/data/ImageNet/LOC_val_solution.csv",
                  root_dir = "/home/sahmaran/data/ImageNet/ILSVRC/Data/CLS-LOC/val",
-                 classes_dict = classes_dict):
+                 classes_dict = dict_,
+                 ):
         super().__init__()
         self.samples:int = 0
         self.root_dir = root_dir
