@@ -1,14 +1,9 @@
 import pandas as pd
 import os
-import torchvision
-import torch
-
 from torchvision.io import read_image
 from torch.utils.data import Dataset
-
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
-
 ### Gotto define your transforms we may jit'em if needed 
 
 
