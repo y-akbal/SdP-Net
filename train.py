@@ -25,6 +25,7 @@ from torch.utils.data import Subset
 
 ## --- ###
 ## We will do DDP training here!!!
+## Maybe FSDP training
 
 
 
@@ -40,7 +41,7 @@ class trainer:
 
 
 
-
+""" 
 class CustomDataset(Dataset):
     def __init__(self):
         super().__init__()
@@ -68,7 +69,7 @@ for i, (x , y) in enumerate(data_):
     optimizer.step()
     loss_ += (loss.item()-loss_)/(i+1)
     
-
+"""
 
 
 
