@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 from torch import functional as F
 from tqdm import tqdm
+
 ### --- ###
 import torch.backends.cudnn as cudnn
 import torch.distributed as dist
@@ -31,6 +32,11 @@ from model import main_model
 
 model = main_model(conv_mixer_repetation=10, transformer_encoder_repetation=10, patch_size=4, multiplication_factor=1, squeeze_ratio=4).cuda()
 optimizer = torch.optim.SGD(model.parameters(),lr = 0.001, momentum = 0.9)
+
+
+class trainer:
+    def __init__(self):
+        pass
 
 
 
