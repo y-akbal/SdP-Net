@@ -1,4 +1,4 @@
-# A Horse in DA-ConvNets: AT-Net
+# A lighTweight ConvNet: AT-Net
 
 
 <a href="https://www.youtube.com/shorts/3BW1lBgtbbs" class="follow"> 
