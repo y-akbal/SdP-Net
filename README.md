@@ -10,7 +10,7 @@ This is actually a less serious weekend project called AT-Net which can be thoug
  <ul>
   <li> No promise to get very high accuracy,</li>
   <li> We would like to hybridize things,</li>
-  <li> We do bizzare combinations for the mere reason because we would like to!!!,</li>
+  <li> We do bizzare combinations for the mere reason: because we would like to!!!,</li>
   <li> In AT-Net We trust!</li>
   
 </ul> 
