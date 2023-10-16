@@ -82,14 +82,14 @@ loc = "~/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/train"
 I, dict_= train_data(root_dir = loc)
 I[0][0].shape == 3,224,224  
 
-"""
 
 col = test_data(classes_dict = dict_,
           csv_file="~/Desktop/ImageNet/LOC_val_solution.csv",
           root_dir="/home/sahmaran/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/val"
           )
+"""
 
-col[1]
+
 
 
 if __name__ == '__main__':
