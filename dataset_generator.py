@@ -89,8 +89,5 @@ col = test_data(classes_dict = dict_,
           )
 """
 
-
-
-
 if __name__ == '__main__':
     print("Ok boomer")
