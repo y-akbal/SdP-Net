@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 from torchvision.io import read_image
+from PIL import Image 
 from torch.utils.data import Dataset
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
@@ -20,8 +21,6 @@ def return_transforms():
     transforms.ToTensor(),
     transforms.Normalize(mean, std)
     ])
-
-    ### No need 
 
     transforms_test = transforms.Compose([
         transforms.Resize((224,224)),
@@ -56,9 +55,9 @@ class test_data(Dataset):
         self.root_dir = root_dir
         self.classes_dict = classes_dict
         ###
-        file = pd.read_csv(csv_file)
-        self.file_names = file.iloc[:,0]
-        self.anotations = file.iloc[:,1].apply(self.__split__)
+        self.file = pd.read_csv(csv_file)
+        self.file_names = self.file.iloc[:,0]
+        self.anotations = self.file.iloc[:,1].apply(self.__split__)
         ###
         self.transformations = transformations
         
@@ -67,7 +66,7 @@ class test_data(Dataset):
     def __getitem__(self, index):
         ## First images
         image = os.path.join(self.root_dir, self.file_names[index]+ ".JPEG")
-        image_ = read_image(image)
+        image_ = Image.open(image)
         transformed_image = self.transformations(image_)
         ## now the labels
         anotations = self.anotations[index]
@@ -85,17 +84,14 @@ I[0][0].shape == 3,224,224
 
 
 col = test_data(classes_dict = dict_,
-          csv_file="/home/sahmaran/Desktop/ImageNet/LOC_train_solution.csv",
+          csv_file="~/Desktop/ImageNet/LOC_val_solution.csv",
           root_dir="/home/sahmaran/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/val"
           )
 
-col[0]
+
 
 
 ### Test set now!!!
-
-
-
 
 
 if __name__ == '__main__':
