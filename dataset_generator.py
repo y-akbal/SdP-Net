@@ -66,6 +66,8 @@ class test_data(Dataset):
     def __getitem__(self, index):
         ## First images
         image = os.path.join(self.root_dir, self.file_names[index]+ ".JPEG")
+        ### We need to test where .rgb method introduces some latency in the case
+        ### that the image already has 3 channels!!!
         image_ = Image.open(image).convert('RGB') 
         transformed_image = self.transformations(image_)
         ## now the labels
