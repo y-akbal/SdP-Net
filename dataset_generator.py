@@ -66,32 +66,30 @@ class test_data(Dataset):
     def __getitem__(self, index):
         ## First images
         image = os.path.join(self.root_dir, self.file_names[index]+ ".JPEG")
-        image_ = Image.open(image)
+        image_ = Image.open(image).convert('RGB') 
         transformed_image = self.transformations(image_)
         ## now the labels
         anotations = self.anotations[index]
         classes = self.classes_dict[anotations]
-        return transformed_image, classes
+        return transformed_image, classes, anotations
     def __split__(self, n):
         return n.split()[0]
         
 
-
+"""
 #train_set test ok
 loc = "~/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/train"
 I, dict_= train_data(root_dir = loc)
 I[0][0].shape == 3,224,224  
 
+"""
 
 col = test_data(classes_dict = dict_,
           csv_file="~/Desktop/ImageNet/LOC_val_solution.csv",
           root_dir="/home/sahmaran/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/val"
           )
 
-
-
-
-### Test set now!!!
+col[1]
 
 
 if __name__ == '__main__':
