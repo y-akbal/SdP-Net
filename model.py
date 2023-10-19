@@ -63,6 +63,13 @@ class main_model(nn.Module):
         
     def fun_encoder_dim(self, n:int)->int:
         return math.floor(n/(self.patch_size*self.squeeze_ratio))
+    
+    def return_num_params(self)->int:
+        ## This dude will return the number of parameters
+        total_params:int = 0 
+        for param in self.parameters():
+            total_params += param.shape.numel()
+        return total_params
 
     def forward(self, x, y = None):
         x = self.conv_init(x)

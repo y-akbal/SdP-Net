@@ -21,14 +21,25 @@ import torchvision.models as models
 import torchvision.transforms as transforms
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import Subset
+### --- ###
 
+### --- ###
+from model import main_model
 ## --- ###
 ## We will do DDP training here!!!
 ## Maybe FSDP training
 
 
+def return_model(**kwargs):
+    return None
+def return_dataset(**kwargs):
+    return None
+def return_training_objectives(**kwargs):
+    return None
 
-from model import main_model
+
+
+
 
 model = main_model(conv_mixer_repetation=10, transformer_encoder_repetation=10, patch_size=4, multiplication_factor=1, squeeze_ratio=4).cuda()
 optimizer = torch.optim.SGD(model.parameters(),lr = 0.001, momentum = 0.9)
