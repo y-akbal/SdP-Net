@@ -6,11 +6,10 @@ from torch.distributed import (
     ReduceOp,
 )
 
-
-
 class track_accuracy:
     def __init__(self, initial_acc = 0.0):
         self.acc = initial_acc
+        self.dist_acc = initial_acc
         self.counter = 1
     def update(self, batch_acc):
         self.counter += 1
@@ -21,7 +20,21 @@ class track_accuracy:
         self.acc = 0.0
     @property
     def accuracy(self):
-        return self.acc
+        ### This is for logging purposses 
+        ### should be called at the end of each epoch!!!
+        self.__allreduce__()
+        return self.dist_acc
+
+    def __allreduce__(self):
+        if torch.cuda.is_available():
+            device = torch.device("cuda")
+        else:
+            device = torch.device("cpu")
+        loss_tensor = torch.tensor(
+            [self.acc], device=device, dtype=torch.float32
+        )
+        all_reduce(loss_tensor, ReduceOp.AVG, async_op=False)
+        self.dist_acc = loss_tensor.numpy()
 
 
 
