@@ -48,7 +48,8 @@ class distributed_loss_track:
         self.counter = 1
         self.loss = []
         self.epoch = 0
-        ## Bu kodu yazanlar ne güzel mühendislerdir, onların supervisorları ne
+        ## Bu kodu yazanlar ne güzel mühendislerdir, 
+        ## onların supervisorları ne
         ## iyi supervisorlardır
 
     def update(self, loss, epoch = None):
@@ -56,11 +57,9 @@ class distributed_loss_track:
         self.counter += 1
         if epoch is not None:
             self.epoch += epoch
-    
 
     def reset(self):
-        self.temp_loss = 0
-        self.counter = 0
+        self.temp_loss, self.counter = 0, 0
 
     def get_avg_loss(self):
         return self.temp_loss / self.counter
@@ -76,10 +75,12 @@ class distributed_loss_track:
         all_reduce(loss_tensor, ReduceOp.SUM, async_op=False)
         self.temp_loss, self.counter = loss_tensor.tolist()
         self.loss.append(self.temp_loss)
+
     def save_log(self):
         dict_ = {f"epoch-{self.epoch}": self.temp_loss}
         with open(f"{self.epoch}_epoch" + self.file_name, mode="ab") as file:
             pickle.dump(dict_, file)
+
     @property
     def loss(self):
         return self.temp_loss

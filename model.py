@@ -61,6 +61,16 @@ class main_model(nn.Module):
                                         ) for i in range(transformer_encoder_repetation-1)])
 
         
+    
+    
+
+    def forward(self, x, y = None):
+        x = self.conv_init(x)
+        x = self.conv_mixer(x)
+        x = self.squeezer(x)
+        x = self.encoder_init(x,y)
+        return self.encoder_rest(x)
+
     def fun_encoder_dim(self, n:int)->int:
         return math.floor(n/(self.patch_size*self.squeeze_ratio))
     
@@ -71,18 +81,50 @@ class main_model(nn.Module):
             total_params += param.shape.numel()
         return total_params
 
-    def forward(self, x, y = None):
-        x = self.conv_init(x)
-        x = self.conv_mixer(x)
-        x = self.squeezer(x)
-        x = self.encoder_init(x,y)
-        return self.encoder_rest(x)
+    ## The methods will work in tandem with the methods from_dict ## 
+    ## They may not function if you use __init__ method!!! ##
+    @classmethod
+    def from_dict(cls, **kwargs):
+        cls.config = kwargs
+        model = cls(**kwargs)
+        return model
+    
+    @classmethod
+    def from_pretrained(cls, file_name):
+        try:
+            dict_ = torch.load(file_name)
+            config = dict_["config"]
+            state_dict = dict_["state_dict"]
+            model = cls.from_dict(**config)
+            model.load_state_dict(state_dict)
+            print(
+                f"Model loaded successfully!!!! The current configuration is {config}"
+            )
+
+        except Exception as e:
+            print(f"Something went wrong with {e}")
+        return model
+
+    def save_model(self, file_name):
+        fn = "Model" if file_name == None else file_name
+        model = {}
+        model["state_dict"] = self.state_dict()
+        model["config"] = self.config
+        try:
+            torch.save(model, f"{fn}")
+            print(
+                f"Model saved succesfully, see the file {fn} for the weights and config file!!!"
+            )
+        except Exception as exp:
+            print(f"Something went wrong with {exp}!!!!!")
+
 
 """
 torch.manual_seed(0)
 main_model(conv_mixer_repetation=5, transformer_encoder_repetation=10, patch_size=24)(torch.randn(32, 3, 224, 224), torch.tensor([[1]])).shape
 
 model = main_model(conv_mixer_repetation=5, transformer_encoder_repetation=10, patch_size=16, multiplication_factor=4).cuda(1)
+vars(model)
 
 model(torch.randn(8, 3, 224, 224).cuda(1), torch.tensor([[1]]).cuda(1)).shape
 
