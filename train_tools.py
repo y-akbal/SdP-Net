@@ -14,14 +14,16 @@ class track_accuracy:
         self.counter = 1
     def update(self, batch_acc):
         self.counter += 1
-        self.acc += (self.acc - batch_acc)/self.counter
+        self.t += batch_acc
+        self.acc += (batch_acc -  self.acc)/self.counter
     def reset(self):
         self.counter = 1
         self.acc = 0.0
     @property
-    def acc(self):
+    def accuracy(self):
         return self.acc
-    
+
+
 
 class distributed_loss_track:
     ## This is from one for all repo!!!
@@ -64,15 +66,8 @@ class distributed_loss_track:
         dict_ = {f"epoch-{self.epoch}": self.temp_loss}
         with open(f"{self.epoch}_epoch" + self.file_name, mode="ab") as file:
             pickle.dump(dict_, file)
-    
     @property
     def loss(self):
         return self.temp_loss
 
 
-
-class loss_logger: 
-    def __init__(self):
-        pass
-    
-    
