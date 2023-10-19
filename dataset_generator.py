@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import torch
 from torchvision.io import read_image
 from PIL import Image 
 from torch.utils.data import Dataset
@@ -63,6 +64,7 @@ class test_data(Dataset):
         
     def __len__(self):
         return len(self.anotations)
+    @torch.jit
     def __getitem__(self, index):
         ## First images
         image = os.path.join(self.root_dir, self.file_names[index]+ ".JPEG")
