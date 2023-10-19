@@ -64,7 +64,7 @@ class test_data(Dataset):
         
     def __len__(self):
         return len(self.anotations)
-    @torch.jit
+
     def __getitem__(self, index):
         ## First images
         image = os.path.join(self.root_dir, self.file_names[index]+ ".JPEG")

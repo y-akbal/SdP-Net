@@ -22,7 +22,8 @@ class track_accuracy:
     def accuracy(self):
         ### This is for logging purposses 
         ### should be called at the end of each epoch!!!
-        self.__allreduce__()
+        ## This dude takes average of accuracies from difference processes
+        self.__allreduce__()         
         return self.dist_acc
 
     def __allreduce__(self):
