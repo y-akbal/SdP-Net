@@ -75,5 +75,7 @@ def main():
     return None
 
 if __name__ == '__main__':
+    ## use here weights and biases!!!!
+    ## use it properly dude!!!
     pass
     ## main()
