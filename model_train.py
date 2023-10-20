@@ -29,6 +29,8 @@ from omegaconf import DictConfig, OmegaConf
 from model import main_model
 from dataset_generator import test_data, train_data
 ## --- ###
+from train_tools import trainer
+
 
 
 def data_loader_train(**kwargs):
@@ -36,9 +38,6 @@ def data_loader_train(**kwargs):
 def data_loader_validation(**kwargs):
     return None
 
-class trainer:
-    def __init__(self):
-        pass
 
 
 @hydra.main(version_base=None, config_path=".", config_name="model_config")
@@ -50,10 +49,10 @@ def main(cfg : DictConfig):
 
     ## model_config -- optimizer config -- scheduler config ##
     torch.manual_seed(0)
-    model = Model(**model_config)
-    os.environ["LOCAL_RANK"] = cfg["local_rank"]
+    model = main_model.from_dict(**model_config)
+    print(model(torch.randn(1, 3, 224,224)).shape)
     ## -- ##
-    
+    """
     ### We now do some data_stuff ###
     train_dataset, val_dataset = cfg["data"]["train_path"], cfg["data"]["val_path"]
     train_data_kwargs, val_data_kwargs = cfg["data"]["train_data_details"], cfg["data"]["val_data_details"]
@@ -84,7 +83,7 @@ def main(cfg : DictConfig):
     trainer.validate()
 
 
-
+"""
 
 
 
@@ -94,5 +93,4 @@ def main(cfg : DictConfig):
 if __name__ == '__main__':
     ## use here weights and biases!!!!
     ## use it properly dude!!!
-    pass
-    ## main()
+    main()

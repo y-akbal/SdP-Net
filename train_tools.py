@@ -6,6 +6,14 @@ from torch.distributed import (
     ReduceOp,
 )
 
+
+class trainer:
+    def __init__(self):
+        pass
+
+
+
+
 class track_accuracy:
     def __init__(self, initial_acc = 0.0):
         self.acc = initial_acc

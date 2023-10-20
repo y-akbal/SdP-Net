@@ -1,10 +1,16 @@
 
 model_config:
-  number_ts: 264
-  embedding_dim: 512
-  n_blocks: 12
-  pool_size: 4
-  number_of_heads: 4
+  embedding_dim_conv: 512
+
+  n_head: 4
+  conv_kernel_size: 5
+  conv_mixer_repetition: 5
+  transformer_encoder_repetition: 5
+  patch_size: 16
+  dropout: 0.2
+  num_register: 2
+  multiplication_factor: 1
+  squeeze_ratio: 1
 
 
 
@@ -12,7 +18,7 @@ compile_model: False
 snapshot_path: "/model"
 save_every: 1
 epochs: 1
-local_rank: "0"
+
   
 optimizer_config:
   lr: 0.000001

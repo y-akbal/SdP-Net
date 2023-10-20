@@ -12,11 +12,11 @@ from layers import conv_int, conv_mixer, squeezer, first_encoder_layer, encoder_
 class main_model(nn.Module):
     def __init__(self, 
                  embedding_dim_conv:int = 512,
-                 image_size = (224,224),
+                 image_size = (224, 224),
                  n_head:int = 4,
                  conv_kernel_size:int = 5,
-                 conv_mixer_repetation:int = 5, 
-                 transformer_encoder_repetation:int = 5,
+                 conv_mixer_repetition:int = 5, 
+                 transformer_encoder_repetition:int = 5,
                  activation = nn.GELU("tanh"),
                  patch_size:int = 4,
                  dropout:float = 0.2,
@@ -37,7 +37,7 @@ class main_model(nn.Module):
                                   )
         self.conv_mixer = nn.Sequential(*[conv_mixer(embedding_dim_conv, 
                                         kernel_size= conv_kernel_size)
-                                        for i in range(conv_mixer_repetation)])
+                                        for i in range(conv_mixer_repetition)])
         if squeeze_ratio == 1:
             self.squeezer = lambda x: x
         else:
@@ -58,7 +58,7 @@ class main_model(nn.Module):
                                         multiplication_factor= multiplication_factor,
                                         activation_func= activation,
                                         dropout=dropout,
-                                        ) for i in range(transformer_encoder_repetation-1)])
+                                        ) for i in range(transformer_encoder_repetition-1)])
 
         
     
@@ -119,11 +119,14 @@ class main_model(nn.Module):
             print(f"Something went wrong with {exp}!!!!!")
 
 
+
+
 """
 torch.manual_seed(0)
 main_model(conv_mixer_repetation=5, transformer_encoder_repetation=, patch_size=24)(torch.randn(32, 3, 224, 224), torch.tensor([[1]])).shape
 
-main_model(conv_mixer_repetation=5, transformer_encoder_repetation=5, patch_size=16, multiplication_factor=4).return_num_params()
+main_model(conv_mixer_repetition=5, transformer_encoder_repetition=5, patch_size=16, multiplication_factor=1).return_num_params()
+main_model.from_dict().return_num_params()
 
 model(torch.randn(8, 3, 224, 224).cuda(1), torch.tensor([[1]]).cuda(1)).shape
 """
