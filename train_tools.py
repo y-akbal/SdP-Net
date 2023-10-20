@@ -30,7 +30,6 @@ class trainer:
         self.model = DDP(self.model, device_ids=[gpu_id])
         if compile:
             self.model = torch.compile(self.model, backend="inductor")
-
         ##
         self.train_data = train_data
         self.val_data = val_data
@@ -45,9 +44,9 @@ class trainer:
         ##
         self.autocast = torch.autocast
         self.scaler = torch.cuda.amp.GradScaler()
-
+        
     def _run_batch(self, source, targets):
-        ### All the things like low precision training will happen dude!!!
+        ### All the things like low precision training will happen here dude!!!
         self.optimizer.zero_grad()
         with self.autocast(device_type="cuda", dtype=torch.bfloat16):
             output = self.model(source)
@@ -55,7 +54,7 @@ class trainer:
         self.scaler.scale(loss).backward()
         self.scaler.step(self.optimizer)
         self.scaler.update()
-
+        self.scheduler.step()
         ### We log the loss,
 
     def _run_epoch(self, epoch, report_in_every = 100):

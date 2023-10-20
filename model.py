@@ -62,12 +62,15 @@ class main_model(nn.Module):
     
     
 
-    def forward(self, x, y = None):
+    def forward(self, x, y = None, task = "classification"):
         x = self.conv_init(x)
-        x = self.conv_mixer(x)
-        x = self.squeezer(x)
+        x_ = self.conv_mixer(x)
+        x = self.squeezer(x_)
         x = self.encoder_init(x,y)
-        return self.encoder_rest(x)
+        if task == "classification":
+            return self.encoder_rest(x)[:,0,:]
+        return self.encoder_rest(x), x_
+        
 
     def fun_encoder_dim(self, n:int)->int:
         return math.floor(n/(self.patch_size*self.squeeze_ratio))
@@ -123,11 +126,19 @@ class main_model(nn.Module):
 torch.manual_seed(0)
 main_model(conv_mixer_repetation=5, transformer_encoder_repetation=, patch_size=24)(torch.randn(32, 3, 224, 224), torch.tensor([[1]])).shape
 
-main_model(conv_mixer_repetition=5, transformer_encoder_repetition=5, patch_size=16, multiplication_factor=1).return_num_params()
+model = main_model(conv_mixer_repetition=5, transformer_encoder_repetition=5, patch_size=16, multiplication_factor=1)
 main_model.from_dict().return_num_params()
 
-model(torch.randn(8, 3, 224, 224).cuda(1), torch.tensor([[1]]).cuda(1)).shape
+model(torch.randn(8, 3, 224, 224).cuda(1), torch.tensor([[1]])
+
+model = main_model(embedding_dim_conv=256, conv_mixer_repetition=5, transformer_encoder_repetition=5, patch_size=8, multiplication_factor=2).cuda()
+model.return_num_params()
+
+model(torch.randn(8, 3, 224, 224).cuda(), torch.tensor([[1]]).cuda(), task = None)[1].shape
+
 """
+
+
 
 if __name__ == "__main__":
     print("Ok boomer!!!")
