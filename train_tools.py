@@ -9,7 +9,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.functional as F
 
 ## We grabbed this from the official pytorch github repository.
-class trainer:
+class Trainer:
     def __init__(
         self,
         model: torch.nn.Module,
@@ -29,7 +29,7 @@ class trainer:
 
         self.model = DDP(self.model, device_ids=[gpu_id])
         if compile:
-            self.model = torch.compile(self.model, backend="inductor")
+            self.model = torch.compile(self.model)
         ##
         self.train_data = train_data
         self.val_data = val_data
@@ -66,7 +66,7 @@ class trainer:
             source = source.to(self.gpu_id, non_blocking=True)
             targets = targets.to(self.gpu_id, non_blocking=True)
             self._run_batch(source, targets)
-        self.validate()
+        #self.validate()
 
     def _save_checkpoint(self, epoch):
         ckp = self.model.module.state_dict()

@@ -28,7 +28,7 @@ from omegaconf import DictConfig, OmegaConf
 ### import model and train and validation data and trainer ###
 from model import main_model
 from dataset_generator import test_data, train_data
-from train_tools import trainer as Trainer
+from train_tools import Trainer
 
 
 
@@ -39,6 +39,7 @@ def ddp_setup():
 
 
 def train_val_data_loader(train_data, test_data, **kwargs):
+    ### This dude prepares the training and validation data ###
     root_dir_train = kwargs["train_path"]["root_dir"]
     root_dir_val = kwargs["val_path"]["root_dir"]
     csv_file_val = kwargs["val_path"]["csv_file"]
@@ -87,13 +88,17 @@ def main(cfg : DictConfig):
 
     print(len(train_images), len(test_images))
     print(os.environ["LOCAL_RANK"])
-    print(type(scheduler))
     
-    for x,y in train_images:
-        print(model(x).shape, os.environ["LOCAL_RANK"])
-        break
-
-
+    trainer = Trainer(
+        model = model,
+        train_data= train_images,
+        val_data = test_images,
+        optimizer = optimizer,
+        scheduler= scheduler,
+        gpu_id = int(os.environ["LOCAL_RANK"]),
+        save_every= 0,
+    )
+    trainer.train(2)
 
     destroy_process_group()
 

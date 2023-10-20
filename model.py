@@ -57,19 +57,19 @@ class main_model(nn.Module):
                                         activation_func= activation,
                                         dropout=dropout,
                                         ) for i in range(transformer_encoder_repetition-1)])
-
+ 
         
-    
-    
-
+        self.lazy_output = nn.LazyLinear(1000)
+        
     def forward(self, x, y = None, task = "classification"):
         x = self.conv_init(x)
         x_ = self.conv_mixer(x)
         x = self.squeezer(x_)
         x = self.encoder_init(x,y)
         if task == "classification":
-            return self.encoder_rest(x)[:,0,:]
-        return self.encoder_rest(x), x_
+            x =  self.encoder_rest(x)[:,0,:]
+        x =  self.encoder_rest(x)
+        return self.lazy_output(x)
         
 
     def fun_encoder_dim(self, n:int)->int:
@@ -120,24 +120,24 @@ class main_model(nn.Module):
             print(f"Something went wrong with {exp}!!!!!")
 
 
-
-
 """
-torch.manual_seed(0)
-main_model(conv_mixer_repetation=5, transformer_encoder_repetation=, patch_size=24)(torch.randn(32, 3, 224, 224), torch.tensor([[1]])).shape
-
-model = main_model(conv_mixer_repetition=5, transformer_encoder_repetition=5, patch_size=16, multiplication_factor=1)
-main_model.from_dict().return_num_params()
-
-model(torch.randn(8, 3, 224, 224).cuda(1), torch.tensor([[1]])
-
-model = main_model(embedding_dim_conv=256, conv_mixer_repetition=5, transformer_encoder_repetition=5, patch_size=8, multiplication_factor=2).cuda()
+model = main_model(embedding_dim_conv=256, conv_mixer_repetition=5, transformer_encoder_repetition=5, patch_size=8, multiplication_factor=1).cuda()
+model(torch.randn(1, 3, 224, 224).cuda(), torch.tensor([[1]]).cuda()).shape
 model.return_num_params()
 
-model(torch.randn(8, 3, 224, 224).cuda(), torch.tensor([[1]]).cuda(), task = None)[1].shape
 
+import numpy as np
+y = torch.tensor(np.random.randint(0, 1000, size = 100)).cuda()
+X = torch.randn(100, 3, 224,224).cuda()
+
+optimizer = torch.optim.SGD(model.parameters(), lr=0.00001, momentum=0.9)
+for i in range(1000):
+    optimizer.zero_grad()
+    loss = F.cross_entropy(model(X),y)
+    loss.backward()
+    print(loss.item())
+    optimizer.step()
 """
-
 
 
 if __name__ == "__main__":
