@@ -6,66 +6,97 @@ from torch.distributed import (
     ReduceOp,
 )
 from torch.nn.parallel import DistributedDataParallel as DDP
+import torch.functional as F
 
-
+## We grabbed this from the official pytorch github repository.
 class Trainer:
     def __init__(
         self,
         model: torch.nn.Module,
         train_data: torch.utils.data.DataLoader,
+        val_data: torch.utils.data.DataLoader,
         optimizer: torch.optim.Optimizer,
+        scheduler: torch.Scheduler,
+        gpu_id: int,
         save_every: int,
-        snapshot_path: str,
+        val_loss_logger=None,
+        train_loss_logger=None,
+        compile=False
+        # tracker ## this dude is for tracking stuff
     ) -> None:
-        self.gpu_id = int(os.environ["LOCAL_RANK"])
-        self.model = model.to(self.gpu_id)
+        self.gpu_id = gpu_id
+        self.model = model.to(gpu_id)
+
+        self.model = DDP(self.model, device_ids=[gpu_id])
+        if compile:
+            self.model = torch.compile(self.model, backend="inductor")
+
+        ##
         self.train_data = train_data
+        self.val_data = val_data
+        ##
         self.optimizer = optimizer
+        self.scheduler = scheduler
+        ##
         self.save_every = save_every
-        self.epochs_run = 0
-        self.snapshot_path = snapshot_path
-        if os.path.exists(snapshot_path):
-            print("Loading snapshot")
-            self._load_snapshot(snapshot_path)
-
-        self.model = DDP(self.model, device_ids=[self.gpu_id])
-
-    def _load_snapshot(self, snapshot_path):
-        loc = f"cuda:{self.gpu_id}"
-        snapshot = torch.load(snapshot_path, map_location = loc)
-        self.model.load_state_dict(snapshot["MODEL_STATE"])
-        self.epochs_run = snapshot["EPOCHS_RUN"]
-        print(f"Resuming training from snapshot at Epoch {self.epochs_run}")
+        ##
+        self.val_loss_logger = val_loss_logger
+        self.train_loss_logger = train_loss_logger
+        ##
+        self.autocast = torch.autocast
+        self.scaler = torch.cuda.amp.GradScaler()
 
     def _run_batch(self, source, targets):
+        ### All the things like low precision training will happen dude!!!
         self.optimizer.zero_grad()
-        output = self.model(source)
-        loss = F.cross_entropy(output, targets)
-        loss.backward()
-        self.optimizer.step()
+        with self.autocast(device_type="cuda", dtype=torch.bfloat16):
+            output = self.model(source)
+            loss = F.mse_loss(output, targets)
+        self.scaler.scale(loss).backward()
+        self.scaler.step(self.optimizer)
+        self.scaler.update()
 
-    def _run_epoch(self, epoch):
-        b_sz = len(next(iter(self.train_data))[0])
-        print(f"[GPU{self.gpu_id}] Epoch {epoch} | Batchsize: {b_sz} | Steps: {len(self.train_data)}")
+        ### We log the loss,
+
+    def _run_epoch(self, epoch, report_in_every = 100):
+        # b_sz = len(next(iter(self.train_data))[0])
+        if epoch % report_in_every == 0:
+            print(f"[GPU{self.gpu_id}] Epoch {epoch}")
         self.train_data.sampler.set_epoch(epoch)
         for source, targets in self.train_data:
-            source = source.to(self.gpu_id)
-            targets = targets.to(self.gpu_id)
+            source = source.to(self.gpu_id, non_blocking=True)
+            targets = targets.to(self.gpu_id, non_blocking=True)
             self._run_batch(source, targets)
+        self.validate()
 
-    def _save_snapshot(self, epoch):
-        snapshot = {
-            "MODEL_STATE": self.model.module.state_dict(),
-            "EPOCHS_RUN": epoch,
-        }
-        torch.save(snapshot, self.snapshot_path)
-        print(f"Epoch {epoch} | Training snapshot saved at {self.snapshot_path}")
+    def _save_checkpoint(self, epoch):
+        ckp = self.model.module.state_dict()
+        PATH = "checkpoint.pt"
+        torch.save(ckp, PATH)
+        print(f"Epoch {epoch} | Training checkpoint saved at {PATH}")
+    
+    
 
     def train(self, max_epochs: int):
-        for epoch in range(self.epochs_run, max_epochs):
+        for epoch in range(max_epochs):
             self._run_epoch(epoch)
-            if self.gpu_id == 0 and epoch % self.save_every == 0:
-                self._save_snapshot(epoch)
+            # if self.gpu_id == 0 and epoch % self.save_every == 0:
+            #   self._save_checkpoint(epoch)
+
+    def validate(self):
+        self.model.eval()
+        with torch.no_grad():  ## block traking gradients
+            for source, targets in self.val_data:
+                source = source.to(self.gpu_id)
+                targets = targets.to(self.gpu_id)
+                output = self.model(source)  
+                """"""
+                loss = F.mse_loss(output, targets)
+                self.val_loss_logger.update(loss.item())
+            self.val_loss_logger.all_reduce()
+            if self.gpu_id == 0:
+                # print(self.val_loss_logger.get_avg_loss())
+                self.val_loss_logger.reset()
 
 
 

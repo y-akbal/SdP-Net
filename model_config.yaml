@@ -16,7 +16,7 @@ model_config:
 compile_model: False
 snapshot_path: "/model"
 save_every: 1
-epochs: 1
+epochs: 15
 
   
 optimizer_config:
