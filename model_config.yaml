@@ -32,20 +32,17 @@ data:
   train_path:
    root_dir: "~/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/train"
   val_path:
-   file: "array_test.dat"
-   length_file: "lengthsarray_test.dat"
-   lags: 513
+   root_dir: "/home/sahmaran/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/val"
+   csv_file: "~/Desktop/ImageNet/LOC_val_solution.csv"
   
   train_data_details:
-   batch_size: 32
+   batch_size: 128
    num_workers: 4
-   shuffle: True
    pin_memory: True
    
   val_data_details:
-   batch_size: 32
+   batch_size: 128
    num_workers: 2
-   shuffle: False
    pin_memory: True
    drop_last: True
    
