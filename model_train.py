@@ -29,15 +29,12 @@ from omegaconf import DictConfig, OmegaConf
 from model import main_model
 from dataset_generator import test_data, train_data
 ## --- ###
-from train_tools import trainer
+from train_tools import trainer as Trainer
 
 
 
-def data_loader_train(**kwargs):
+def train_val_data_loader(**kwargs):
     return None
-def data_loader_validation(**kwargs):
-    return None
-
 
 
 @hydra.main(version_base=None, config_path=".", config_name="model_config")
@@ -50,22 +47,12 @@ def main(cfg : DictConfig):
     ## model_config -- optimizer config -- scheduler config ##
     torch.manual_seed(0)
     model = main_model.from_dict(**model_config)
-    print(model(torch.randn(1, 3, 224,224)).shape)
-    ## -- ##
-    """
-    ### We now do some data_stuff ###
-    train_dataset, val_dataset = cfg["data"]["train_path"], cfg["data"]["val_path"]
-    train_data_kwargs, val_data_kwargs = cfg["data"]["train_data_details"], cfg["data"]["val_data_details"]
-    train_data = return_dataset(**train_dataset)
-    validation_data = return_dataset(**val_dataset)
-    train_dataloader = data_loader(train_data, **train_data_kwargs)
-    val_dataloader = data_loader(validation_data, **val_data_kwargs)
-    print(f"Note that the train dataset contains {len(train_dataloader)}! batches!!")
-    ### --- End of data grabbing --- ###
-    
     ### Optimizer ###
     optimizer = torch.optim.SGD(model.parameters(), **optimizer_config)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, **scheduler_config)
+    ##  train and validation data loader ## 
+    
+    
     ### Training Stuff Here it comes ###
     
     trainer = Trainer(model = model, 

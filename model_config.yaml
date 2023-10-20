@@ -30,9 +30,7 @@ scheduler_config:
 
 data:
   train_path:
-   file: "array_train.dat"
-   length_file: "lengthsarray_train.dat"
-   lags: 513
+   root_dir: "~/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/train"
   val_path:
    file: "array_test.dat"
    length_file: "lengthsarray_test.dat"
@@ -43,6 +41,7 @@ data:
    num_workers: 4
    shuffle: True
    pin_memory: True
+   
   val_data_details:
    batch_size: 32
    num_workers: 2
