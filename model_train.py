@@ -87,8 +87,12 @@ def main(cfg : DictConfig):
 
     print(len(train_images), len(test_images))
     print(os.environ["LOCAL_RANK"])
+    print(type(scheduler))
     
-    
+    for x,y in train_images:
+        print(model(x).shape, os.environ["LOCAL_RANK"])
+        break
+
 
 
     destroy_process_group()

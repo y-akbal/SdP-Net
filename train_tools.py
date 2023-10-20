@@ -9,14 +9,14 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.functional as F
 
 ## We grabbed this from the official pytorch github repository.
-class Trainer:
+class trainer:
     def __init__(
         self,
         model: torch.nn.Module,
         train_data: torch.utils.data.DataLoader,
         val_data: torch.utils.data.DataLoader,
         optimizer: torch.optim.Optimizer,
-        scheduler: torch.Scheduler,
+        scheduler: torch.optim.lr_scheduler,
         gpu_id: int,
         save_every: int,
         val_loss_logger=None,
