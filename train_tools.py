@@ -22,20 +22,22 @@ class track_accuracy:
     def accuracy(self):
         ### This is for logging purposses 
         ### should be called at the end of each epoch!!!
-        ## This dude takes average of accuracies from difference processes
+        ## This dude takes average of accuracies from different processes
         self.__allreduce__()         
         return self.dist_acc
 
     def __allreduce__(self):
         if torch.cuda.is_available():
             device = torch.device("cuda")
-        else:
-            device = torch.device("cpu")
-        loss_tensor = torch.tensor(
+            loss_tensor = torch.tensor(
             [self.acc], device=device, dtype=torch.float32
-        )
-        all_reduce(loss_tensor, ReduceOp.AVG, async_op=False)
-        self.dist_acc = loss_tensor.numpy()
+             )
+            all_reduce(loss_tensor, ReduceOp.AVG, async_op=False)
+            self.dist_acc = loss_tensor.numpy()
+        else:
+            pass
+        
+        
 
 
 
@@ -48,7 +50,7 @@ class distributed_loss_track:
         self.counter = 1
         self.loss = []
         self.epoch = 0
-        ## Bu kodu yazanlar ne güzel mühendislerdir, 
+        ## Bu kodu yazanlar ne güzel insanlardır, 
         ## onların supervisorları ne
         ## iyi supervisorlardır
 
@@ -77,6 +79,7 @@ class distributed_loss_track:
         self.loss.append(self.temp_loss)
 
     def save_log(self):
+        ### no need to call this dude unless you really need!!!
         dict_ = {f"epoch-{self.epoch}": self.temp_loss}
         with open(f"{self.epoch}_epoch" + self.file_name, mode="ab") as file:
             pickle.dump(dict_, file)
