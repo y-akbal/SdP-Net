@@ -36,26 +36,25 @@ def ddp_setup():
     init_process_group(backend="nccl")
     torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
 
+
+
 def train_val_data_loader(train_data, test_data, **kwargs):
     root_dir_train = kwargs["train_path"]["root_dir"]
     root_dir_val = kwargs["val_path"]["root_dir"]
     csv_file_val = kwargs["val_path"]["csv_file"]
-
+    ##
     train_image_generator, dict_val = train_data(root_dir = root_dir_train)
     test_image_generator = test_data(root_dir = root_dir_val,
               csv_file = csv_file_val,
               classes_dict = dict_val
     )
-    
-
+    ##
     kwargs_train = kwargs["train_data_details"]
     kwargs_test = kwargs["val_data_details"]
-
-
+    ##
     train_sampler = DistributedSampler(train_image_generator)
     val_sampler = DistributedSampler(test_image_generator)
-
-
+    ## 
     train_data = DataLoader(
         dataset= train_image_generator,
         sampler = train_sampler,
@@ -88,6 +87,7 @@ def main(cfg : DictConfig):
 
     print(len(train_images), len(test_images))
     print(os.environ["LOCAL_RANK"])
+    
     
 
 

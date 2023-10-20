@@ -4,8 +4,6 @@ from torch.nn import functional as F
 from torch.nn.parameter import Parameter
 import torch.nn.functional as F
 import math
-
-
 from layers import conv_int, conv_mixer, squeezer, first_encoder_layer, encoder_layer
 
 
