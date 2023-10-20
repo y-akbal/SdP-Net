@@ -21,6 +21,7 @@ class main_model(nn.Module):
                  num_register:int = 2,  
                  multiplication_factor:int = 2, 
                  squeeze_ratio:int = 1,
+                 output_classes = 1000,
                  ):
         super().__init__()
         ## Here we go again ##
@@ -59,7 +60,7 @@ class main_model(nn.Module):
                                         ) for i in range(transformer_encoder_repetition-1)])
  
         
-        self.lazy_output = nn.LazyLinear(1000)
+        self.lazy_output = nn.Linear(196, output_classes)
         
     def forward(self, x, y = None, task = "classification"):
         x = self.conv_init(x)
@@ -68,7 +69,7 @@ class main_model(nn.Module):
         x = self.encoder_init(x,y)
         if task == "classification":
             x =  self.encoder_rest(x)[:,0,:]
-        x =  self.encoder_rest(x)
+        x =  self.encoder_rest(x).mean(-2)
         return self.lazy_output(x)
         
 
@@ -121,24 +122,28 @@ class main_model(nn.Module):
 
 
 """
-model = main_model(embedding_dim_conv=256, conv_mixer_repetition=5, transformer_encoder_repetition=5, patch_size=8, multiplication_factor=1).cuda()
+model = main_model(embedding_dim_conv=512, conv_mixer_repetition=5, transformer_encoder_repetition=5, patch_size=16, multiplication_factor=1).cuda()
 model(torch.randn(1, 3, 224, 224).cuda(), torch.tensor([[1]]).cuda()).shape
 model.return_num_params()
 
+list(model.state_dict().keys())[45:86]
+
 
 import numpy as np
-y = torch.tensor(np.random.randint(0, 1000, size = 100)).cuda()
-X = torch.randn(100, 3, 224,224).cuda()
+y = torch.tensor(np.random.randint(0, 1000, size = 32)).cuda()
+X = 0.4*torch.randn(32, 3, 224,224).cuda()
+l = model(X, task = None)
+F.cross_entropy(l,y)
 
-optimizer = torch.optim.SGD(model.parameters(), lr=0.00001, momentum=0.9)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
 for i in range(1000):
     optimizer.zero_grad()
-    loss = F.cross_entropy(model(X),y)
+    loss = F.cross_entropy(model(X, task = None),y)
     loss.backward()
     print(loss.item())
     optimizer.step()
-"""
 
+"""
 
 if __name__ == "__main__":
     print("Ok boomer!!!")

@@ -48,8 +48,8 @@ class conv_mixer(nn.Module):
                                 out_channels = embedding_dim,
                                 kernel_size =1,
                                 )
-        self.batch_norm_1 = nn.BatchNorm2d(embedding_dim)
-        self.batch_norm_2 = nn.BatchNorm2d(embedding_dim)
+        self.batch_norm_1 = nn.SyncBatchNorm(embedding_dim)
+        self.batch_norm_2 = nn.SyncBatchNorm(embedding_dim)
         self.activation = activation
     def forward(self, x_):
         x = self.conv2d(x_)

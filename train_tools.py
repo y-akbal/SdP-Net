@@ -6,7 +6,8 @@ from torch.distributed import (
     ReduceOp,
 )
 from torch.nn.parallel import DistributedDataParallel as DDP
-import torch.functional as F
+import torch.nn.functional as F
+
 
 ## We grabbed this from the official pytorch github repository.
 class Trainer:
@@ -27,7 +28,7 @@ class Trainer:
         self.gpu_id = gpu_id
         self.model = model.to(gpu_id)
 
-        self.model = DDP(self.model, device_ids=[gpu_id])
+        self.model = DDP(self.model, device_ids=[gpu_id], find_unused_parameters=True)
         if compile:
             self.model = torch.compile(self.model)
         ##
@@ -45,12 +46,13 @@ class Trainer:
         self.autocast = torch.autocast
         self.scaler = torch.cuda.amp.GradScaler()
         
-    def _run_batch(self, source, targets):
+    def _run_batch(self, source, targets, i):
         ### All the things like low precision training will happen here dude!!!
         self.optimizer.zero_grad()
         with self.autocast(device_type="cuda", dtype=torch.bfloat16):
-            output = self.model(source)
-            loss = F.mse_loss(output, targets)
+            output = self.model(source, task = None)
+            loss = F.cross_entropy(output, targets)
+        print(f"loss {loss.item()}, {i} batch ")
         self.scaler.scale(loss).backward()
         self.scaler.step(self.optimizer)
         self.scaler.update()
@@ -62,10 +64,11 @@ class Trainer:
         if epoch % report_in_every == 0:
             print(f"[GPU{self.gpu_id}] Epoch {epoch}")
         self.train_data.sampler.set_epoch(epoch)
-        for source, targets in self.train_data:
+        for i, (source, targets) in enumerate(self.train_data):
             source = source.to(self.gpu_id, non_blocking=True)
             targets = targets.to(self.gpu_id, non_blocking=True)
-            self._run_batch(source, targets)
+            
+            self._run_batch(source, targets, i)
         #self.validate()
 
     def _save_checkpoint(self, epoch):
