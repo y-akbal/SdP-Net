@@ -52,7 +52,8 @@ class Trainer:
         with self.autocast(device_type="cuda", dtype=torch.bfloat16):
             output = self.model(source, task = None)
             loss = F.cross_entropy(output, targets)
-        print(f"loss {loss.item()}, {i} batch ")
+        if i % 100 == 0:
+            print(f"loss {loss.item()}, {i} batch, from gpu {self.gpu_id} ")
         self.scaler.scale(loss).backward()
         self.scaler.step(self.optimizer)
         self.scaler.update()
