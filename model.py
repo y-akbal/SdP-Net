@@ -122,7 +122,7 @@ class main_model(nn.Module):
 
 
 """
-model = main_model(embedding_dim_conv=512, conv_mixer_repetition=5, transformer_encoder_repetition=5, patch_size=16, multiplication_factor=1).cuda()
+model = main_model(embedding_dim_conv=512, conv_mixer_repetition=10, transformer_encoder_repetition=5, patch_size=16, multiplication_factor=4).cuda()
 model(torch.randn(1, 3, 224, 224).cuda(), torch.tensor([[1]]).cuda()).shape
 model.return_num_params()
 

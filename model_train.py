@@ -66,7 +66,6 @@ def train_val_data_loader(train_data, test_data, **kwargs):
         sampler = val_sampler,
         **kwargs_test,
     )
-
     return train_data, test_data
 
 
@@ -79,15 +78,17 @@ def main(cfg : DictConfig):
     ## --- ### 
 
     ## model_config -- optimizer config -- scheduler config ##
-    torch.manual_seed(0)
+    torch.manual_seed(5)
     model = main_model.from_dict(**model_config)
-    optimizer = torch.optim.SGD(model.parameters(), **optimizer_config)
+    optimizer = torch.optim.AdamW(model.parameters(), **optimizer_config)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, **scheduler_config)
     ## batched train and validation data loader ## 
     train_images, test_images = train_val_data_loader(train_data, test_data, **cfg["data"])
 
     print(len(train_images), len(test_images))
-    print(os.environ["LOCAL_RANK"])
+    print(f"Model has {model.return_num_params()}")
+    
+    
     
     trainer = Trainer(
         model = model,
@@ -96,9 +97,11 @@ def main(cfg : DictConfig):
         optimizer = optimizer,
         scheduler= scheduler,
         gpu_id = int(os.environ["LOCAL_RANK"]),
-        save_every= 0,
+        save_every= 1,
+        
+        compile = False
     )
-    trainer.train(2)
+    trainer.train(10)
 
     destroy_process_group()
 

@@ -7,7 +7,7 @@ from torch.distributed import (
 )
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.nn.functional as F
-
+import time
 
 ## We grabbed this from the official pytorch github repository.
 class Trainer:
@@ -48,6 +48,7 @@ class Trainer:
         
     def _run_batch(self, source, targets, i):
         ### All the things like low precision training will happen here dude!!!
+        self.model.train() ## Model in train mode!!!
         self.optimizer.zero_grad()
         with self.autocast(device_type="cuda", dtype=torch.bfloat16):
             output = self.model(source, task = None)
@@ -65,11 +66,12 @@ class Trainer:
         if epoch % report_in_every == 0:
             print(f"[GPU{self.gpu_id}] Epoch {epoch}")
         self.train_data.sampler.set_epoch(epoch)
+
         for i, (source, targets) in enumerate(self.train_data):
             source = source.to(self.gpu_id, non_blocking=True)
             targets = targets.to(self.gpu_id, non_blocking=True)
-            
             self._run_batch(source, targets, i)
+
         #self.validate()
 
     def _save_checkpoint(self, epoch):
@@ -83,8 +85,8 @@ class Trainer:
     def train(self, max_epochs: int):
         for epoch in range(max_epochs):
             self._run_epoch(epoch)
-            # if self.gpu_id == 0 and epoch % self.save_every == 0:
-            #   self._save_checkpoint(epoch)
+            if self.gpu_id == 0 and epoch % self.save_every == 0:
+               self._save_checkpoint(epoch)
 
     def validate(self):
         self.model.eval()

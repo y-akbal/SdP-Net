@@ -9,35 +9,27 @@ model_config:
   num_register: 2
   multiplication_factor: 1
   squeeze_ratio: 1
-
-
-
-compile_model: True
-snapshot_path: "/model"
+compile_model: true
+snapshot_path: /model
 save_every: 1
 epochs: 200
-
-  
 optimizer_config:
   lr: 0.0001
   weight_decay: 0.0005
-
 scheduler_config:
   T_max: 12
-
 data:
   train_path:
-   root_dir: "~/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/train"
+    root_dir: ~/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/train
   val_path:
-   root_dir: "/home/sahmaran/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/val"
-   csv_file: "~/Desktop/ImageNet/LOC_val_solution.csv"
+    root_dir: /home/sahmaran/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/val
+    csv_file: ~/Desktop/ImageNet/LOC_val_solution.csv
   train_data_details:
-   batch_size: 128
-   num_workers: 4
-   pin_memory: True
-   
+    batch_size: 128
+    num_workers: 4
+    pin_memory: true
   val_data_details:
-   batch_size: 128
-   num_workers: 2
-   pin_memory: True
-   drop_last: True
+    batch_size: 128
+    num_workers: 2
+    pin_memory: true
+    drop_last: true

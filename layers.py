@@ -122,7 +122,7 @@ class first_encoder_layer(nn.Module):
     def forward(self, x, y = None):
         ### Here y will be localtions as there will be 2 more inputs that we save for extra 
         B, C, _, _ = x.shape
-        
+
         if y == None:
             embeddings = self.embedding(self.num_register)
         else:
