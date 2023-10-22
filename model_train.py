@@ -3,32 +3,20 @@ import torch
 import os
 from torch import nn as nn
 from torch.utils.data import DataLoader
-from torch.utils.data import Dataset
-from torch import functional as F
-from tqdm import tqdm
-import torch.backends.cudnn as cudnn
-import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.parallel
 import torch.optim
 import torch.utils.data
 import torch.utils.data.distributed
-import torchvision.datasets as datasets
-import torchvision.models as models
-import torchvision.transforms as transforms
-from torch.optim.lr_scheduler import StepLR
-from torch.utils.data import Subset
-import torch.multiprocessing as mp
 from torch.utils.data.distributed import DistributedSampler
-from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group
 ### end of torch ### 
 import hydra
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig
 ### import model and train and validation data and trainer ###
 from model import main_model
 from dataset_generator import test_data, train_data
-from train_tools import Trainer
+from train_tools import Trainer, distributed_loss_track, track_accuracy
 
 
 
@@ -90,6 +78,10 @@ def main(cfg : DictConfig):
     
     gpu_id = int(os.environ["LOCAL_RANK"]) ### this local rank is determined by torch run!!!
     
+    train_loss_tracker = distributed_loss_track()
+    val_loss_tracker = distributed_loss_track(file_name="valloss.log")
+    
+
     trainer = Trainer(
         model = model,
         train_data= train_images,
@@ -98,7 +90,9 @@ def main(cfg : DictConfig):
         scheduler= scheduler,
         gpu_id = gpu_id,
         save_every= 1,
-        compile = False
+        compile = False,
+        val_loss_logger=val_loss_tracker,
+        train_loss_logger=train_loss_tracker
     )
     trainer.train(10)
 

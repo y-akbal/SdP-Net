@@ -1,10 +1,7 @@
 import torch
 from torch import nn as nn
-from torch.nn import functional as F
-from torch.nn.parameter import Parameter
-import torch.nn.functional as F
-import math
 from layers import conv_int, conv_mixer, squeezer, first_encoder_layer, encoder_layer
+import math
 
 
 class main_model(nn.Module):
@@ -87,8 +84,8 @@ class main_model(nn.Module):
     ## They may not function if you use __init__ method!!! ##
     @classmethod
     def from_dict(cls, **kwargs):
-        cls.config = kwargs
         model = cls(**kwargs)
+        model.config = kwargs
         return model
     
     @classmethod
@@ -145,7 +142,7 @@ for X in val_dat:
     break
        
 """
-
+"""
 model = main_model(embedding_dim_conv=512, conv_mixer_repetition=5, transformer_encoder_repetition=5, patch_size=8, multiplication_factor=1, squeeze_ratio=2).cuda()
 
 model(torch.randn(1, 3, 224, 224).cuda(), torch.tensor([[1]]).cuda()).shape
@@ -169,6 +166,6 @@ for i in range(1000):
     optimizer.step()
 
 
-
+"""
 if __name__ == "__main__":
     print("Ok boomer!!!")

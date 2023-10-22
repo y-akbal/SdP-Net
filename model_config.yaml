@@ -1,7 +1,7 @@
 model_config:
   embedding_dim_conv: 512
   n_head: 4
-  conv_kernel_size: 10
+  conv_kernel_size: 9
   conv_mixer_repetition: 10
   transformer_encoder_repetition: 5
   patch_size: 16
@@ -37,7 +37,7 @@ data:
    pin_memory: True
    
   val_data_details:
-   batch_size: 128
+   batch_size: 64
    num_workers: 2
    pin_memory: True
    drop_last: True
