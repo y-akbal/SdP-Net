@@ -73,9 +73,21 @@ class Trainer:
             self._run_batch(source, targets, i)
 
         #self.validate()
-
+    def _load_checkpoint(self, checkpoint_file):
+        model_dict = torch.load(checkpoint_file)
+        ### Now the state dict are obtained below ###
+        model_state_dict = model_dict["model_state_dict"]
+        model_config = model_dict["model_config"]
+        model_optimizer_state = model_dict["optimizer_state"]
+        ### ---Let's load the model states--- ###
+        self.model = self.model.from_dict(model_config)
+        self.model.load_state_dict(model_state_dict)
+        self.optimizer.load_state_dict(model_optimizer_state)
+        
     def _save_checkpoint(self, epoch):
-        ckp = self.model.module.state_dict()
+        ckp = self.model.state_dict()
+        
+
         PATH = "checkpoint.pt"
         torch.save(ckp, PATH)
         print(f"Epoch {epoch} | Training checkpoint saved at {PATH}")
@@ -96,7 +108,7 @@ class Trainer:
                 targets = targets.to(self.gpu_id)
                 output = self.model(source)  
                 """"""
-                loss = F.mse_loss(output, targets)
+                loss = F.cross_entropy(output, targets)
                 self.val_loss_logger.update(loss.item())
             self.val_loss_logger.all_reduce()
             if self.gpu_id == 0:

@@ -113,7 +113,7 @@ class main_model(nn.Module):
         model["state_dict"] = self.state_dict()
         model["config"] = self.config
         try:
-            torch.save(model, f"{fn}")
+            torch.save(model, f"{fn}.pt")
             print(
                 f"Model saved succesfully, see the file {fn} for the weights and config file!!!"
             )
