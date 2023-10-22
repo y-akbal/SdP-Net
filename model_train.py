@@ -98,7 +98,6 @@ def main(cfg : DictConfig):
         scheduler= scheduler,
         gpu_id = int(os.environ["LOCAL_RANK"]),
         save_every= 1,
-        
         compile = False
     )
     trainer.train(10)

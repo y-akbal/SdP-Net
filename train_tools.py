@@ -71,28 +71,7 @@ class Trainer:
             source = source.to(self.gpu_id, non_blocking=True)
             targets = targets.to(self.gpu_id, non_blocking=True)
             self._run_batch(source, targets, i)
-
         #self.validate()
-    def _load_checkpoint(self, checkpoint_file):
-        model_dict = torch.load(checkpoint_file)
-        ### Now the state dict are obtained below ###
-        model_state_dict = model_dict["model_state_dict"]
-        model_config = model_dict["model_config"]
-        model_optimizer_state = model_dict["optimizer_state"]
-        ### ---Let's load the model states--- ###
-        self.model = self.model.from_dict(model_config)
-        self.model.load_state_dict(model_state_dict)
-        self.optimizer.load_state_dict(model_optimizer_state)
-        
-    def _save_checkpoint(self, epoch):
-        ckp = self.model.state_dict()
-        
-
-        PATH = "checkpoint.pt"
-        torch.save(ckp, PATH)
-        print(f"Epoch {epoch} | Training checkpoint saved at {PATH}")
-    
-    
 
     def train(self, max_epochs: int):
         for epoch in range(max_epochs):
@@ -114,8 +93,34 @@ class Trainer:
             if self.gpu_id == 0:
                 # print(self.val_loss_logger.get_avg_loss())
                 self.val_loss_logger.reset()
+    ## Some tools ## 
+    def _load_checkpoint(self, checkpoint_file):
+        model_dict = torch.load(checkpoint_file)
+        ### Now the state dict are obtained below ###
+        model_state_dict = model_dict["model_state_dict"]
+        model_config = model_dict["model_config"]
+        model_optimizer_state = model_dict["optimizer_state"]
+        ### ---Let's load the model states--- ###
+        self.model = self.model.from_dict(model_config)
+        self.model.load_state_dict(model_state_dict)
+        self.optimizer.load_state_dict(model_optimizer_state)
+        
+    def _save_checkpoint(self, epoch):
+        ### This are the necessary steps to recover the model from the pickled file!!!
+        model_weights = self.model.state_dict()
+        model_config = self.model.config
+        optimizer_state = self.optimizer.state_dict()
 
-
+        checkpoint = {"model_state_dict":model_weights,
+                      "model_config":model_config,
+                      "optimizer_state":optimizer_state,
+                    }
+        
+        PATH = "checkpoint.pt"
+        torch.save(checkpoint, PATH)        
+        print(f"Epoch {epoch} | Training checkpoint saved at {PATH}")
+    
+    
 
 
 class track_accuracy:
