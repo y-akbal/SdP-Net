@@ -121,19 +121,44 @@ class main_model(nn.Module):
             print(f"Something went wrong with {exp}!!!!!")
 
 
+
+#### Below is just debugging purposses should be considered seriously useful ####
 """
-model = main_model(embedding_dim_conv=512, conv_mixer_repetition=10, transformer_encoder_repetition=5, patch_size=16, multiplication_factor=4).cuda()
+from torch.utils.data import Dataset
+import torchvision.datasets as datasets
+from torch.utils.data import DataLoader
+import torchvision.transforms as transforms
+from dataset_generator import test_data, train_data
+
+
+I, dict_= train_data(root_dir =  "~/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/train")
+
+col = test_data(classes_dict = dict_,
+          csv_file="~/Desktop/ImageNet/LOC_val_solution.csv",
+          root_dir="/home/sahmaran/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/val"
+          )
+
+val_data = DataLoader(col, batch_size = 128, shuffle = False)
+
+for X in val_dat:
+    print(X)
+    break
+       
+"""
+
+model = main_model(embedding_dim_conv=512, conv_mixer_repetition=5, transformer_encoder_repetition=5, patch_size=8, multiplication_factor=1, squeeze_ratio=2).cuda()
+
 model(torch.randn(1, 3, 224, 224).cuda(), torch.tensor([[1]]).cuda()).shape
 model.return_num_params()
-
-list(model.state_dict().keys())[45:86]
-
 
 import numpy as np
 y = torch.tensor(np.random.randint(0, 1000, size = 32)).cuda()
 X = 0.4*torch.randn(32, 3, 224,224).cuda()
 l = model(X, task = None)
 F.cross_entropy(l,y)
+
+torch.argmax(l, dim = -1) == y
+
 
 optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
 for i in range(1000):
@@ -143,7 +168,7 @@ for i in range(1000):
     print(loss.item())
     optimizer.step()
 
-"""
+
 
 if __name__ == "__main__":
     print("Ok boomer!!!")

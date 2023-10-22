@@ -9,7 +9,6 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.nn.functional as F
 import time
 
-## We grabbed this from the official pytorch github repository.
 class Trainer:
     def __init__(
         self,
@@ -59,7 +58,7 @@ class Trainer:
         self.scaler.step(self.optimizer)
         self.scaler.update()
         self.scheduler.step()
-        ### We log the loss,
+        ### We log the loss ### 
 
     def _run_epoch(self, epoch, report_in_every = 100):
         # b_sz = len(next(iter(self.train_data))[0])
@@ -115,13 +114,12 @@ class Trainer:
                       "model_config":model_config,
                       "optimizer_state":optimizer_state,
                     }
-        
-        PATH = "checkpoint.pt"
-        torch.save(checkpoint, PATH)        
-        print(f"Epoch {epoch} | Training checkpoint saved at {PATH}")
-    
-    
-
+        try:
+            PATH = "checkpoint.pt"
+            torch.save(checkpoint, PATH)        
+            print(f"Epoch {epoch} | Training checkpoint saved at {PATH}")
+        except Exception as exp:
+            print(f"Something went wron with {exp}")
 
 class track_accuracy:
     def __init__(self, initial_acc = 0.0):

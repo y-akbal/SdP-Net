@@ -88,7 +88,7 @@ def main(cfg : DictConfig):
     print(len(train_images), len(test_images))
     print(f"Model has {model.return_num_params()}")
     
-    
+    gpu_id = int(os.environ["LOCAL_RANK"]) ### this local rank is determined by torch run!!!
     
     trainer = Trainer(
         model = model,
@@ -96,7 +96,7 @@ def main(cfg : DictConfig):
         val_data = test_images,
         optimizer = optimizer,
         scheduler= scheduler,
-        gpu_id = int(os.environ["LOCAL_RANK"]),
+        gpu_id = gpu_id,
         save_every= 1,
         compile = False
     )
