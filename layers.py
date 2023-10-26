@@ -9,7 +9,7 @@ import torch.nn.functional as F
 ## rather than coming up with our own implementations
 
 class conv_int(nn.Module):
-    def __init__(self, embedding_dim = 100, patch_size = 4, activation = nn.GELU()):
+    def __init__(self, embedding_dim = 128, patch_size = 4, activation = nn.GELU()):
         super().__init__()
 
         self.embedding_dim = embedding_dim
@@ -24,6 +24,9 @@ class conv_int(nn.Module):
         x = self.conv(x)
         x = self.activation(x)
         return self.batch_norm(x) 
+
+
+
 
 class res_jump(nn.Module):
     def __init__(self, layer):
@@ -47,6 +50,7 @@ class conv_mixer(nn.Module):
         self.conv1d = nn.Conv2d(in_channels = embedding_dim,
                                 out_channels = embedding_dim,
                                 kernel_size =1,
+                                
                                 )
         self.batch_norm_1 = nn.SyncBatchNorm(embedding_dim)
         self.batch_norm_2 = nn.SyncBatchNorm(embedding_dim)
@@ -108,7 +112,8 @@ class first_encoder_layer(nn.Module):
             nhead = n_head,
             dim_feedforward = multiplication_factor*self.embedding_dim, 
             activation = activation_func,
-            dropout = dropout
+            dropout = dropout,
+            norm_first= True
         )
         ### ---- ###
         self.register_buffer(
@@ -150,13 +155,15 @@ class encoder_layer(nn.Module):
             activation = activation_func,
             batch_first = True,
             dim_feedforward = multiplication_factor*self.embedding_dim,
-            dropout = dropout
-        )
+            dropout = dropout,
+            norm_first= True)
+        
     def forward(self, x):
         return self.transformer_layer(x)
 
 
-#encoder_layer((32,32), 4).cuda()(torch.randn(32, 1024, 32, 32).cuda()).shape
+
 
 if __name__ == "__main__":
-    print("pff")
+    print("Okkayy!!")
+

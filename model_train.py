@@ -41,8 +41,8 @@ def train_val_data_loader(train_data, test_data, **kwargs):
     kwargs_train = kwargs["train_data_details"]
     kwargs_test = kwargs["val_data_details"]
     ##
-    train_sampler = DistributedSampler(train_image_generator)
-    val_sampler = DistributedSampler(test_image_generator)
+    train_sampler = DistributedSampler(train_image_generator, shuffle = True)
+    val_sampler = DistributedSampler(test_image_generator, shuffle = False)
     ## 
     train_data = DataLoader(
         dataset= train_image_generator,
@@ -80,6 +80,7 @@ def main(cfg : DictConfig):
     
     train_loss_tracker = distributed_loss_track()
     val_loss_tracker = distributed_loss_track(file_name="valloss.log")
+    val_acc_tracker = track_accuracy()
     
 
     trainer = Trainer(
@@ -92,10 +93,10 @@ def main(cfg : DictConfig):
         save_every= 1,
         compile = False,
         val_loss_logger=val_loss_tracker,
-        train_loss_logger=train_loss_tracker
+        train_loss_logger=train_loss_tracker,
+        val_accuracy_logger=val_acc_tracker
     )
     trainer.train(10)
-
     destroy_process_group()
 
 

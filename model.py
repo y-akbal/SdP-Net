@@ -2,7 +2,7 @@ import torch
 from torch import nn as nn
 from layers import conv_int, conv_mixer, squeezer, first_encoder_layer, encoder_layer
 import math
-
+import functools
 
 class main_model(nn.Module):
     def __init__(self, 
@@ -24,8 +24,8 @@ class main_model(nn.Module):
         ## Here we go again ##
         self.patch_size = patch_size
         self.squeeze_ratio = squeeze_ratio
-        self.encoder_embedding_dim = list(map(self.fun_encoder_dim, image_size))
-        
+        self.encoder_embedding_dim:tuple = list(map(self.fun_encoder_dim, image_size))
+        self.encoder_embeddid_dim_:int = functools.reduce(lambda x,y:x*y, self.encoder_embedding_dim)
 
         self.conv_init = conv_int(embedding_dim= embedding_dim_conv, 
                                   patch_size = patch_size,
@@ -57,7 +57,7 @@ class main_model(nn.Module):
                                         ) for i in range(transformer_encoder_repetition-1)])
  
         
-        self.lazy_output = nn.Linear(196, output_classes)
+        self.lazy_output = nn.Linear(self.encoder_embeddid_dim_, output_classes)
         
     def forward(self, x, y = None, task = "classification"):
         x = self.conv_init(x)
@@ -121,6 +121,18 @@ class main_model(nn.Module):
 
 #### Below is just debugging purposses should be considered seriously useful ####
 """
+model = main_model(embedding_dim_conv=256, conv_mixer_repetition = 0,
+                   transformer_encoder_repetition = 10, 
+                   patch_size=16, 
+                   multiplication_factor=2,
+                   squeeze_ratio= 1
+                   ).cuda()
+
+ 
+model.fun_encoder_dim(224)
+model.return_num_params()
+model(torch.randn(1, 3, 224, 224).cuda(), torch.tensor([[1]]).cuda(),task = "classification") 
+
 from torch.utils.data import Dataset
 import torchvision.datasets as datasets
 from torch.utils.data import DataLoader
@@ -143,10 +155,6 @@ for X in val_dat:
        
 """
 """
-model = main_model(embedding_dim_conv=512, conv_mixer_repetition=5, transformer_encoder_repetition=5, patch_size=8, multiplication_factor=1, squeeze_ratio=2).cuda()
-
-model(torch.randn(1, 3, 224, 224).cuda(), torch.tensor([[1]]).cuda()).shape
-model.return_num_params()
 
 import numpy as np
 y = torch.tensor(np.random.randint(0, 1000, size = 32)).cuda()

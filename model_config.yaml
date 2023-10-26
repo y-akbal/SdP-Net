@@ -10,16 +10,13 @@ model_config:
   multiplication_factor: 1
   squeeze_ratio: 1
 
-
-
 compile_model: True
 snapshot_path: "/model"
 save_every: 1
 epochs: 200
 
-  
 optimizer_config:
-  lr: 0.0001
+  lr: 0.000001
   weight_decay: 0.0005
 
 scheduler_config:

@@ -7,7 +7,7 @@ from torch.distributed import (
 )
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.nn.functional as F
-import time
+
 
 class Trainer:
     def __init__(
@@ -21,6 +21,7 @@ class Trainer:
         save_every: int,
         val_loss_logger=None,
         train_loss_logger=None,
+        val_accuracy_logger=None,
         compile=False
         # tracker ## this dude is for tracking stuff
     ) -> None:
@@ -42,9 +43,15 @@ class Trainer:
         ##
         self.val_loss_logger = val_loss_logger
         self.train_loss_logger = train_loss_logger
+        self.val_accuracy_logger = val_accuracy_logger
         ##
         self.autocast = torch.autocast
         self.scaler = torch.cuda.amp.GradScaler()
+        try:
+            self._load_checkpoint("checkpoint.pt")
+            print("Started from where we stopped last time!!!")
+        except Exception as e:
+            print(f"There is a problem with loading the model weights and the problem is: {e}")
         
     def _run_batch(self, source, targets, i):
         ### All the things like low precision training will happen here dude!!!
@@ -53,6 +60,7 @@ class Trainer:
         with self.autocast(device_type="cuda", dtype=torch.bfloat16):
             output = self.model(source, task = None)
             loss = F.cross_entropy(output, targets)
+
         if i % 100 == 0:
             print(f"loss {loss.item()}, {i} batch, from gpu {self.gpu_id} ")
         self.scaler.scale(loss).backward()
@@ -72,31 +80,36 @@ class Trainer:
             source = source.to(self.gpu_id, non_blocking=True)
             targets = targets.to(self.gpu_id, non_blocking=True)
             self._run_batch(source, targets, i)
-        #self.validate()
 
     def train(self, max_epochs: int):
         for epoch in range(max_epochs):
             self._run_epoch(epoch)
             if self.gpu_id == 0 and epoch % self.save_every == 0:
                self._save_checkpoint(epoch)
+            self.validate()
 
     def validate(self):
+        if self.gpu_id == 0:
+            print("Validation is started!!!")
         self.model.eval()
-        with torch.no_grad():  ## block traking gradients
+        with torch.no_grad():  ## block tracking gradients
             for source, targets, _ in self.val_data:
-
                 source = source.to(self.gpu_id)
                 targets = targets.to(self.gpu_id)
                 output = self.model(source, task = None)  
                 loss = F.cross_entropy(output, targets)
                 self.val_loss_logger.update(loss.item())
+                accuracy = (output.argmax(-1) == targets).float().mean()
+                #print(self.val_accuracy_logger.update(accuracy.item()))
+                self.val_accuracy_logger.update(accuracy.item())
 
             self.val_loss_logger.all_reduce()
+            self.val_accuracy_logger.all_reduce()
             if self.gpu_id == 0:
-                print(self.val_loss_logger.get_avg_loss())
+                print(self.val_loss_logger.get_avg_loss(), self.val_accuracy_logger.accuracy)
+                
                 self.val_loss_logger.reset()
-                print(self.val_loss_logger.get_avg_loss())
-
+                self.val_accuracy_logger.reset()    
     ## Some tools ## 
     def _load_checkpoint(self, checkpoint_file):
         model_dict = torch.load(checkpoint_file)
@@ -118,14 +131,15 @@ class Trainer:
         checkpoint = {"model_state_dict":model_weights,
                       "model_config":model_config,
                       "optimizer_state":optimizer_state,
+                      "epoch":epoch
                     }
         try:
             PATH = "checkpoint.pt"
             torch.save(checkpoint, PATH)        
             print(f"Epoch {epoch} | Training checkpoint saved at {PATH}")
         except Exception as exp:
-            print(f"Something went wron with {exp}")
-
+            print(f"Something went wrong with {exp}, the training will start from begining!!!")
+    
 
 
 
@@ -151,18 +165,19 @@ class distributed_loss_track:
         self.temp_loss, self.counter = 0, 0
 
     def get_avg_loss(self):
-        return self.temp_loss / self.counter
+        ## we have very little number in the denominator
+        ## to avoid overflow!!!
+        return self.temp_loss / (self.counter+1e-4)
 
     def all_reduce(self):
         if torch.cuda.is_available():
             device = torch.device("cuda")
-        else:
-            device = torch.device("cpu")
-        loss_tensor = torch.tensor(
+            loss_tensor = torch.tensor(
             [self.temp_loss, self.counter], device=device, dtype=torch.float32
-        )
-        all_reduce(loss_tensor, ReduceOp.SUM, async_op=False)
-        self.temp_loss, self.counter = loss_tensor.tolist()
+            )
+            all_reduce(loss_tensor, ReduceOp.SUM, async_op=False)
+            self.temp_loss, self.counter = loss_tensor.tolist()
+
 
     def save_log(self):
         ### no need to call this dude unless you really need!!!
@@ -179,35 +194,34 @@ class distributed_loss_track:
 
 
 class track_accuracy:
-    def __init__(self, initial_acc = 0.0):
-        self.acc = initial_acc
-        self.dist_acc = initial_acc
-        self.counter = 1
+    def __init__(self, initial_acc = 0.1):
+        self.temp_acc = initial_acc
+        self.counter = 0
+
     def update(self, batch_acc):
+        self.temp_acc += (batch_acc- self.temp_acc)/(self.counter+1)
         self.counter += 1
-        self.t += batch_acc
-        self.acc += (batch_acc -  self.acc)/self.counter
+
     def reset(self):
-        self.counter = 1
-        self.acc = 0.0
+        self.counter = 0
+        self.temp_acc = 0.0
+
     @property
     def accuracy(self):
         ### This is for logging purposses 
         ### should be called at the end of each epoch!!!
         ## This dude takes average of accuracies from different processes
-        self.__allreduce__()         
-        return self.dist_acc
+        if self.counter != 0:
+            return self.temp_acc
+        return 1e-10
 
-    def __allreduce__(self):
+    def all_reduce(self):
         if torch.cuda.is_available():
             device = torch.device("cuda")
-            loss_tensor = torch.tensor(
-            [self.acc], device=device, dtype=torch.float32
-             )
-            all_reduce(loss_tensor, ReduceOp.AVG, async_op=False)
-            self.dist_acc = loss_tensor.numpy()
         else:
-            pass
-        
-        
-
+            device = torch.device("cpu")
+        loss_tensor = torch.tensor(
+        [self.temp_acc], device=device, dtype=torch.float32
+             )
+        all_reduce(loss_tensor, ReduceOp.AVG, async_op=False)
+        self.temp_acc = loss_tensor.item()
