@@ -1,5 +1,6 @@
 import torch
 from torch import nn as nn
+from torch.nn import functional as F
 from layers import conv_int, conv_mixer, squeezer, first_encoder_layer, encoder_layer
 import math
 import functools
@@ -16,7 +17,7 @@ class main_model(nn.Module):
                  patch_size:int = 4,
                  dropout:float = 0.2,
                  num_register:int = 2,  
-                 multiplication_factor:int = 2, 
+                 multiplication_factor:int = 1, 
                  squeeze_ratio:int = 1,
                  output_classes = 1000,
                  ):
@@ -57,17 +58,19 @@ class main_model(nn.Module):
                                         ) for i in range(transformer_encoder_repetition-1)])
  
         
-        self.lazy_output = nn.Linear(self.encoder_embeddid_dim_, output_classes)
+        self.output_head = nn.Sequential(*[nn.Linear(self.encoder_embeddid_dim_, output_classes),
+                                          nn.Tanh(),
+                                          nn.Linear(output_classes, output_classes)])
         
-    def forward(self, x, y = None, task = "classification"):
+    def forward(self, x, y = None, task = "C"):
         x = self.conv_init(x)
         x_ = self.conv_mixer(x)
         x = self.squeezer(x_)
         x = self.encoder_init(x,y)
-        if task == "classification":
-            x =  self.encoder_rest(x)[:,0,:]
-        x =  self.encoder_rest(x).mean(-2)
-        return self.lazy_output(x)
+        x =  self.encoder_rest(x)
+        if task == "C":
+            return self.output_head(x[:,0,:])
+        return x
         
 
     def fun_encoder_dim(self, n:int)->int:
@@ -121,45 +124,21 @@ class main_model(nn.Module):
 
 #### Below is just debugging purposses should be considered seriously useful ####
 """
-model = main_model(embedding_dim_conv=256, conv_mixer_repetition = 0,
-                   transformer_encoder_repetition = 10, 
-                   patch_size=16, 
-                   multiplication_factor=2,
+model = main_model(embedding_dim_conv=512, conv_mixer_repetition = 5,
+                   transformer_encoder_repetition = 5, 
+                   patch_size=8, 
+                   multiplication_factor=4,
                    squeeze_ratio= 1
-                   ).cuda()
+                   )
 
- 
 model.fun_encoder_dim(224)
 model.return_num_params()
-model(torch.randn(1, 3, 224, 224).cuda(), torch.tensor([[1]]).cuda(),task = "classification") 
-
-from torch.utils.data import Dataset
-import torchvision.datasets as datasets
-from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
-from dataset_generator import test_data, train_data
-
-
-I, dict_= train_data(root_dir =  "~/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/train")
-
-col = test_data(classes_dict = dict_,
-          csv_file="~/Desktop/ImageNet/LOC_val_solution.csv",
-          root_dir="/home/sahmaran/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/val"
-          )
-
-val_data = DataLoader(col, batch_size = 128, shuffle = False)
-
-for X in val_dat:
-    print(X)
-    break
-       
-"""
-"""
+model(torch.randn(8, 3, 224, 224),task = "C").shape
 
 import numpy as np
-y = torch.tensor(np.random.randint(0, 1000, size = 32)).cuda()
-X = 0.4*torch.randn(32, 3, 224,224).cuda()
-l = model(X, task = None)
+y = torch.tensor(np.random.randint(0, 1000, size = 8), dtype = torch.long)
+X = 0.4*torch.randn(8, 3, 224,224)
+l = model(X, task = "C")
 F.cross_entropy(l,y)
 
 torch.argmax(l, dim = -1) == y
@@ -168,7 +147,7 @@ torch.argmax(l, dim = -1) == y
 optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
 for i in range(1000):
     optimizer.zero_grad()
-    loss = F.cross_entropy(model(X, task = None),y)
+    loss = F.cross_entropy(model(X, task = "C"),y)
     loss.backward()
     print(loss.item())
     optimizer.step()
