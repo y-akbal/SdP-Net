@@ -17,7 +17,7 @@ def return_transforms():
     
     transforms_train = transforms.Compose([
         transforms.Resize((224,224)),
-        transforms.AutoAugment(),
+        transforms.RandAugment(),
     transforms.ToTensor(),
     transforms.Normalize(mean, std)
     ])
