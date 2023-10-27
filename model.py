@@ -57,7 +57,7 @@ class main_model(nn.Module):
                                         ) for i in range(transformer_encoder_repetition-1)])
  
         
-        self.lazy_output = nn.Linear(self.encoder_embeddid_dim_, output_classes)
+        self.output_dense = nn.Linear(self.encoder_embeddid_dim_, output_classes)
         
     def forward(self, x, y = None, task = "classification"):
         x = self.conv_init(x)
@@ -67,7 +67,7 @@ class main_model(nn.Module):
         if task == "classification":
             x =  self.encoder_rest(x)[:,0,:]
         x =  self.encoder_rest(x).mean(-2)
-        return self.lazy_output(x)
+        return self.output_dense(x)
         
 
     def fun_encoder_dim(self, n:int)->int:
@@ -120,18 +120,17 @@ class main_model(nn.Module):
 
 
 #### Below is just debugging purposses should be considered seriously useful ####
-"""
-model = main_model(embedding_dim_conv=256, conv_mixer_repetition = 0,
+model = main_model(embedding_dim_conv=256, conv_mixer_repetition = 5,
                    transformer_encoder_repetition = 10, 
-                   patch_size=16, 
+                   patch_size=7, 
                    multiplication_factor=2,
-                   squeeze_ratio= 1
+                   squeeze_ratio= 2
                    ).cuda()
 
- 
-model.fun_encoder_dim(224)
+model(torch.randn(1, 3, 224, 224).cuda(), torch.tensor([[1]]).cuda()).shape 
 model.return_num_params()
-model(torch.randn(1, 3, 224, 224).cuda(), torch.tensor([[1]]).cuda(),task = "classification") 
+model.encoder_embeddid_dim_
+
 
 from torch.utils.data import Dataset
 import torchvision.datasets as datasets

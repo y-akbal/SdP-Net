@@ -113,7 +113,7 @@ class first_encoder_layer(nn.Module):
             dim_feedforward = multiplication_factor*self.embedding_dim, 
             activation = activation_func,
             dropout = dropout,
-            norm_first= True
+            norm_first= False
         )
         ### ---- ###
         self.register_buffer(
@@ -156,7 +156,7 @@ class encoder_layer(nn.Module):
             batch_first = True,
             dim_feedforward = multiplication_factor*self.embedding_dim,
             dropout = dropout,
-            norm_first= True)
+            norm_first= False)
         
     def forward(self, x):
         return self.transformer_layer(x)
