@@ -124,39 +124,17 @@ class main_model(nn.Module):
 
 #### Below is just debugging purposses should be considered seriously useful ####
 """
-model = main_model(embedding_dim_conv=512, conv_mixer_repetition = 5,
-                   transformer_encoder_repetition = 5, 
-                   patch_size=8, 
-                   multiplication_factor=4,
-                   squeeze_ratio= 1
-                   )
+model = main_model(embedding_dim_conv=512, 
+                conv_mixer_repetition = 5,
+                conv_kernel_size = 7,
+                transformer_encoder_repetition = 5, 
+                patch_size=8, 
+                multiplication_factor=2,
+                squeeze_ratio= 1)
 
 model.fun_encoder_dim(224)
 model.return_num_params()
-model(torch.randn(1, 3, 224, 224).cuda(), torch.tensor([[1]]).cuda(),task = "classification") 
-
-from torch.utils.data import Dataset
-import torchvision.datasets as datasets
-from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
-from dataset_generator import test_data, train_data
-
-
-I, dict_= train_data(root_dir =  "~/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/train")
-
-col = test_data(classes_dict = dict_,
-          csv_file="~/Desktop/ImageNet/LOC_val_solution.csv",
-          root_dir="/home/sahmaran/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/val"
-          )
-
-val_data = DataLoader(col, batch_size = 128, shuffle = False)
-
-for X in val_dat:
-    print(X)
-    break
-       
-"""
-"""
+model(torch.randn(10, 3, 224, 224)).shape
 
 import numpy as np
 y = torch.tensor(np.random.randint(0, 1000, size = 8), dtype = torch.long)

@@ -17,7 +17,8 @@ class conv_int(nn.Module):
         self.conv = nn.Conv2d(in_channels = 3, 
                               out_channels = embedding_dim,
                               kernel_size = patch_size,
-                              stride = patch_size
+                              stride = patch_size, 
+                              
                               )
         self.batch_norm = nn.SyncBatchNorm(embedding_dim)
     def forward(self, x):
@@ -45,11 +46,12 @@ class conv_mixer(nn.Module):
                               out_channels = embedding_dim,
                               kernel_size = kernel_size,
                               groups = embedding_dim,
-                              padding = "same"
+                              padding = "same",
                               )
         self.conv1d = nn.Conv2d(in_channels = embedding_dim,
                                 out_channels = embedding_dim,
                                 kernel_size =1,
+                                
                                 )
         self.batch_norm_1 = nn.SyncBatchNorm(embedding_dim)
         self.batch_norm_2 = nn.SyncBatchNorm(embedding_dim)
@@ -112,7 +114,7 @@ class first_encoder_layer(nn.Module):
             dim_feedforward = multiplication_factor*self.embedding_dim, 
             activation = activation_func,
             dropout = dropout,
-            norm_first= False
+            norm_first= True,
         )
         ### ---- ###
         self.register_buffer(
@@ -155,7 +157,7 @@ class encoder_layer(nn.Module):
             batch_first = True,
             dim_feedforward = multiplication_factor*self.embedding_dim,
             dropout = dropout,
-            norm_first= False)
+            norm_first= True)
         
     def forward(self, x):
         return self.transformer_layer(x)

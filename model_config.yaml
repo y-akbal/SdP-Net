@@ -1,13 +1,13 @@
 model_config:
   embedding_dim_conv: 512
   n_head: 4
-  conv_kernel_size: 9
-  conv_mixer_repetition: 10
+  conv_kernel_size: 7
+  conv_mixer_repetition: 5
   transformer_encoder_repetition: 5
-  patch_size: 16
+  patch_size: 8
   dropout: 0.2
   num_register: 2
-  multiplication_factor: 1
+  multiplication_factor: 2
   squeeze_ratio: 1
 
 compile_model: True
@@ -29,12 +29,12 @@ data:
    root_dir: "/home/sahmaran/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/val"
    csv_file: "~/Desktop/ImageNet/LOC_val_solution.csv"
   train_data_details:
-   batch_size: 128
+   batch_size: 16
    num_workers: 4
    pin_memory: True
    
   val_data_details:
-   batch_size: 64
+   batch_size: 16
    num_workers: 2
    pin_memory: True
    drop_last: True
