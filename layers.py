@@ -19,7 +19,7 @@ class conv_int(nn.Module):
                               kernel_size = patch_size,
                               stride = patch_size
                               )
-        self.batch_norm = nn.BatchNorm2d(embedding_dim)
+        self.batch_norm = nn.SyncBatchNorm(embedding_dim)
     def forward(self, x):
         x = self.conv(x)
         x = self.activation(x)
@@ -50,7 +50,6 @@ class conv_mixer(nn.Module):
         self.conv1d = nn.Conv2d(in_channels = embedding_dim,
                                 out_channels = embedding_dim,
                                 kernel_size =1,
-                                
                                 )
         self.batch_norm_1 = nn.SyncBatchNorm(embedding_dim)
         self.batch_norm_2 = nn.SyncBatchNorm(embedding_dim)
@@ -82,7 +81,7 @@ class squeezer(nn.Module):
                               stride = squeeze_ratio,
                               groups = embedding_dim
                               ),
-                              nn.BatchNorm2d(embedding_dim),
+                              nn.SyncBatchNorm(embedding_dim),
                               activation
         )
         
