@@ -96,7 +96,7 @@ def main(cfg : DictConfig):
         train_loss_logger=train_loss_tracker,
         val_accuracy_logger=val_acc_tracker
     )
-    trainer.train(10)
+    trainer.train(20)
     destroy_process_group()
 
 

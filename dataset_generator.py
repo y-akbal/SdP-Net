@@ -4,7 +4,7 @@ from torchvision.io import read_image
 from PIL import Image 
 from torch.utils.data import Dataset
 import torchvision.datasets as datasets
-import torchvision.transforms as transforms
+import torchvision.transforms.v2 as transforms
 ### Gatto define your transforms we may jit'em if needed 
 
 
