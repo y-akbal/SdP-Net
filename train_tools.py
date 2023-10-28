@@ -7,7 +7,7 @@ from torch.distributed import (
 )
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.nn.functional as F
-import time
+
 
 class Trainer:
     def __init__(
@@ -49,7 +49,6 @@ class Trainer:
         self.scaler = torch.cuda.amp.GradScaler()
         try:
             self._load_checkpoint("checkpoint.pt")
-            print("Started from where we stopped last time!!!")
         except Exception as e:
             print(f"There is a problem with loading the model weights and the problem is: {e}")
         
@@ -140,7 +139,7 @@ class Trainer:
         self.model.load_state_dict(model_state_dict)
         self.optimizer.load_state_dict(model_optimizer_state)
         self.epoch = model_dict["epoch"]
-        print("Loaded the new model!!!!")
+        print(f"Loaded the new model!!!! will continue training from {self.epoch} epoch")
  
     def _save_checkpoint(self):
         ### This are the necessary steps to recover the model from the pickled file!!!
@@ -236,9 +235,9 @@ class track_accuracy:
         all_reduce(loss_tensor, ReduceOp.AVG, async_op=False)
         self.temp_acc = loss_tensor.item()
 
-
+"""
 t = track_accuracy()
 t.update(0.9)
 t.accuracy
 t.counter
-t.reset()
+t.reset()"""
