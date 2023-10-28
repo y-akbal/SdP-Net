@@ -1,5 +1,4 @@
 import pickle
-import os
 import torch
 from torch.distributed import (
     all_reduce,
@@ -68,7 +67,7 @@ class Trainer:
 
 
  
-    def _run_epoch(self, epoch, report_in_every = 100):
+    def _run_epoch(self, epoch, report_in_every = 1):
         # b_sz = len(next(iter(self.train_data))[0])
         self.epoch = epoch
         if epoch % report_in_every == 0:
@@ -94,16 +93,16 @@ class Trainer:
 
 
     def train(self, max_epochs: int):
-        if self.epoch > max_epochs:
+        if self.epoch+1 > max_epochs:
             print("The model has been already trained for {self.epoch} epochs!!")
             assert(ValueError("Train error!!!!"))
 
-        for epoch in range(self.epoch, max_epochs):
+        for epoch in range(self.epoch+1, max_epochs):
 
             self._run_epoch(epoch)
             
             if self.gpu_id == 0 and epoch % self.save_every == 0:
-               self._save_checkpoint(epoch)
+               self._save_checkpoint()
             self.validate()
 
     def validate(self):
@@ -120,7 +119,6 @@ class Trainer:
                 accuracy = (output.argmax(-1) == targets).float().mean()
                 #print(self.val_accuracy_logger.update(accuracy.item()))
                 self.val_accuracy_logger.update(accuracy.item())
-
             self.val_loss_logger.all_reduce()
             self.val_accuracy_logger.all_reduce()
             if self.gpu_id == 0:
