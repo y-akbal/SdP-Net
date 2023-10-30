@@ -39,6 +39,7 @@ class Trainer:
         self.scheduler = scheduler
         ##
         self.save_every = save_every
+        self.epoch = 0
         ##
         self.val_loss_logger = val_loss_logger
         self.train_loss_logger = train_loss_logger
@@ -51,7 +52,7 @@ class Trainer:
         except Exception as e:
             print(f"There is a problem with loading the model weights and the problem is: {e}")
         
-    def _run_batch(self, source, targets, i):
+    def _run_batch(self, source, targets):
         ### All the things like low precision training will happen here dude!!!
         self.optimizer.zero_grad()
         with self.autocast(device_type="cuda", dtype=torch.bfloat16):
@@ -78,7 +79,7 @@ class Trainer:
         for i, (source, targets) in enumerate(self.train_data):
             source = source.to(self.gpu_id, non_blocking=True)
             targets = targets.to(self.gpu_id, non_blocking=True)
-            self._run_batch(source, targets, i)
+            self._run_batch(source, targets)
             ### 
             ## sync the losses
             self.train_loss_logger.all_reduce()
@@ -156,7 +157,49 @@ class Trainer:
             print(f"Epoch {self.epoch} | Training checkpoint saved at {PATH}")
         except Exception as exp:
             print(f"Something went wrong with {exp}, the training will start from begining!!!")
+
+
+"""
+## place holder for the wandb_log class, a class to be used by wandb_logging...
+class wandb_log:
     
+    def __init__(self, user_name, password, **kwargs):
+        ## init should be done here
+        ## .. --- .. ##
+        ## .. ...... ##
+        ## ---...----##
+        for keys, values in kwargs.items():
+            vars(self)[keys] = values
+        this includes logging in to wandb and doing some intial stuff...
+    @classmethod
+    def from_dict(**kwargs):
+        pass
+    
+    def add_tracked(a:dict):
+        pass
+
+    def __call__(self, f):
+        def wrapper(*args, **kwargs):
+            print(args[0].a**2)
+            return f(*args)
+        return wrapper 
+
+w = wandb_log(**{"temp_loss":0})
+
+
+class d:
+    def __init__(self, a):
+        self.a = a
+    @w
+    def __call__(self, b):
+        return (self.a)*b
+    def w(self, f):
+        return f
+
+"""
+
+
+
 class distributed_loss_track:
     ## This is from one for all repo!!!
     def __init__(self, project="at_net_pred", file_name: str = "loss.log"):
