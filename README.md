@@ -18,6 +18,7 @@ This is actually a less serious weekend project called AT-Net which can be thoug
 Enjoy AT-Net!!!
 
 # Training Details
+A quick note: the training started few days ago S model (25M params) obtains currently %50 percent accuracy on validation set (At the end of 25th epoch). I will publicize the weights on HF, soon after learning saturates. 
 # Optimizers
 # Epochs - Batch Size
 
