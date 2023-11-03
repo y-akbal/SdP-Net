@@ -111,7 +111,7 @@ class first_encoder_layer(nn.Module):
         self.transformer_encoder = nn.TransformerEncoderLayer(
             d_model = self.embedding_dim,
             nhead = n_head,
-            dim_feedforward = multiplication_factor*self.embedding_dim, 
+            dim_feedforward = int(multiplication_factor*self.embedding_dim), 
             activation = activation_func,
             dropout = dropout,
             norm_first= False

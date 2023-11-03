@@ -17,8 +17,8 @@ def return_transforms():
     
     transforms_train = transforms.Compose([
         transforms.Resize((224,224)),
-        transforms.RandAugment(),
-    transforms.ToTensor(),
+        transforms.RandAugment(), ## RandAugment ---
+    transforms.ToTensor(), ## Normalization is done here!!!
     transforms.Normalize(mean, std)
     ])
 
@@ -51,7 +51,6 @@ class test_data(Dataset):
                  transformations = transforms_test,
                  ):
         super().__init__()
-        self.samples:int = 0
         self.root_dir = root_dir
         self.classes_dict = classes_dict
         ###

@@ -59,8 +59,8 @@ class main_model(nn.Module):
  
         
         self.output_head = nn.Sequential(*[nn.Linear(self.encoder_embeddid_dim_, output_classes),
-                                          nn.Tanh(),
-                                          nn.Linear(output_classes, output_classes)])
+                                        nn.Tanh(),
+                                        nn.Linear(output_classes, output_classes)])
         
     def forward(self, x, y = None, task = "C"):
         x = self.conv_init(x)

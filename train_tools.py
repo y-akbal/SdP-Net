@@ -57,7 +57,7 @@ class Trainer:
         self.optimizer.zero_grad()
         with self.autocast(device_type="cuda", dtype=torch.bfloat16):
             output = self.model(source)
-            loss = F.cross_entropy(output, targets)
+            loss = F.cross_entropy(output, targets, label_smoothing=0.01)
         self.scaler.scale(loss).backward()
         self.scaler.step(self.optimizer)
         self.scaler.update()

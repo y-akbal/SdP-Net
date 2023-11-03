@@ -54,6 +54,7 @@ def train_val_data_loader(train_data, test_data, **kwargs):
         sampler = val_sampler,
         **kwargs_test,
     )
+    
     return train_data, test_data
 
 
@@ -96,7 +97,8 @@ def main(cfg : DictConfig):
         train_loss_logger=train_loss_tracker,
         val_accuracy_logger=val_acc_tracker
     )
-    trainer.train(20)
+    trainer.train(45)
+
     destroy_process_group()
 
 
