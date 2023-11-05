@@ -20,15 +20,16 @@ Enjoy AT-Net!!!
 
 # Training Details
 A quick and dirty note: Training started few days ago. S model (25M params) obtains currently %52 percent accuracy on validation set (At the end of 32th epoch). Compared to other imagenet training logs there is an obvious overfitting here, I will let it be to see where its going to screw up. I will publicize the weights on HF soon after learning saturates. 
-1
+
+
 (The following table will be updated!!!)
-| #Size  |  #Params  |  ConvMix | TransMix |  Patch_size | Conv_Size | Embed_Dim | Top1 Acc |  Top5 Acc | 
-| :---:  | :-------: | :-----:  | :------: | :------:    | :------:  | :-----:   | :-----:  |   :-----:   | 
-|  XXXS  |  3        |  5       |  7       |  8          |           |           | ??       |     | 
-|  XXS   |  6        |  6       |  4       |  9          |           |           | ??       |     | 
-|  S     |  25       |  10      |  11      |  12         |           |           | %79?(exp)|     |
-|  S (*) |  25.5     |  10      |  11      |  12         |           |           | %??      |       |
-|  L     |  55       | 100      |  100     |  100        |           |           | ??       |        |
+| #Size  |  #Params  |  ConvMix | TransMix |  Patch_size | Conv_Size | Embed_Dim | Top1 Acc | 
+| :---:  | :-------: | :-----:  | :------: | :------:    | :------:  | :-----:   | :-----:  | 
+|  XXXS  |  3        |  5       |  7       |  8          |           |           | ??       | 
+|  XXS   |  6        |  6       |  4       |  9          |           |           | ??       | 
+|  S     |  25       |  10      |  11      |  12         |           |           | %79?(exp)| 
+|  S (*) |  25.5     |  10      |  11      |  12         |           |           | %??      | 
+|  L     |  55       | 100      |  100     |  100        |           |           | ??       | 
 
 *This dude will have multiple decision heads, coming from different register tokens.
 

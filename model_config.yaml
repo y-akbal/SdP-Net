@@ -5,7 +5,7 @@ model_config:
   conv_mixer_repetition: 5
   transformer_encoder_repetition: 5
   patch_size: 8
-  dropout: 0.4 # default 0.2
+  dropout: 0.1 # default 0.2
   num_register: 2
   multiplication_factor: 2
   squeeze_ratio: 1

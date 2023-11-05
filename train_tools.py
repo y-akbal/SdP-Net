@@ -84,7 +84,7 @@ class Trainer:
             ## sync the losses
             self.train_loss_logger.all_reduce()
             ## prtint the loss
-            if self.gpu_id == 0 and i % 20 == 0:
+            if self.gpu_id == 0 and i % 10 == 0:
                 batch_loss = self.train_loss_logger.get_avg_loss()
                 print(f"{i} Batch passed the average loss is {batch_loss}, learning rate is {self.scheduler.get_last_lr()}")
             ### -- ###

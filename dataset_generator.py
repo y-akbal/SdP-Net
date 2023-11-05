@@ -18,6 +18,7 @@ def return_transforms():
     transforms_train = transforms.Compose([
         transforms.RandomResizedCrop((224,224)),
         transforms.RandAugment(), ## RandAugment ---
+        transforms.RandomHorizontalFlip(),
         transforms.RandomErasing(),
     transforms.ToTensor(), ## Normalization is done here!!!
     transforms.Normalize(mean, std)

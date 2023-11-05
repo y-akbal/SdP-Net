@@ -27,16 +27,9 @@ class conv_int(nn.Module):
         return self.batch_norm(x) 
 
 
-class res_jump(nn.Module):
-    def __init__(self, layer):
-        super().__init__()
-        self.layer = layer
-    def forward(self, x):
-        return x + self.layer(x)
-
 class conv_mixer(nn.Module):
     def __init__(self, 
-                 embedding_dim, 
+                 embedding_dim = 512, 
                  kernel_size = 5, 
                  activation = nn.GELU()):
         super().__init__()
@@ -88,53 +81,55 @@ class squeezer(nn.Module):
     def forward(self, x):
         return self.seq(x)
 """
-squeezer(128, squeeze_ratio = 7)(torch.randn(1, 128, 224,224)).shape      
+squeezer(128, squeeze_ratio = 7)(torch.randn(1, 128, 224,224)).shape     
+for i in con.parameters():
+     k += i.shape.numel()
+print(k) 
 """
-class first_encoder_layer(nn.Module):
-    def __init__(self, embedding_shape:tuple[int,int],
-                 n_head:int = 4,
-                 num_registers:int = 5,
-                 multiplication_factor:int = 1, 
-                 activation_func = nn.GELU(),
-                 dropout = 0.1
+"""
+k = 0
+for i in nn.TransformerEncoderLayer(512, nhead = 8, batch_first=True,
+                                    dim_feedforward=256).parameters():
+    k += i.shape.numel()
+print(k) 
+"""
+class embedding_layer(nn.Module):
+    def __init__(self, embedding_dim:int,
+                 num_registers:int = 1,
                  ):
         super().__init__()
         ### -- ###
-        self.embedding_dim = embedding_shape[0]*embedding_shape[1]
+        self.embedding_dim = embedding_dim
         self.embedding = nn.Embedding(num_registers, self.embedding_dim)
         self.num_registers = num_registers
-        ### --- ##
         ### --- ###
         ### --- ###
-        self.transformer_encoder = nn.TransformerEncoderLayer(
-            d_model = self.embedding_dim,
-            nhead = n_head,
-            dim_feedforward = int(multiplication_factor*self.embedding_dim), 
-            activation = activation_func,
-            batch_first= True,
-            dropout = dropout,
-            norm_first= True
-        )
-        ### ---- ###
+        ### --- ###
+        ### ----###
         self.register_buffer(
             "num_register",
             torch.tensor(
-                [i for i in range(self.num_registers-1)],
+                [i for i in range(self.num_registers)],
                 dtype=torch.int,
                 requires_grad=False,
             ),
         )
     def forward(self, x, y = None):
         ### Here y will be localtions as there will be 2 more inputs that we save for extra 
-        B, C, _, _ = x.shape
+        
+        B, C, H, W = x.shape
+
+        x = x.view(B, C, H*W).contiguous().transpose(-1,-2)
 
         if y == None:
             embeddings = self.embedding(self.num_register)
         else:
             embeddings = self.embedding(y)
-        x = x.view(B, C, self.embedding_dim)
+        
         x = torch.cat((embeddings.repeat(B, 1, 1), x), 1)
-        return self.transformer_encoder(x)
+        return x
+
+
 
 
 class encoder_layer(nn.Module):
