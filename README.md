@@ -23,12 +23,12 @@ A quick and dirty note: Training started few days ago. S model (25M params) obta
 1
 (The following table will be updated!!!)
 | #Size  |  #Params  |  ConvMix | TransMix |  Patch_size | Conv_Size | Embed_Dim | Top1 Acc |  Top5 Acc | 
-| :---:  | :-------: | :-----:  | :------: | :------:    | :------:  | :-----:   | :-----:  |     | 
-|  XXXS  |  3        |  5       |  7       |  8          |           | :-----:   | ??       | | 
-|  XXS   |  6        |  6       |  4       |  9          |           | :-----:   | ??       | | 
-|  S     |  25       |  10      |  11      |  12         |           | :-----:   | %79?(exp)| |
-|  S (*) |  25.5     |  10      |  11      |  12         |           | :-----:   | %??      | |
-|  L     |  55       | 100      |  100     |  100        |           | :-----:   | ??       | |
+| :---:  | :-------: | :-----:  | :------: | :------:    | :------:  | :-----:   | :-----:  |   :-----:   | 
+|  XXXS  |  3        |  5       |  7       |  8          |           | :-----:   | ??       |     | 
+|  XXS   |  6        |  6       |  4       |  9          |           | :-----:   | ??       |     | 
+|  S     |  25       |  10      |  11      |  12         |           | :-----:   | %79?(exp)|     |
+|  S (*) |  25.5     |  10      |  11      |  12         |           | :-----:   | %??      |       |
+|  L     |  55       | 100      |  100     |  100        |           | :-----:   | ??       |        |
 
 *This dude will have multiple decision heads, coming from different register tokens.
 
