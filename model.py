@@ -1,9 +1,7 @@
 import torch
 from torch import nn as nn
-from torch.nn import functional as F
-from layers import conv_int, conv_mixer, squeezer, embedding_layer, encoder_layer
-import math
-import functools
+
+from layers import conv_int, conv_mixer, embedding_layer, encoder_layer
 
 class main_model(nn.Module):
     def __init__(self, 
@@ -18,13 +16,12 @@ class main_model(nn.Module):
                  dropout:float = 0.2,
                  num_register:int = 2,  
                  multiplication_factor:int = 1, 
-                 squeeze_ratio:int = 1,
                  output_classes = 1000,
                  ):
         super().__init__()
         ## Here we go again ##
         self.patch_size = patch_size
-        self.squeeze_ratio = squeeze_ratio
+        
         self.num_register = num_register        
 
         self.conv_init = conv_int(embedding_dim= embedding_dim_conv, 
@@ -34,13 +31,6 @@ class main_model(nn.Module):
         self.conv_mixer = nn.Sequential(*[conv_mixer(embedding_dim_conv, 
                                         kernel_size= conv_kernel_size)
                                         for i in range(conv_mixer_repetition)])
-        if squeeze_ratio == 1:
-            self.squeezer = lambda x: x
-        else:
-            self.squeezer = squeezer(embedding_dim= embedding_dim_conv,
-                                 squeeze_ratio= squeeze_ratio,
-                                 activation=  activation
-                                 )
         
         self.embedding_layer = embedding_layer(embedding_dim_in=embedding_dim_conv,
                                             embedding_dim_out=embedding_dim_trans,
@@ -61,19 +51,18 @@ class main_model(nn.Module):
                                         nn.Linear(output_classes, output_classes)])
         
     def forward(self, x, y = None, task = "C"):
+        ## Patches 
         x = self.conv_init(x)
-        x_ = self.conv_mixer(x)
-        x = self.squeezer(x_)
+        ## Mixing with convs
+        x = self.conv_mixer(x)
+        ## Together with embeddings
         x = self.embedding_layer(x,y)
+        ## Transformers take the wheel!!
         x =  self.encoder_rest(x)
         if task == "C":
-            return self.output_head(x[:,:self.num_register,:])
-        return x
-        
-
-    def fun_encoder_dim(self, n:int)->int:
-        return math.floor(n/(self.patch_size*self.squeeze_ratio))
-    
+            return self.output_head(x[:,:self.num_register,:]).transpose(-1,-2)
+        return x.transpose(-1,-2)
+            
     def return_num_params(self)->int:
         ## This dude will return the number of parameters
         total_params:int = 0 
@@ -121,22 +110,22 @@ class main_model(nn.Module):
 
 #### Below is just debugging purposses should be considered seriously useful ####
 """
-model = main_model(embedding_dim_conv=512, 
+model = main_model(embedding_dim_conv=512,
+                   embedding_dim_trans=512,
                 conv_mixer_repetition = 5,
                 conv_kernel_size = 7,
                 transformer_encoder_repetition = 5, 
-                patch_size=8, 
-                multiplication_factor=2,
-                squeeze_ratio= 1)
+                patch_size = 16, 
+                num_register=5,
+                multiplication_factor= 1,
+                ).cuda()
 
-model.fun_encoder_dim(224)
 model.return_num_params()
-model(torch.randn(10, 3, 224, 224)).shape
-
+model(torch.randn(10, 3, 224, 224), task = "sd").shape
 import numpy as np
-y = torch.tensor(np.random.randint(0, 1000, size = 8), dtype = torch.long)
-X = 0.4*torch.randn(8, 3, 224,224)
-l = model(X, task = "C")
+y = torch.tensor(np.random.randint(0, 1000, size = (64,5)), dtype = torch.long).cuda()
+X = 0.4*torch.randn(64, 3, 224,224).cuda()
+l = model(X)
 F.cross_entropy(l,y)
 
 torch.argmax(l, dim = -1) == y
@@ -150,7 +139,7 @@ for i in range(1000):
     print(loss.item())
     optimizer.step()
 
-
 """
+
 if __name__ == "__main__":
     print("Ok boomer!!!")
