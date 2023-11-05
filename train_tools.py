@@ -27,7 +27,7 @@ class Trainer:
         self.gpu_id = gpu_id
         self.model_config = model.config
         self.model = model.to(gpu_id)
-        self.model = DDP(self.model, device_ids=[gpu_id], find_unused_parameters=True)
+        self.model = DDP(self.model, device_ids=[gpu_id])
 
         if compile:
             self.model = torch.compile(self.model)

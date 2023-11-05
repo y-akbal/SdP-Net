@@ -27,8 +27,6 @@ class conv_int(nn.Module):
         return self.batch_norm(x) 
 
 
-
-
 class res_jump(nn.Module):
     def __init__(self, layer):
         super().__init__()
@@ -113,8 +111,9 @@ class first_encoder_layer(nn.Module):
             nhead = n_head,
             dim_feedforward = int(multiplication_factor*self.embedding_dim), 
             activation = activation_func,
+            batch_first= True,
             dropout = dropout,
-            norm_first= False
+            norm_first= True
         )
         ### ---- ###
         self.register_buffer(
@@ -134,7 +133,8 @@ class first_encoder_layer(nn.Module):
         else:
             embeddings = self.embedding(y)
         x = x.view(B, C, self.embedding_dim)
-        return torch.cat((embeddings.repeat(B, 1, 1), x), 1)
+        x = torch.cat((embeddings.repeat(B, 1, 1), x), 1)
+        return self.transformer_encoder(x)
 
 
 class encoder_layer(nn.Module):
@@ -155,7 +155,7 @@ class encoder_layer(nn.Module):
             nhead = n_head,
             activation = activation_func,
             batch_first = True,
-            dim_feedforward = multiplication_factor*self.embedding_dim,
+            dim_feedforward = int(multiplication_factor*self.embedding_dim),
             dropout = dropout,
             norm_first= True)
         

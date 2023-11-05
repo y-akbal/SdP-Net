@@ -16,8 +16,9 @@ def return_transforms():
     ### Here we define the transformation functions for training and testing
     
     transforms_train = transforms.Compose([
-        transforms.Resize((224,224)),
+        transforms.RandomResizedCrop((224,224)),
         transforms.RandAugment(), ## RandAugment ---
+        transforms.RandomErasing(),
     transforms.ToTensor(), ## Normalization is done here!!!
     transforms.Normalize(mean, std)
     ])

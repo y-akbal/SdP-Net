@@ -8,7 +8,7 @@ import functools
 class main_model(nn.Module):
     def __init__(self, 
                  embedding_dim_conv:int = 512,
-                 image_size = (224, 224),
+                 image_size:tuple = (224, 224),
                  n_head:int = 4,
                  conv_kernel_size:int = 5,
                  conv_mixer_repetition:int = 5, 
@@ -119,7 +119,6 @@ class main_model(nn.Module):
             )
         except Exception as exp:
             print(f"Something went wrong with {exp}!!!!!")
-
 
 
 #### Below is just debugging purposses should be considered seriously useful ####
