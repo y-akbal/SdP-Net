@@ -94,14 +94,19 @@ for i in nn.TransformerEncoderLayer(512, nhead = 8, batch_first=True,
 print(k) 
 """
 class embedding_layer(nn.Module):
-    def __init__(self, embedding_dim:int,
+    def __init__(self, embedding_dim_in:int = 512,
+                 embedding_dim_out:int = 512,
                  num_registers:int = 1,
                  ):
         super().__init__()
         ### -- ###
-        self.embedding_dim = embedding_dim
-        self.embedding = nn.Embedding(num_registers, self.embedding_dim)
+        self.embedding = nn.Embedding(num_registers, embedding_dim_in)
         self.num_registers = num_registers
+
+        if embedding_dim_in != embedding_dim_out:
+            self.Linear = nn.Linear(embedding_dim_in, embedding_dim_out)
+        else:
+            self.Linear = lambda x: x 
         ### --- ###
         ### --- ###
         ### --- ###
@@ -118,7 +123,7 @@ class embedding_layer(nn.Module):
         ### Here y will be localtions as there will be 2 more inputs that we save for extra 
         
         B, C, H, W = x.shape
-
+        # C here is the embedding dimension!!!
         x = x.view(B, C, H*W).contiguous().transpose(-1,-2)
 
         if y == None:
@@ -127,10 +132,7 @@ class embedding_layer(nn.Module):
             embeddings = self.embedding(y)
         
         x = torch.cat((embeddings.repeat(B, 1, 1), x), 1)
-        return x
-
-
-
+        return self.Linear(x)
 
 class encoder_layer(nn.Module):
     ## Here we embed H*W instead of the batch dimension 

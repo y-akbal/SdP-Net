@@ -1,7 +1,7 @@
 import torch
 from torch import nn as nn
 from torch.nn import functional as F
-from layers import conv_int, conv_mixer, squeezer, first_encoder_layer, encoder_layer
+from layers import conv_int, conv_mixer, squeezer, embedding_layer, encoder_layer
 import math
 import functools
 
