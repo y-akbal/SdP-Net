@@ -143,9 +143,11 @@ class encoder_layer(nn.Module):
                  embedding_dim, 
                  n_head:int,
                  activation_func = nn.GELU(),
-                 multiplication_factor:int = 2,
+                 multiplication_factor:float = 2,
                  dropout = 0.2
                  ):
+        
+        assert embedding_dim*multiplication_factor > 1, "Come on dude, do not squeeze to much!!!"
         super().__init__()
         self.embedding_dim = embedding_dim
         self.transformer_layer = nn.TransformerEncoderLayer(

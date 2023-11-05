@@ -8,7 +8,7 @@ import functools
 class main_model(nn.Module):
     def __init__(self, 
                  embedding_dim_conv:int = 512,
-                 image_size:tuple = (224, 224),
+                 embedding_dim_trans:int = 512,
                  n_head:int = 4,
                  conv_kernel_size:int = 5,
                  conv_mixer_repetition:int = 5, 
@@ -25,8 +25,7 @@ class main_model(nn.Module):
         ## Here we go again ##
         self.patch_size = patch_size
         self.squeeze_ratio = squeeze_ratio
-        self.encoder_embedding_dim:tuple = list(map(self.fun_encoder_dim, image_size))
-        self.encoder_embeddid_dim_:int = functools.reduce(lambda x,y:x*y, self.encoder_embedding_dim)
+        self.num_register = num_register        
 
         self.conv_init = conv_int(embedding_dim= embedding_dim_conv, 
                                   patch_size = patch_size,
@@ -43,33 +42,32 @@ class main_model(nn.Module):
                                  activation=  activation
                                  )
         
-        self.encoder_init = first_encoder_layer(embedding_shape= self.encoder_embedding_dim,
-                                                n_head = n_head,
-                                                num_registers = num_register,
-                                                multiplication_factor= multiplication_factor,
-                                                activation_func= activation,
-                                                dropout=dropout
-                                                )
-        self.encoder_rest= nn.Sequential(*[encoder_layer(embedding_shape= self.encoder_embedding_dim,
+        self.embedding_layer = embedding_layer(embedding_dim_in=embedding_dim_conv,
+                                            embedding_dim_out=embedding_dim_trans,
+                                            num_registers=num_register,
+                                            )
+        self.encoder_rest= nn.Sequential(*[encoder_layer(embedding_dim = embedding_dim_trans,
                                         n_head = n_head,
                                         multiplication_factor= multiplication_factor,
                                         activation_func= activation,
                                         dropout=dropout,
-                                        ) for i in range(transformer_encoder_repetition-1)])
+                                        ) for i in range(transformer_encoder_repetition)])
  
         
-        self.output_head = nn.Sequential(*[nn.Linear(self.encoder_embeddid_dim_, output_classes),
+        self.output_head = nn.Sequential(*[nn.Dropout(p = dropout),
+                                        nn.Linear(embedding_dim_trans, output_classes),
                                         nn.Tanh(),
+                                        nn.Dropout(p = dropout),
                                         nn.Linear(output_classes, output_classes)])
         
     def forward(self, x, y = None, task = "C"):
         x = self.conv_init(x)
         x_ = self.conv_mixer(x)
         x = self.squeezer(x_)
-        x = self.encoder_init(x,y)
+        x = self.embedding_layer(x,y)
         x =  self.encoder_rest(x)
         if task == "C":
-            return self.output_head(x[:,0,:])
+            return self.output_head(x[:,:self.num_register,:])
         return x
         
 
