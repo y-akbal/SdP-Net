@@ -94,6 +94,8 @@ for i in nn.TransformerEncoderLayer(512, nhead = 8, batch_first=True,
 print(k) 
 """
 class embedding_layer(nn.Module):
+    ## We isolated this layer in the case that you want to 
+    ## do something like enumerating the pixels...
     def __init__(self, embedding_dim_in:int = 512,
                  embedding_dim_out:int = 512,
                  num_registers:int = 1,
@@ -135,18 +137,17 @@ class embedding_layer(nn.Module):
         return self.Linear(x)
 
 class encoder_layer(nn.Module):
-    ## Here we embed H*W instead of the batch dimension 
-    ## this may sound a bit better however
-    ## it has some downsides as it is mosty affected by the size of the image
+    ## Here we embed C instead of the batch H*W
+    ## this may sound a bit weirdo!!! 
     def __init__(self, 
-                 embedding_shape:tuple[int, int], 
+                 embedding_dim, 
                  n_head:int,
                  activation_func = nn.GELU(),
                  multiplication_factor:int = 2,
                  dropout = 0.2
                  ):
         super().__init__()
-        self.embedding_dim = embedding_shape[0]*embedding_shape[1]
+        self.embedding_dim = embedding_dim
         self.transformer_layer = nn.TransformerEncoderLayer(
             d_model = self.embedding_dim,
             nhead = n_head,
@@ -154,7 +155,8 @@ class encoder_layer(nn.Module):
             batch_first = True,
             dim_feedforward = int(multiplication_factor*self.embedding_dim),
             dropout = dropout,
-            norm_first= True)
+            norm_first= True
+            )
         
     def forward(self, x):
         return self.transformer_layer(x)
