@@ -1,6 +1,7 @@
 ### Here we go!!!
-import torch
 import os
+os.environ["OMP_NUM_THREADS"] = "3"
+import torch
 from torch import nn as nn
 from torch.utils.data import DataLoader
 import torch.nn as nn
@@ -18,6 +19,9 @@ from model import main_model
 from dataset_generator import test_data, train_data
 from train_tools import Trainer, distributed_loss_track, track_accuracy
 
+#
+torch.set_float32_matmul_precision("medium")
+#
 
 
 def ddp_setup():
@@ -63,6 +67,7 @@ def main(cfg : DictConfig):
     ddp_setup()
     ## model configuration ##
     model_config, optimizer_config, scheduler_config = cfg["model_config"], cfg["optimizer_config"], cfg["scheduler_config"]
+    trainer_config = cfg["trainer_config"]
 
     ## --- ### 
 
@@ -84,6 +89,7 @@ def main(cfg : DictConfig):
     val_acc_tracker = track_accuracy()
     
 
+
     trainer = Trainer(
         model = model,
         train_data= train_images,
@@ -91,11 +97,10 @@ def main(cfg : DictConfig):
         optimizer = optimizer,
         scheduler= scheduler,
         gpu_id = gpu_id,
-        save_every= 1,
-        compile = False,
         val_loss_logger=val_loss_tracker,
         train_loss_logger=train_loss_tracker,
-        val_accuracy_logger=val_acc_tracker
+        val_accuracy_logger=val_acc_tracker,
+        **trainer_config
     )
     trainer.train(45)
 

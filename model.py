@@ -1,7 +1,7 @@
 import torch
 from torch import nn as nn
 
-from layers import conv_int, conv_mixer, embedding_layer, encoder_layer
+from layers import conv_int, conv_mixer, embedding_layer, encoder_layer, squeezer
 
 class main_model(nn.Module):
     def __init__(self, 
@@ -17,6 +17,7 @@ class main_model(nn.Module):
                  num_register:int = 2,  
                  multiplication_factor:int = 1, 
                  output_classes = 1000,
+                 squeeze_ratio = 2,
                  ):
         super().__init__()
         ## Here we go again ##
@@ -31,6 +32,13 @@ class main_model(nn.Module):
         self.conv_mixer = nn.Sequential(*[conv_mixer(embedding_dim_conv, 
                                         kernel_size= conv_kernel_size)
                                         for i in range(conv_mixer_repetition)])
+        
+        if squeeze_ratio == 1:
+            self.squeezer = lambda x: x
+        else:
+            self.squeezer = squeezer(embedding_dim = embedding_dim_conv,
+                                     squeeze_ratio=squeeze_ratio,
+                                     activation=activation)
         
         self.embedding_layer = embedding_layer(embedding_dim_in=embedding_dim_conv,
                                             embedding_dim_out=embedding_dim_trans,
@@ -55,10 +63,15 @@ class main_model(nn.Module):
         x = self.conv_init(x)
         ## Mixing with convs
         x = self.conv_mixer(x)
+        x = self.squeezer(x)
         ## Together with embeddings
         x = self.embedding_layer(x,y)
         ## Transformers take the wheel!!
         x =  self.encoder_rest(x)
+        if task == "C":
+            return self.output_head(x[:,0,:])
+        return x
+            
         if task == "C":
             return self.output_head(x[:,:self.num_register,:]).transpose(-1,-2)
         return x.transpose(-1,-2)

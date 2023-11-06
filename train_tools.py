@@ -6,7 +6,8 @@ from torch.distributed import (
 )
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.nn.functional as F
-
+import time
+import os
 
 class Trainer:
     def __init__(
@@ -21,7 +22,7 @@ class Trainer:
         val_loss_logger=None,
         train_loss_logger=None,
         val_accuracy_logger=None,
-        compile=False
+        compile_model=False
         # tracker ## this dude is for tracking stuff
     ) -> None:
         self.gpu_id = gpu_id
@@ -29,7 +30,7 @@ class Trainer:
         self.model = model.to(gpu_id)
         self.model = DDP(self.model, device_ids=[gpu_id])
 
-        if compile:
+        if compile_model:
             self.model = torch.compile(self.model)
         ##
         self.train_data = train_data
@@ -54,6 +55,7 @@ class Trainer:
         
     def _run_batch(self, source, targets):
         ### All the things like low precision training will happen here dude!!!
+        
         self.optimizer.zero_grad()
         with self.autocast(device_type="cuda", dtype=torch.bfloat16):
             output = self.model(source)
@@ -62,6 +64,7 @@ class Trainer:
         self.scaler.step(self.optimizer)
         self.scaler.update()
         self.scheduler.step()
+        
         ### We log the loss ### 
         self.train_loss_logger.update(loss.item())
         ## update the loss
@@ -77,16 +80,19 @@ class Trainer:
         ## 
         self.model.train() ## Model in train mode!!!
         for i, (source, targets) in enumerate(self.train_data):
-            source = source.to(self.gpu_id, non_blocking=True)
-            targets = targets.to(self.gpu_id, non_blocking=True)
+            source = source.to(self.gpu_id, non_blocking=False)
+            targets = targets.to(self.gpu_id, non_blocking=False)
+            a = time.perf_counter()
+            time.perf_counter()
             self._run_batch(source, targets)
+            b = time.perf_counter()
             ### 
             ## sync the losses
             self.train_loss_logger.all_reduce()
             ## prtint the loss
-            if self.gpu_id == 0 and i % 10 == 0:
+            if (self.gpu_id == 0 or 1) and i % 10 == 0:
                 batch_loss = self.train_loss_logger.get_avg_loss()
-                print(f"{i} Batch passed the average loss is {batch_loss}, learning rate is {self.scheduler.get_last_lr()}")
+                print(f"{i} Batch passed the average loss is {batch_loss}, lr is {self.scheduler.get_last_lr()}, pss batch {b-a}")
             ### -- ###
             self.train_loss_logger.reset()       
 
