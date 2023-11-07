@@ -79,20 +79,20 @@ class Trainer:
         self.train_data.sampler.set_epoch(self.epoch)
         ## 
         self.model.train() ## Model in train mode!!!
+        
         for i, (source, targets) in enumerate(self.train_data):
             source = source.to(self.gpu_id, non_blocking=False)
             targets = targets.to(self.gpu_id, non_blocking=False)
             a = time.perf_counter()
-            time.perf_counter()
             self._run_batch(source, targets)
-            b = time.perf_counter()
+            
             ### 
             ## sync the losses
             self.train_loss_logger.all_reduce()
             ## prtint the loss
-            if (self.gpu_id == 0 or 1) and i % 10 == 0:
+            if (self.gpu_id == 0 or 1) and i % 1000 == 0:
                 batch_loss = self.train_loss_logger.get_avg_loss()
-                print(f"{i} Batch passed the average loss is {batch_loss}, lr is {self.scheduler.get_last_lr()}, pss batch {b-a}")
+                print(f"{i} Batch passed the average loss is {batch_loss}, lr is {self.scheduler.get_last_lr()}")
             ### -- ###
             self.train_loss_logger.reset()       
 
@@ -105,9 +105,10 @@ class Trainer:
             assert(ValueError("Train error!!!!"))
 
         for epoch in range(self.epoch+1, max_epochs):
-
+            a = time.perf_counter()            
             self._run_epoch(epoch)
-            
+            b = time.perf_counter()
+            print(f"One epoch took {b-a}secs")
             if self.gpu_id == 0 and epoch % self.save_every == 0:
                self._save_checkpoint()
             self.validate()

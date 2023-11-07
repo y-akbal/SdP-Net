@@ -1,6 +1,6 @@
 import torch
 from torch import nn as nn
-
+from torch.nn import functional as F
 from layers import conv_int, conv_mixer, embedding_layer, encoder_layer, squeezer
 
 class main_model(nn.Module):
@@ -58,7 +58,7 @@ class main_model(nn.Module):
                                         nn.Dropout(p = dropout),
                                         nn.Linear(output_classes, output_classes)])
         
-    def forward(self, x, y = None, task = "C"):
+    def forward(self, x, y = None, task = "SH"):
         ## Patches 
         x = self.conv_init(x)
         ## Mixing with convs
@@ -68,13 +68,12 @@ class main_model(nn.Module):
         x = self.embedding_layer(x,y)
         ## Transformers take the wheel!!
         x =  self.encoder_rest(x)
-        if task == "C":
+        if task == "MH":
+            return self.output_head(x[:,0:self.num_register,:]).transpose(-1,-2)
+        elif task == "SH":
             return self.output_head(x[:,0,:])
-        return x
-            
-        if task == "C":
-            return self.output_head(x[:,:self.num_register,:]).transpose(-1,-2)
-        return x.transpose(-1,-2)
+        else:
+            return x
             
     def return_num_params(self)->int:
         ## This dude will return the number of parameters
@@ -122,23 +121,27 @@ class main_model(nn.Module):
 
 
 #### Below is just debugging purposses should be considered seriously useful ####
-"""
-model = main_model(embedding_dim_conv=512,
-                   embedding_dim_trans=512,
+
+model = main_model(embedding_dim_conv=256,
+                   embedding_dim_trans=256,
+                   n_head= 8,
                 conv_mixer_repetition = 5,
                 conv_kernel_size = 7,
-                transformer_encoder_repetition = 5, 
+                transformer_encoder_repetition = 15, 
                 patch_size = 16, 
                 num_register=5,
                 multiplication_factor= 1,
+                squeeze_ratio = 4,
                 ).cuda()
 
 model.return_num_params()
-model(torch.randn(10, 3, 224, 224), task = "sd").shape
+model(torch.randn(8, 3, 224, 224).cuda(), task = "MH").shape
+
 import numpy as np
-y = torch.tensor(np.random.randint(0, 1000, size = (64,5)), dtype = torch.long).cuda()
+
 X = 0.4*torch.randn(64, 3, 224,224).cuda()
-l = model(X)
+y = torch.randint(10,20, size = (64, 5)).cuda()
+l = model(X, task = "MH")
 F.cross_entropy(l,y)
 
 torch.argmax(l, dim = -1) == y
@@ -147,12 +150,12 @@ torch.argmax(l, dim = -1) == y
 optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
 for i in range(1000):
     optimizer.zero_grad()
-    loss = F.cross_entropy(model(X, task = "C"),y)
+    loss = F.cross_entropy(model(X, task = "MH"),y)
     loss.backward()
     print(loss.item())
     optimizer.step()
 
-"""
+
 
 if __name__ == "__main__":
     print("Ok boomer!!!")
