@@ -122,39 +122,44 @@ class main_model(nn.Module):
 
 #### Below is just debugging purposses should be considered seriously useful ####
 
-model = main_model(embedding_dim_conv=256,
-                   embedding_dim_trans=256,
+model = main_model(embedding_dim_conv=512,
+                   embedding_dim_trans=512,
                    n_head= 8,
                 conv_mixer_repetition = 5,
                 conv_kernel_size = 7,
-                transformer_encoder_repetition = 15, 
+                transformer_encoder_repetition = 10, 
                 patch_size = 16, 
-                num_register=5,
-                multiplication_factor= 1,
-                squeeze_ratio = 4,
+                num_register=10,
+                multiplication_factor= 4,
+                squeeze_ratio = 2,
                 ).cuda()
-
+"""
+torch.cuda.empty_cache()
 model.return_num_params()
 model(torch.randn(8, 3, 224, 224).cuda(), task = "MH").shape
 
 import numpy as np
 
-X = 0.4*torch.randn(64, 3, 224,224).cuda()
-y = torch.randint(10,20, size = (64, 5)).cuda()
-l = model(X, task = "MH")
-F.cross_entropy(l,y)
+X = torch.randn(64, 3, 224,224).cuda()
+y = torch.randint(10,20, size = (64,)).cuda()
 
-torch.argmax(l, dim = -1) == y
+y.repeat(10,1).transpose(-1,-2)
+l = model(X, task = "MH")
+F.cross_entropy(l,y.repeat(10,1))
+(model(X, task = "MH").argmax(-2).mode(-1).values == y.squeeze(-1)).float().mean()
+
+model(X, task = "MH")[0,1,:]
 
 
 optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
 for i in range(1000):
     optimizer.zero_grad()
-    loss = F.cross_entropy(model(X, task = "MH"),y)
+    loss = F.cross_entropy(model(X, task = "MH"),y.repeat(1,10))
     loss.backward()
     print(loss.item())
     optimizer.step()
 
+"""
 
 
 if __name__ == "__main__":

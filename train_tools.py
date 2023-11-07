@@ -57,9 +57,13 @@ class Trainer:
         ### All the things like low precision training will happen here dude!!!
         
         self.optimizer.zero_grad()
+        
         with self.autocast(device_type="cuda", dtype=torch.bfloat16):
-            output = self.model(source)
-            loss = F.cross_entropy(output, targets, label_smoothing=0.01)
+            output = self.model(source, task = "MH")
+            
+            loss = F.cross_entropy(output, 
+                                   targets.repeat(5,1).transpose(-1,-2), 
+                                   label_smoothing=0.01)
         self.scaler.scale(loss).backward()
         self.scaler.step(self.optimizer)
         self.scaler.update()
@@ -90,7 +94,7 @@ class Trainer:
             ## sync the losses
             self.train_loss_logger.all_reduce()
             ## prtint the loss
-            if (self.gpu_id == 0 or 1) and i % 1000 == 0:
+            if (self.gpu_id == 0 or 1) and i % 500 == 0:
                 batch_loss = self.train_loss_logger.get_avg_loss()
                 print(f"{i} Batch passed the average loss is {batch_loss}, lr is {self.scheduler.get_last_lr()}")
             ### -- ###
@@ -139,11 +143,13 @@ class Trainer:
         ### Now the state dict are obtained below ###
         model_state_dict = model_dict["model_state_dict"]
         model_optimizer_state = model_dict["optimizer_state"]
+        model_scheduler_state = model_dict["scheduler_state"]
         
         ### ---Let's load the model states--- ###
         #self.model = self.model.from_dict(model_config)
         self.model.load_state_dict(model_state_dict)
         self.optimizer.load_state_dict(model_optimizer_state)
+        self.scheduler.load_state_dict(model_scheduler_state)
         self.epoch = model_dict["epoch"]
         print(f"Loaded the new model!!!! will continue training from {self.epoch} epoch")
  
@@ -152,10 +158,11 @@ class Trainer:
         model_weights = self.model.state_dict()
         model_config = self.model_config
         optimizer_state = self.optimizer.state_dict()
-
+        scheduler_state = self.scheduler.state_dict()
         checkpoint = {"model_state_dict":model_weights,
                       "model_config":model_config,
                       "optimizer_state":optimizer_state,
+                      "scheduler_state":scheduler_state,
                       "epoch":self.epoch
                     }
         try:
