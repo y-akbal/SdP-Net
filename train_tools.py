@@ -87,7 +87,7 @@ class Trainer:
         for i, (source, targets) in enumerate(self.train_data):
             source = source.to(self.gpu_id, non_blocking=False)
             targets = targets.to(self.gpu_id, non_blocking=False)
-            a = time.perf_counter()
+            
             self._run_batch(source, targets)
             
             ### 
