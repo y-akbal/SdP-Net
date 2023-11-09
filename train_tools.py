@@ -9,6 +9,8 @@ import torch.nn.functional as F
 import time
 import os
 
+
+
 class Trainer:
     def __init__(
         self,
@@ -29,7 +31,7 @@ class Trainer:
         self.model_config = model.config
         self.model = model.to(gpu_id)
         self.model = DDP(self.model, device_ids=[gpu_id])
-
+        
         if compile_model:
             self.model = torch.compile(self.model)
         ##
@@ -62,12 +64,12 @@ class Trainer:
             output = self.model(source, task = "MH")
             
             loss = F.cross_entropy(output, 
-                                   targets.repeat(5,1).transpose(-1,-2), 
+                                   targets.repeat(self.model_config["num_register"],1).transpose(-1,-2), 
                                    label_smoothing=0.01)
         self.scaler.scale(loss).backward()
         self.scaler.step(self.optimizer)
         self.scaler.update()
-        self.scheduler.step()
+        
         
         ### We log the loss ### 
         self.train_loss_logger.update(loss.item())
@@ -94,12 +96,12 @@ class Trainer:
             ## sync the losses
             self.train_loss_logger.all_reduce()
             ## prtint the loss
-            if (self.gpu_id == 0 or 1) and i % 500 == 0:
+            if (self.gpu_id == 0) and i % 50 == 0:
                 batch_loss = self.train_loss_logger.get_avg_loss()
                 print(f"{i} Batch passed the average loss is {batch_loss}, lr is {self.scheduler.get_last_lr()}")
             ### -- ###
             self.train_loss_logger.reset()       
-
+        self.scheduler.step()
 
 
 
@@ -109,13 +111,14 @@ class Trainer:
             assert(ValueError("Train error!!!!"))
 
         for epoch in range(self.epoch+1, max_epochs):
+            self.validate()
             a = time.perf_counter()            
             self._run_epoch(epoch)
             b = time.perf_counter()
             print(f"One epoch took {b-a}secs")
             if self.gpu_id == 0 and epoch % self.save_every == 0:
                self._save_checkpoint()
-            self.validate()
+            
 
     def validate(self):
         self.model.eval()
@@ -125,11 +128,10 @@ class Trainer:
             for source, targets, _ in self.val_data:
                 source = source.to(self.gpu_id)
                 targets = targets.to(self.gpu_id)
-                output = self.model(source)  
-                loss = F.cross_entropy(output, targets)
+                output = self.model(source, task = "MH")  
+                loss = F.cross_entropy(output, targets.repeat(self.model_config["num_register"],1).transpose(-1,-2))
+                accuracy = (output.argmax(-2).mode().values == targets).float().mean()
                 self.val_loss_logger.update(loss.item())
-                accuracy = (output.argmax(-1) == targets).float().mean()
-                #print(self.val_accuracy_logger.update(accuracy.item()))
                 self.val_accuracy_logger.update(accuracy.item())
             self.val_loss_logger.all_reduce()
             self.val_accuracy_logger.all_reduce()
@@ -146,7 +148,6 @@ class Trainer:
         model_scheduler_state = model_dict["scheduler_state"]
         
         ### ---Let's load the model states--- ###
-        #self.model = self.model.from_dict(model_config)
         self.model.load_state_dict(model_state_dict)
         self.optimizer.load_state_dict(model_optimizer_state)
         self.scheduler.load_state_dict(model_scheduler_state)
@@ -171,6 +172,34 @@ class Trainer:
             print(f"Epoch {self.epoch} | Training checkpoint saved at {PATH}")
         except Exception as exp:
             print(f"Something went wrong with {exp}, the training will start from begining!!!")
+
+
+
+def return_scheduler_optimizer(model, **kwargs):
+    ## -- ##
+    #################
+    ## ----------- ##
+    ## -Optimizer- ##
+    ## --config--- ##
+    #################
+    opt_kwargs = kwargs["optimizer_config"]
+    optimizer = torch.optim.AdamW(model.parameters(), **opt_kwargs)
+    
+    #################
+    ## ----------- ##
+    ## Scheduler   ##
+    ## --config--- ##
+    #################
+    scheduler_kwargs = kwargs["scheduler_config"]
+    ## -- ##
+    scheduler1 = torch.optim.lr_scheduler.LinearLR(optimizer, **scheduler_kwargs["linear_scheduler"])
+    ## Scheduler 2 ##
+    scheduler2 = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, **scheduler_kwargs["cosine"])
+    ## Combined Scheduler ##
+#    end_of_warmup_steps = scheduler_kwargs["warm_up_steps"]
+    scheduler = torch.optim.lr_scheduler.SequentialLR(optimizer, schedulers=[scheduler1, scheduler2], milestones= [5])
+    
+    return optimizer, scheduler
 
 
 """
@@ -296,3 +325,4 @@ t.update(0.9)
 t.accuracy
 t.counter
 t.reset()"""
+

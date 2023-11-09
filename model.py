@@ -63,6 +63,7 @@ class main_model(nn.Module):
         x = self.conv_init(x)
         ## Mixing with convs
         x = self.conv_mixer(x)
+        ## Squeezer only works when the input dim is different than the ouput dim
         x = self.squeezer(x)
         ## Together with embeddings
         x = self.embedding_layer(x,y)

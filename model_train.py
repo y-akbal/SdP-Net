@@ -17,7 +17,8 @@ from omegaconf import DictConfig
 ### import model and train and validation data and trainer ###
 from model import main_model
 from dataset_generator import test_data, train_data
-from train_tools import Trainer, distributed_loss_track, track_accuracy
+from train_tools import Trainer, distributed_loss_track, track_accuracy, return_scheduler_optimizer
+
 
 #
 torch.set_float32_matmul_precision("medium")
@@ -66,18 +67,17 @@ def train_val_data_loader(train_data, test_data, **kwargs):
 def main(cfg : DictConfig):
     ddp_setup()
     ## model configuration ##
-    model_config, optimizer_config, scheduler_config = cfg["model_config"], cfg["optimizer_config"], cfg["scheduler_config"]
+    model_config, optimizer_scheduler_config = cfg["model_config"], cfg["optimizer_scheduler_config"]
     trainer_config = cfg["trainer_config"]
-
+    data_config = cfg["data"]
     ## --- ### 
 
     ## model_config -- optimizer config -- scheduler config ##
     torch.manual_seed(5)
     model = main_model.from_dict(**model_config)
-    optimizer = torch.optim.AdamW(model.parameters(), **optimizer_config)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, **scheduler_config)
+    optimizer, scheduler = return_scheduler_optimizer(model, **optimizer_scheduler_config)
     ## batched train and validation data loader ## 
-    train_images, test_images = train_val_data_loader(train_data, test_data, **cfg["data"])
+    train_images, test_images = train_val_data_loader(train_data, test_data, **data_config)
     
     gpu_id = int(os.environ["LOCAL_RANK"]) ### this local rank is determined by torch run!!!
     if gpu_id == 0:
@@ -103,7 +103,7 @@ def main(cfg : DictConfig):
         val_accuracy_logger=val_acc_tracker,
         **trainer_config
     )
-    trainer.train(45)
+    trainer.train(300)
 
     destroy_process_group()
 
