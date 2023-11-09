@@ -67,6 +67,9 @@ class main_model(nn.Module):
         ## Together with embeddings
         x = self.embedding_layer(x,y)
         ## Transformers take the wheel!!
+        ## In the case that you wanna do multiple head prediction
+        ## go this way or jump to "SH", 
+        ## old school prediction it does...
         x =  self.encoder_rest(x)
         if task == "MH":
             return self.output_head(x[:,0:self.num_register,:]).transpose(-1,-2)
