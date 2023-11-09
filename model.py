@@ -120,8 +120,9 @@ class main_model(nn.Module):
             print(f"Something went wrong with {exp}!!!!!")
 
 
-#### Below is just debugging purposses should be considered seriously useful ####
+### Below is just debugging purposses should be considered seriously useful ###
 
+"""
 model = main_model(embedding_dim_conv=512,
                    embedding_dim_trans=512,
                    n_head= 8,
@@ -133,7 +134,7 @@ model = main_model(embedding_dim_conv=512,
                 multiplication_factor= 4,
                 squeeze_ratio = 2,
                 ).cuda()
-"""
+
 torch.cuda.empty_cache()
 model.return_num_params()
 model(torch.randn(8, 3, 224, 224).cuda(), task = "MH").shape
