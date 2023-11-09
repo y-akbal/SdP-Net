@@ -78,11 +78,12 @@ def main(cfg : DictConfig):
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, **scheduler_config)
     ## batched train and validation data loader ## 
     train_images, test_images = train_val_data_loader(train_data, test_data, **cfg["data"])
-
-    print(len(train_images), len(test_images))
-    print(f"Model has {model.return_num_params()}")
     
     gpu_id = int(os.environ["LOCAL_RANK"]) ### this local rank is determined by torch run!!!
+    if gpu_id == 0:
+        print(len(train_images), len(test_images))
+        print(f"Model has {model.return_num_params()}")
+    
     
     train_loss_tracker = distributed_loss_track()
     val_loss_tracker = distributed_loss_track(file_name="valloss.log")
