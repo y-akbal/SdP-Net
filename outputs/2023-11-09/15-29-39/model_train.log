@@ -1,6 +1,0 @@
-[2023-11-09 15:29:39,747][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 0
-[2023-11-09 15:29:39,752][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 1
-[2023-11-09 15:29:39,752][torch.distributed.distributed_c10d][INFO] - Rank 1: Completed store-based barrier for key:store_based_barrier_key:1 with 2 nodes.
-[2023-11-09 15:29:39,757][torch.distributed.distributed_c10d][INFO] - Rank 0: Completed store-based barrier for key:store_based_barrier_key:1 with 2 nodes.
-[2023-11-09 15:29:51,169][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
-[2023-11-09 15:29:51,217][torch.nn.parallel.distributed][INFO] - Reducer buckets have been rebuilt in this iteration.
