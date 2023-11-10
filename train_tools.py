@@ -111,14 +111,14 @@ class Trainer:
             assert(ValueError("Train error!!!!"))
 
         for epoch in range(self.epoch+1, max_epochs):
-            self.validate()
+            
             a = time.perf_counter()            
             self._run_epoch(epoch)
             b = time.perf_counter()
             print(f"One epoch took {b-a}secs")
             if self.gpu_id == 0 and epoch % self.save_every == 0:
                self._save_checkpoint()
-            
+            self.validate()
 
     def validate(self):
         self.model.eval()
