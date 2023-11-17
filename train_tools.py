@@ -65,7 +65,7 @@ class Trainer:
             
             loss = F.cross_entropy(output, 
                                    targets.repeat(self.model_config["num_register"],1).transpose(-1,-2), 
-                                   label_smoothing=0.01)
+                                   label_smoothing=0.1)
         self.scaler.scale(loss).backward()
         self.scaler.step(self.optimizer)
         self.scaler.update()
@@ -81,7 +81,7 @@ class Trainer:
         # b_sz = len(next(iter(self.train_data))[0])
         self.epoch = epoch
         if epoch % report_in_every == 0:
-            print(f"[GPU{self.gpu_id}] Epoch {self.epoch}")
+            print(f"[GPU{self.gpu_id}] Epoch {self.epoch}\n")
         self.train_data.sampler.set_epoch(self.epoch)
         ## 
         self.model.train() ## Model in train mode!!!

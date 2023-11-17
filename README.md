@@ -19,19 +19,19 @@ This is actually a less serious weekend project called AT-Net which can be consi
 Enjoy AT-Net!!!
 
 # Training Details
-A quick and dirty note: Training started few days ago. S model (25M params) obtains currently %52 percent accuracy on validation set (At the end of 32th epoch). Compared to other imagenet training logs there is an obvious overfitting here, I will let it be to see where its going to screw up. I will publicize the weights on HF soon after learning saturates. 
-
 
 (The following table will be updated!!!)
 | #Size  |  #Params  |  ConvMix | TransMix |  Patch_size | Conv_Size | Embed_Dim | Top1 Acc | 
 | :---:  | :-------: | :-----:  | :------: | :------:    | :------:  | :-----:   | :-----:  | 
 |  XXXS  |  3        |  5       |  7       |  8          |           |           | ??       | 
 |  XXS   |  6        |  6       |  4       |  9          |           |           | ??       | 
-|  S     |  25       |  10      |  11      |  12         |           |           | %79?(exp)| 
-|  S (*) |  25.5     |  10      |  11      |  12         |           |           | %??      | 
+|  S     |  19       |  5       |  10      |  12         |           |           | 79%?(exp)| 
+|  S (*) |  19       |  5       |  10      |  14         |     7     |  512-512  | 70.2%    | 
 |  L     |  55       | 100      |  100     |  100        |           |           | ??       | 
 
 *This dude will have multiple decision heads, coming from different register tokens.
+
+Bitter lesson: I have trained S (*) model, with modicum of augmentation and and small dropot rate for 300 epochs. 70% accuracy is not really good. Initial learning rate was 0.0001, with a linear warming up period for 5 epochs. I was expecting at least 75%. Probably I will keep the patch size small (say 7) and Conv size 5, in which case together with some more augmentation methods things will be better. 
 
 # Optimizers
 AdamW:
@@ -39,4 +39,4 @@ CosineAnnealing with warm starts::
  
 # Augmentation and Regularization
 
-RandAugment + Random erase + Random resize
+RandAugment + Random erase + Random resize + Dropout(0.2)
