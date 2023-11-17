@@ -31,7 +31,7 @@ Enjoy AT-Net!!!
 
 *This dude will have multiple decision heads, coming from different register tokens.
 
-Bitter lesson: I have trained S (*) model, with modicum of augmentation and and small dropot rate for 300 epochs. 70% accuracy is not really good. Initial learning rate was 0.0001, with a linear warming up period for 5 epochs. I was expecting at least 75%. Probably I will keep the patch size small (say 7) and Conv size 5, in which case together with some more augmentation methods things will be better. 
+Bitter lesson: I have trained S (*) model, with modicum of augmentation and and small dropout rate for 300 epochs. 70% accuracy is not really good. Initial learning rate was 0.0001, with a linear warming up period for 5 epochs. I was expecting at least 75% Top1 accuracy. Probably I will keep the patch size small (say 7) and conv-kernel size 5, in which case together with some more augmentation methods things will be better. 
 
 # Optimizers
 AdamW:
