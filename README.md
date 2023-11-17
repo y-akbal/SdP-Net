@@ -26,7 +26,7 @@ Enjoy AT-Net!!!
 |  XXXS  |  3        |  5       |  7       |  8          |           |           | ??       | 
 |  XXS   |  6        |  6       |  4       |  9          |           |           | ??       | 
 |  S     |  19       |  5       |  10      |  12         |           |           | 79%?(exp)| 
-|  S (*) |  19       |  5       |  10      |  14         |     7     |  512-512  | 70.2%    | 
+|  S (*) |  19       |  5       |  10      |  14         |     7     | 512C 512T | 70.2%    | 
 |  L     |  55       | 100      |  100     |  100        |           |           | ??       | 
 
 *This dude will have multiple decision heads, coming from different register tokens.
