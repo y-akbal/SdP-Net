@@ -18,8 +18,8 @@ from omegaconf import DictConfig
 from model import main_model
 from dataset_generator import test_data, train_data
 from train_tools import Trainer, distributed_loss_track, track_accuracy, return_scheduler_optimizer
-
-
+from torchvision.transforms import v2
+from torch.utils.data import default_collate
 #
 torch.set_float32_matmul_precision("medium")
 #
@@ -48,10 +48,18 @@ def train_val_data_loader(train_data, test_data, **kwargs):
     ##
     train_sampler = DistributedSampler(train_image_generator, shuffle = True)
     val_sampler = DistributedSampler(test_image_generator, shuffle = False)
-    ## 
+    ## --- MixUp and CutMix --- ##
+    NUM_CLASSES = 1000
+    cutmix = v2.CutMix(num_classes=NUM_CLASSES)
+    mixup = v2.MixUp(num_classes=NUM_CLASSES, alpha = 0.8)
+    cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
+    collate_fn = lambda batch : cutmix_or_mixup(*default_collate(batch))
+
+    
     train_data = DataLoader(
         dataset= train_image_generator,
         sampler = train_sampler,
+        collate_fn=collate_fn,
         **kwargs_train,
     )
     test_data = DataLoader(

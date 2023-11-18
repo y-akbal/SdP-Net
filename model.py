@@ -51,14 +51,16 @@ class main_model(nn.Module):
                                         dropout=dropout,
                                         ) for i in range(transformer_encoder_repetition)])
  
-        
+        """
         self.output_head = nn.Sequential(*[nn.Dropout(p = dropout),
                                         nn.Linear(embedding_dim_trans, output_classes),
                                         nn.Tanh(),
                                         nn.Dropout(p = dropout),
-                                        nn.Linear(output_classes, output_classes)])
-        
-    def forward(self, x, y = None, task = "SH"):
+                                        nn.Linear(output_classes, output_classes)])        
+        """
+        self.output_head = nn.Linear(257, output_classes)
+                           
+    def forward(self, x, y = None):
         ## Patches 
         x = self.conv_init(x)
         ## Mixing with convs
@@ -72,12 +74,8 @@ class main_model(nn.Module):
         ## go this way or jump to "SH", 
         ## old school prediction it does...
         x =  self.encoder_rest(x)
-        if task == "MH":
-            return self.output_head(x[:,0:self.num_register,:]).transpose(-1,-2)
-        elif task == "SH":
-            return self.output_head(x[:,0,:])
-        else:
-            return x
+       
+        return self.output_head(x.mean(-1).squeeze())
             
     def return_num_params(self)->int:
         ## This dude will return the number of parameters
@@ -125,25 +123,24 @@ class main_model(nn.Module):
 
 
 ### Below is just debugging purposses should be considered seriously useful ###
-
 """
-model = main_model(embedding_dim_conv=512,
-                   embedding_dim_trans=512,
+model = main_model(embedding_dim_conv=256,
+                   embedding_dim_trans=256,
                    n_head= 8,
                 conv_mixer_repetition = 5,
-                conv_kernel_size = 7,
-                transformer_encoder_repetition = 10, 
-                patch_size = 16, 
-                num_register=10,
+                conv_kernel_size = 9,
+                transformer_encoder_repetition = 5, 
+                patch_size = 7, 
+                num_register = 1,
                 multiplication_factor= 4,
-                squeeze_ratio = 2,
+                squeeze_ratio = 1,
                 ).cuda()
 
-torch.cuda.empty_cache()
 model.return_num_params()
-model(torch.randn(8, 3, 224, 224).cuda(), task = "MH").shape
+q = model(torch.randn(8, 3, 224, 224).cuda())
 
-import numpy as np
+
+import numpy as np.
 
 X = torch.randn(64, 3, 224,224).cuda()
 y = torch.randint(10,20, size = (64,)).cuda()
@@ -164,8 +161,7 @@ for i in range(1000):
     print(loss.item())
     optimizer.step()
 
+
 """
-
-
 if __name__ == "__main__":
     print("Ok boomer!!!")

@@ -61,10 +61,10 @@ class Trainer:
         self.optimizer.zero_grad()
         
         with self.autocast(device_type="cuda", dtype=torch.bfloat16):
-            output = self.model(source, task = "MH")
-            
+            output = self.model(source)
+
             loss = F.cross_entropy(output, 
-                                   targets.repeat(self.model_config["num_register"],1).transpose(-1,-2), 
+                                   targets,
                                    label_smoothing=0.1)
         self.scaler.scale(loss).backward()
         self.scaler.step(self.optimizer)
@@ -128,15 +128,16 @@ class Trainer:
             for source, targets, _ in self.val_data:
                 source = source.to(self.gpu_id)
                 targets = targets.to(self.gpu_id)
-                output = self.model(source, task = "MH")  
-                loss = F.cross_entropy(output, targets.repeat(self.model_config["num_register"],1).transpose(-1,-2))
-                accuracy = (output.argmax(-2).mode().values == targets).float().mean()
+                output = self.model(source)  
+                loss = F.cross_entropy(output, targets)
+                accuracy = (output == targets).float().mean()
                 self.val_loss_logger.update(loss.item())
                 self.val_accuracy_logger.update(accuracy.item())
             self.val_loss_logger.all_reduce()
             self.val_accuracy_logger.all_reduce()
             if self.gpu_id == 0:
                 print(self.val_loss_logger.get_avg_loss(), self.val_accuracy_logger.accuracy)
+                
             self.val_loss_logger.reset()
             self.val_accuracy_logger.reset()   
     ## Some tools ## 
@@ -192,12 +193,16 @@ def return_scheduler_optimizer(model, **kwargs):
     #################
     scheduler_kwargs = kwargs["scheduler_config"]
     ## -- ##
+    ### Warm up step starts ### 
+    scheduler0 = torch.optim.lr_scheduler.ConstantLR(optimizer, **scheduler_kwargs["constant_scheduler"])
     scheduler1 = torch.optim.lr_scheduler.LinearLR(optimizer, **scheduler_kwargs["linear_scheduler"])
     ## Scheduler 2 ##
     scheduler2 = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, **scheduler_kwargs["cosine"])
-    ## Combined Scheduler ##
-#    end_of_warmup_steps = scheduler_kwargs["warm_up_steps"]
-    scheduler = torch.optim.lr_scheduler.SequentialLR(optimizer, schedulers=[scheduler1, scheduler2], milestones= [5])
+#   end_of_warmup_steps = scheduler_kwargs["warm_up_steps"]
+    ## combine those dudes ### 
+    ms1 = scheduler_kwargs["constant_scheduler"]["total_iters"]
+    ms2 = scheduler_kwargs["linear_scheduler"]["total_iters"]
+    scheduler = torch.optim.lr_scheduler.SequentialLR(optimizer, schedulers=[scheduler0, scheduler1, scheduler2], milestones= [ms1, ms1+ms2])
     
     return optimizer, scheduler
 
