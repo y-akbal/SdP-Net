@@ -55,7 +55,7 @@ def train_val_data_loader(train_data, test_data, **kwargs):
     cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
     collate_fn = lambda batch : cutmix_or_mixup(*default_collate(batch))
 
-    
+
     train_data = DataLoader(
         dataset= train_image_generator,
         sampler = train_sampler,

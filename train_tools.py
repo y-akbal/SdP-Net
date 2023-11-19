@@ -10,7 +10,6 @@ import time
 import os
 
 
-
 class Trainer:
     def __init__(
         self,
@@ -109,15 +108,22 @@ class Trainer:
         if self.epoch+1 > max_epochs:
             print("The model has been already trained for {self.epoch} epochs!!")
             assert(ValueError("Train error!!!!"))
+                    
 
         for epoch in range(self.epoch+1, max_epochs):
+            init_start = torch.cuda.Event(enable_timing=True)
+            init_end = torch.cuda.Event(enable_timing=True)
             
-            a = time.perf_counter()            
+
+            init_start.record() ## How much time we spent!!!
             self._run_epoch(epoch)
-            b = time.perf_counter()
-            print(f"One epoch took {b-a}secs")
+            init_end.record() ## let's record it now!!!
+
+
+            print(f"elapsed time: {init_start.elapsed_time(init_end) / 1000}secs")
             if self.gpu_id == 0 and epoch % self.save_every == 0:
                self._save_checkpoint()
+            
             self.validate()
 
     def validate(self):
@@ -130,7 +136,7 @@ class Trainer:
                 targets = targets.to(self.gpu_id)
                 output = self.model(source)  
                 loss = F.cross_entropy(output, targets)
-                accuracy = (output == targets).float().mean()
+                accuracy = (output.argmax(-1) == targets).float().mean()
                 self.val_loss_logger.update(loss.item())
                 self.val_accuracy_logger.update(accuracy.item())
             self.val_loss_logger.all_reduce()
@@ -195,6 +201,7 @@ def return_scheduler_optimizer(model, **kwargs):
     ## -- ##
     ### Warm up step starts ### 
     scheduler0 = torch.optim.lr_scheduler.ConstantLR(optimizer, **scheduler_kwargs["constant_scheduler"])
+    
     scheduler1 = torch.optim.lr_scheduler.LinearLR(optimizer, **scheduler_kwargs["linear_scheduler"])
     ## Scheduler 2 ##
     scheduler2 = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, **scheduler_kwargs["cosine"])

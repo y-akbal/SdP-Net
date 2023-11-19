@@ -5,6 +5,7 @@ from PIL import Image
 from torch.utils.data import Dataset
 import torchvision.datasets as datasets
 import torchvision.transforms.v2 as transforms
+import torch
 ### Gatto define your transforms we may jit'em if needed 
 
 
@@ -14,20 +15,21 @@ def return_transforms():
     std = [0.229, 0.224, 0.225]
     
     ### Here we define the transformation functions for training and testing
-    
     transforms_train = transforms.Compose([
         transforms.RandomResizedCrop((224,224)),
         transforms.RandAugment(), ## RandAugment ---
         transforms.RandomHorizontalFlip(),
         transforms.RandomErasing(),
-    transforms.ToTensor(), ## Normalization is done here!!!
+        transforms.ToImage(), 
+        transforms.ToDtype(torch.float32, scale=True),
     transforms.Normalize(mean, std)
     ])
 
     transforms_test = transforms.Compose([
         transforms.Resize((224,224)),
-        transforms.ToTensor(),
-    transforms.Normalize(mean, std)
+        transforms.ToImage(), 
+        transforms.ToDtype(torch.float32, scale=True),
+        transforms.Normalize(mean, std)
     ])
     return transforms_train, transforms_test
 

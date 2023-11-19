@@ -1,15 +1,15 @@
 model_config:
-  embedding_dim_conv: 1536
+  embedding_dim_conv: 512
   conv_kernel_size: 9
-  conv_mixer_repetition: 20
+  conv_mixer_repetition: 5
   patch_size: 14
   embedding_dim_trans: 512
   n_head: 8
   squeeze_ratio: 1
-  transformer_encoder_repetition: 5
-  dropout: 0.25 # default 0.2
+  transformer_encoder_repetition: 10
+  dropout: 0.20 # default 0.2
   num_register: 1 ## To s
-  multiplication_factor: 2
+  multiplication_factor: 4 ## NN after attention layers!!!
   output_classes: 1000
 
 trainer_config:
@@ -21,8 +21,8 @@ trainer_config:
   
 optimizer_scheduler_config:
   optimizer_config:
-    lr: 0.003
-    weight_decay: 0.009
+    lr: 0.001
+    weight_decay: 0.03
 
   scheduler_config:
     cosine:
@@ -42,7 +42,7 @@ data:
    root_dir: "/home/sahmaran/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/val"
    csv_file: "~/Desktop/ImageNet/LOC_val_solution.csv"
   train_data_details:
-   batch_size: 64
+   batch_size: 128
    num_workers: 8
    pin_memory: True
    persistent_workers: True
