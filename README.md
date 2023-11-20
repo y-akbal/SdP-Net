@@ -27,6 +27,7 @@ Enjoy AT-Net!!!
 |  XXS   |  6        |  6       |  4       |  9          |           |           | ??       | 
 |  S     |  19       |  5       |  10      |  12         |           |           | 79%?(exp)| 
 |  S (*) |  19       |  5       |  10      |  14         |     7     | 512C 512T | 70.2%    | 
+|  M     |  33       |  5       |  15      |  14         |     7     | 768C 512T | ?        | 
 |  L     |  55       | 100      |  100     |  100        |           |           | ??       | 
 |  XL    |  ~70      | 5        |  10      |  14         |     7     | 512C 768T | ??       | 
 
@@ -34,7 +35,7 @@ Enjoy AT-Net!!!
 *This dude will have multiple decision heads, coming from different register tokens.
 
 Bitter lesson: I have trained S (*) model, with modicum of augmentation and and small dropout rate for 300 epochs. 70% accuracy is not really good. Initial learning rate was 0.0001, with a linear warming up period for 5 epochs. I was expecting at least 75% Top1 accuracy. Probably I will keep the patch size small (say 7) and conv-kernel size 5, in which case together with some more augmentation methods things will be better. 
-As of 20.11.23 training XL model. 
+As of 20.11.23 training XL and M models. Unlike classical ViT's (that is using MLP heads) I am using global average pooling.  
 
 # Optimizers
 AdamW: lr = 0.0009 -
@@ -43,3 +44,4 @@ CosineAnnealing with warm starts in addition to 5 warming up epochs.
 # Augmentation and Regularization
 
 RandAugment + Random erase + Random resize+ CutMix + MixUp + Dropout(0.2) (Only to FFN parts of Attention layers) 
+
