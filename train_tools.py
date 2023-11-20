@@ -6,8 +6,8 @@ from torch.distributed import (
 )
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.nn.functional as F
-import time
-import os
+#import time
+#import os
 
 
 class Trainer:
@@ -95,7 +95,7 @@ class Trainer:
             ## sync the losses
             self.train_loss_logger.all_reduce()
             ## prtint the loss
-            if (self.gpu_id == 0) and i % 50 == 0:
+            if (self.gpu_id == 0) and i % 500 == 0:
                 batch_loss = self.train_loss_logger.get_avg_loss()
                 print(f"{i} Batch passed the average loss is {batch_loss}, lr is {self.scheduler.get_last_lr()}")
             ### -- ###

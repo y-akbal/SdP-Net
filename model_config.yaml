@@ -1,6 +1,6 @@
 model_config:
-  embedding_dim_conv: 512
-  conv_kernel_size: 9
+  embedding_dim_conv: 768
+  conv_kernel_size: 7
   conv_mixer_repetition: 5
   patch_size: 14
   embedding_dim_trans: 512

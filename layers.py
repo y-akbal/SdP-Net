@@ -163,6 +163,39 @@ class encoder_layer(nn.Module):
         return self.transformer_layer(x)
 
 
+class libido_killer(nn.Module):
+  def __init__(self, 
+               d_in = 512, 
+               squeeze_ratio = 0.5, 
+               activation = nn.GELU("tanh")): ## Silu might be better here
+    super().__init__()
+    self.intermediate_dim = int(d_in*squeeze_ratio)
+    self.W = nn.Parameter(torch.randn(d_in, self.intermediate_dim)/((d_in+self.intermediate_dim)/2.75)**0.5)
+    self.bias_out = nn.Parameter(torch.zeros(d_in))
+    self.activation = activation
+  def forward(self, X):
+    intermediate = self.activation(X @ self.W)
+    return intermediate @ self.W.transpose(-1,-2)+self.bias_out
+  
+class cheap_attention(nn.Module):
+  def __init__(self, embed_dim = 512, num_heads = 8, dropout=0.1, **kwargs):
+    super().__init__(**kwargs)
+    self.dropout = nn.Dropout1d(p = dropout)
+    self.Linear = nn.Linear(embed_dim, embed_dim, bias = False)
+    assert (embed_dim/num_heads).is_integer(), "Embedding dimension is supposed be divisible by num_heads comrade!!!"
+    self.num_heads = num_heads
+    
+  def forward(self, x):
+    B, H, W = x.shape
+    x = self.Linear(x)
+    x = self.dropout(x)
+    x = x.view(-1, self.num_heads, H, int(W//self.num_heads))
+    with torch.backends.cuda.sdp_kernel(enable_math=False):
+      x_ = F.scaled_dot_product_attention(x,x,x, dropout_p = self.dropout, 
+                                          is_causal= False)
+    return x_.contiguous().view(B,H,W)
+
+
 
 
 if __name__ == "__main__":
