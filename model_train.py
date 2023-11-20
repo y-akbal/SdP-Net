@@ -88,9 +88,10 @@ def main(cfg : DictConfig):
     train_images, test_images = train_val_data_loader(train_data, test_data, **data_config)
     
     gpu_id = int(os.environ["LOCAL_RANK"]) ### this local rank is determined by torch run!!!
+    
     if gpu_id == 0:
-        print(len(train_images), len(test_images))
-        print(f"Model has {model.return_num_params()}")
+        print(f"Train batch size {len(train_images)}, test batch size {len(test_images)}")
+        print(f"Model has {model.return_num_params()} params. There are {torch.cuda.device_count()} GPUs available on this machine!!!")
     
     
     train_loss_tracker = distributed_loss_track()
