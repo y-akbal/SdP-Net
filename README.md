@@ -37,9 +37,9 @@ Bitter lesson: I have trained S (*) model, with modicum of augmentation and and 
 As of 20.11.23 training XL model. 
 
 # Optimizers
-AdamW:
-CosineAnnealing with warm starts::
+AdamW: lr = 0.0009 -
+CosineAnnealing with warm starts in addition to 5 warming up epochs.
  
 # Augmentation and Regularization
 
-RandAugment + Random erase + Random resize + Dropout(0.2)
+RandAugment + Random erase + Random resize+ CutMix + MixUp + Dropout(0.2) (Only to FFN parts of Attention layers) 
