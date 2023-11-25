@@ -9,11 +9,10 @@ import torch.nn.functional as F
 ## rather than coming up with our own implementations
 
 class conv_int(nn.Module):
-    def __init__(self, embedding_dim = 128, patch_size = 4, activation = nn.GELU()):
+    def __init__(self, embedding_dim = 128, patch_size = 4):
         super().__init__()
 
         self.embedding_dim = embedding_dim
-        self.activation = activation
         self.conv = nn.Conv2d(in_channels = 3, 
                               out_channels = embedding_dim,
                               kernel_size = patch_size,
@@ -23,7 +22,6 @@ class conv_int(nn.Module):
         self.batch_norm = nn.SyncBatchNorm(embedding_dim)
     def forward(self, x):
         x = self.conv(x)
-        x = self.activation(x)
         return self.batch_norm(x) 
 
 

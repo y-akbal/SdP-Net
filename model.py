@@ -3,6 +3,7 @@ from torch import nn as nn
 from torch.nn import functional as F
 from layers import conv_int, conv_mixer, embedding_layer, encoder_layer, squeezer
 
+
 class main_model(nn.Module):
     def __init__(self, 
                  embedding_dim_conv:int = 512,
@@ -26,8 +27,8 @@ class main_model(nn.Module):
         self.num_register = num_register        
 
         self.conv_init = conv_int(embedding_dim= embedding_dim_conv, 
-                                  patch_size = patch_size,
-                                  activation = activation
+                                  patch_size = patch_size
+                                  
                                   )
         self.conv_mixer = nn.Sequential(*[conv_mixer(embedding_dim_conv, 
                                         kernel_size= conv_kernel_size, 

@@ -20,6 +20,7 @@ from dataset_generator import test_data, train_data
 from train_tools import Trainer, distributed_loss_track, track_accuracy, return_scheduler_optimizer
 from torchvision.transforms import v2
 from torch.utils.data import default_collate
+
 #
 torch.set_float32_matmul_precision("medium")
 #
@@ -112,7 +113,7 @@ def main(cfg : DictConfig):
         val_accuracy_logger=val_acc_tracker,
         **trainer_config
     )
-    trainer.train(300)
+    trainer.train()
 
     destroy_process_group()
 

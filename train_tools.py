@@ -6,6 +6,7 @@ from torch.distributed import (
 )
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.nn.functional as F
+import os
 
 class Trainer:
     def __init__(
@@ -17,22 +18,30 @@ class Trainer:
         scheduler: torch.optim.lr_scheduler,
         gpu_id: int,
         save_every: int,
-        val_loss_logger=None,
-        train_loss_logger=None,
-        val_accuracy_logger=None,
-        compile_model=False
+        val_loss_logger = None,
+        train_loss_logger = None,
+        val_accuracy_logger = None,
+        compile_model:bool =False,
+        snapshot_name:str = "model.pt",
+        snapshot_dir:str = "model",
+        total_epochs:int = 300,
         # tracker ## this dude is for tracking stuff
     ) -> None:
         self.gpu_id = gpu_id
         self.model_config = model.config
         self.model = model.to(gpu_id)
         self.model = DDP(self.model, device_ids=[gpu_id])
-        
+        #
+        self.snapshot_dir = snapshot_dir
+        self.snapshot_name = snapshot_name
+        self.PATH = os.path.join(self.snapshot_dir, self.snapshot_name) if os.path.exists(self.snapshot_dir) else None
+        #
         if compile_model:
             self.model = torch.compile(self.model)
         ##
         self.train_data = train_data
         self.val_data = val_data
+        self.total_epochs = total_epochs
         ##
         self.optimizer = optimizer
         self.scheduler = scheduler
@@ -47,7 +56,7 @@ class Trainer:
         self.autocast = torch.autocast
         self.scaler = torch.cuda.amp.GradScaler()
         try:
-            self._load_checkpoint("checkpoint.pt")
+            self._load_checkpoint(self.PATH)
         except Exception as e:
             print(f"There is a problem with loading the model weights and the problem is: {e}")
         
@@ -101,13 +110,9 @@ class Trainer:
 
 
 
-    def train(self, max_epochs: int):
-        if self.epoch+1 > max_epochs:
-            print("The model has been already trained for {self.epoch} epochs!!")
-            assert(ValueError("Train error!!!!"))
-                    
-
-        for epoch in range(self.epoch+1, max_epochs):
+    def train(self):
+                
+        for epoch in range(self.epoch+1, self.total_epochs):
             init_start = torch.cuda.Event(enable_timing=True)
             init_end = torch.cuda.Event(enable_timing=True)
             
@@ -120,7 +125,6 @@ class Trainer:
             print(f"elapsed time: {init_start.elapsed_time(init_end) / 1000}secs")
             if self.gpu_id == 0 and epoch % self.save_every == 0:
                self._save_checkpoint()
-            
             self.validate()
 
     def validate(self):
@@ -156,9 +160,14 @@ class Trainer:
         self.optimizer.load_state_dict(model_optimizer_state)
         self.scheduler.load_state_dict(model_scheduler_state)
         self.epoch = model_dict["epoch"]
-        print(f"Loaded the new model!!!! will continue training from {self.epoch} epoch")
+        print(f"Loaded the new model saved at {self.PATH}, will continue training from {self.epoch} epoch")
  
     def _save_checkpoint(self):
+          ### If dir does not exist, create it!!
+        if not os.path.exists(self.snapshot_dir):
+            os.mkdir(self.snapshot_dir)
+        self.PATH = os.path.join(self.snapshot_dir, self.snapshot_name) 
+
         ### This are the necessary steps to recover the model from the pickled file!!!
         model_weights = self.model.state_dict()
         model_config = self.model_config
@@ -170,10 +179,11 @@ class Trainer:
                       "scheduler_state":scheduler_state,
                       "epoch":self.epoch
                     }
+        
+
         try:
-            PATH = "checkpoint.pt"
-            torch.save(checkpoint, PATH)        
-            print(f"Epoch {self.epoch} | Training checkpoint saved at {PATH}")
+            torch.save(checkpoint, self.PATH)        
+            print(f"Epoch {self.epoch} | Training checkpoint saved at {self.PATH}")
         except Exception as exp:
             print(f"Something went wrong with {exp}, the training will start from begining!!!")
 
