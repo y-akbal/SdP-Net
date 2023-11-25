@@ -6,9 +6,6 @@ from torch.distributed import (
 )
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.nn.functional as F
-#import time
-#import os
-
 
 class Trainer:
     def __init__(
@@ -119,7 +116,7 @@ class Trainer:
             self._run_epoch(epoch)
             init_end.record() ## let's record it now!!!
 
-
+            torch.cuda.synchronize() 
             print(f"elapsed time: {init_start.elapsed_time(init_end) / 1000}secs")
             if self.gpu_id == 0 and epoch % self.save_every == 0:
                self._save_checkpoint()

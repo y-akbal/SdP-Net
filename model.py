@@ -30,7 +30,8 @@ class main_model(nn.Module):
                                   activation = activation
                                   )
         self.conv_mixer = nn.Sequential(*[conv_mixer(embedding_dim_conv, 
-                                        kernel_size= conv_kernel_size)
+                                        kernel_size= conv_kernel_size, 
+                                        activation = activation)
                                         for i in range(conv_mixer_repetition)])
         
         if squeeze_ratio == 1:
@@ -51,15 +52,17 @@ class main_model(nn.Module):
                                         dropout=dropout,
                                         ) for i in range(transformer_encoder_repetition)])
  
-        """
+        
         self.output_head = nn.Sequential(*[nn.Dropout(p = dropout),
                                         nn.Linear(embedding_dim_trans, output_classes),
                                         nn.Tanh(),
                                         nn.Dropout(p = dropout),
                                         nn.Linear(output_classes, output_classes)])        
         """
-        self.output_head = nn.Linear(257, output_classes)
-                           
+        self.output_head = nn.Linear(embedding_dim_trans, output_classes)
+        torch.nn.init.normal_(self.output_head.weight, 0, 1/((embedding_dim_trans + output_classes))**.5)
+        torch.nn.init.zeros_(self.output_head.bias)
+        """
     def forward(self, x, y = None):
         ## Patches 
         x = self.conv_init(x)
@@ -70,12 +73,9 @@ class main_model(nn.Module):
         ## Together with embeddings
         x = self.embedding_layer(x,y)
         ## Transformers take the wheel!!
-        ## In the case that you wanna do multiple head prediction
-        ## go this way or jump to "SH", 
-        ## old school prediction it does...
         x =  self.encoder_rest(x)
-       
-        return self.output_head(x.mean(-1).squeeze())
+        
+        return self.output_head(x[:,0,:])
             
     def return_num_params(self)->int:
         ## This dude will return the number of parameters
@@ -121,47 +121,34 @@ class main_model(nn.Module):
         except Exception as exp:
             print(f"Something went wrong with {exp}!!!!!")
 
-
-### Below is just debugging purposses should be considered seriously useful ###
 """
-model = main_model(embedding_dim_conv=256,
-                   embedding_dim_trans=256,
+### Below is just debugging purposses should be considered seriously useful ###
+model = main_model(embedding_dim_conv=768,
+                   embedding_dim_trans=768,
                    n_head= 8,
                 conv_mixer_repetition = 5,
-                conv_kernel_size = 9,
-                transformer_encoder_repetition = 5, 
-                patch_size = 7, 
+                conv_kernel_size = 7,
+                transformer_encoder_repetition = 10, 
+                patch_size = 14, 
                 num_register = 1,
                 multiplication_factor= 4,
                 squeeze_ratio = 1,
                 ).cuda()
 
-model.return_num_params()
-q = model(torch.randn(8, 3, 224, 224).cuda())
 
 
-import numpy as np.
-
-X = torch.randn(64, 3, 224,224).cuda()
-y = torch.randint(10,20, size = (64,)).cuda()
-
-y.repeat(10,1).transpose(-1,-2)
-l = model(X, task = "MH")
-F.cross_entropy(l,y.repeat(10,1))
-(model(X, task = "MH").argmax(-2).mode(-1).values == y.squeeze(-1)).float().mean()
-
-model(X, task = "MH")[0,1,:]
-
-
+model(torch.randn(1,3,224,224).cuda()).shape
+"""
+"""
 optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
 for i in range(1000):
     optimizer.zero_grad()
-    loss = F.cross_entropy(model(X, task = "MH"),y.repeat(1,10))
+    loss = F.cross_entropy(model(X),y)
     loss.backward()
     print(loss.item())
     optimizer.step()
 
+""" 
 
-"""
 if __name__ == "__main__":
     print("Ok boomer!!!")

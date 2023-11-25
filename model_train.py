@@ -81,7 +81,7 @@ def main(cfg : DictConfig):
     ## --- ### 
 
     ## model_config -- optimizer config -- scheduler config ##
-    torch.manual_seed(5)
+    torch.manual_seed(10)
     model = main_model.from_dict(**model_config)
     optimizer, scheduler = return_scheduler_optimizer(model, **optimizer_scheduler_config)
     ## batched train and validation data loader ## 
