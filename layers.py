@@ -16,8 +16,7 @@ class conv_int(nn.Module):
         self.conv = nn.Conv2d(in_channels = 3, 
                               out_channels = embedding_dim,
                               kernel_size = patch_size,
-                              stride = patch_size, 
-                              
+                              stride = patch_size,                               
                               )
         self.batch_norm = nn.SyncBatchNorm(embedding_dim)
     def forward(self, x):

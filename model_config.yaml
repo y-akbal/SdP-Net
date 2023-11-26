@@ -43,8 +43,8 @@ data:
    root_dir: "/home/sahmaran/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/val"
    csv_file: "~/Desktop/ImageNet/LOC_val_solution.csv"
   train_data_details:
-   batch_size: 32
-   num_workers: 6
+   batch_size: 48
+   num_workers: 8
    pin_memory: True
    persistent_workers: True
    prefetch_factor: 2
