@@ -72,6 +72,8 @@ class Trainer:
                                    targets,
                                    label_smoothing=0.1)
         self.scaler.scale(loss).backward()
+        self.scaler.unscale_(self.optimizer)
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1)
         self.scaler.step(self.optimizer)
         self.scaler.update()
         

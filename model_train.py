@@ -16,6 +16,7 @@ import hydra
 from omegaconf import DictConfig
 ### import model and train and validation data and trainer ###
 from model import main_model
+#from model_conv import freak_mixer as main_model
 from dataset_generator import test_data, train_data
 from train_tools import Trainer, distributed_loss_track, track_accuracy, return_scheduler_optimizer
 from torchvision.transforms import v2

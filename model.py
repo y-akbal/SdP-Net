@@ -2,6 +2,8 @@ import torch
 from torch import nn as nn
 from torch.nn import functional as F
 from layers import conv_int, conv_mixer, embedding_layer, encoder_layer, squeezer
+import torchvision 
+from torchvision.ops import StochasticDepth, stochastic_depth, Stochastic
 
 
 class main_model(nn.Module):
@@ -92,7 +94,7 @@ class main_model(nn.Module):
         model = cls(**kwargs)
         model.config = kwargs
         return model
-    
+    ""
     @classmethod
     def from_pretrained(cls, file_name):
         try:

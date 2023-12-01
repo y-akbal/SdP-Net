@@ -4,6 +4,9 @@ from torch.nn import functional as F
 from torch.nn.parameter import Parameter
 import torch.nn.functional as F
 
+
+
+
 ## Here we will have layers to be used 
 ## We shall mostly use the optimized torch layers
 ## rather than coming up with our own implementations
@@ -39,7 +42,6 @@ class conv_mixer(nn.Module):
         self.conv1d = nn.Conv2d(in_channels = embedding_dim,
                                 out_channels = embedding_dim,
                                 kernel_size =1,
-                                
                                 )
         self.batch_norm_1 = nn.SyncBatchNorm(embedding_dim)
         self.batch_norm_2 = nn.SyncBatchNorm(embedding_dim)
@@ -58,6 +60,20 @@ for i in con.parameters():
      k += i.shape.numel()
 print(k)
 """ 
+class StochasticDepth(torch.nn.Module):
+    def __init__(self, module: torch.nn.Module, p: float = 0.5):
+        super().__init__()
+        assert 0<p<1, "p must be a positive number or <1"
+        self.module: torch.nn.Module = module
+        self.p: float = p
+        self._sampler = torch.Tensor(1)
+
+    def forward(self, inputs):
+        if self.training and self._sampler.uniform_().item() < self.p:
+            return inputs
+        return self.module(inputs).div_(1-self.p)
+
+
 class squeezer(nn.Module):
     def __init__(self, 
                  embedding_dim = 512,
@@ -162,6 +178,8 @@ class encoder_layer(nn.Module):
 ## Below is just for extreme testing purposes. I would like to see how attention stuff works in MLP part by just doing 
 ## some experiments on them. 
 
+
+
 class libido_killer(nn.Module):
   def __init__(self, 
                d_in = 512, 
@@ -174,7 +192,7 @@ class libido_killer(nn.Module):
     self.bias_out = nn.Parameter(torch.zeros(d_in))
     self.bias_int = nn.Parameter(torch.zeros(self.intermediate_dim))
     self.activation = activation
-    self.dropout = nn.Dropout1d(dropout)
+    self.dropout = nn.Dropout1d(dropout) if dropout > 0 else lambda x: x
   def forward(self, X):
     X = self.dropout(X)
     intermediate = self.activation(X @ self.W+self.bias_int)
@@ -230,6 +248,38 @@ class freak_attention_encoder(nn.Module):
         x_ += x
         x__ = self.norm_2(x_)
         return self.ffn(x__) + x_
+    
+
+
+class weirdo_conv_mixer(nn.Module):
+    def __init__(self, 
+                 embedding_dim:int = 512, 
+                 kernel_size:int = 5, 
+                 activation = nn.GELU(),
+                 multiplication_factor:int = 2
+
+                 ):
+        super().__init__()
+        self.conv2d = nn.Conv2d(in_channels = embedding_dim, 
+                              out_channels = embedding_dim,
+                              kernel_size = kernel_size,
+                              groups = embedding_dim,
+                              padding = "same",
+                              )
+        self.LK = libido_killer(d_in = embedding_dim, squeeze_ratio = multiplication_factor,
+                                    activation = activation, dropout=0.0)
+        self.batch_norm_1 = nn.SyncBatchNorm(embedding_dim)
+        self.batch_norm_2 = nn.SyncBatchNorm(embedding_dim)
+        self.activation = activation
+    def forward(self, x_):
+        x = self.conv2d(x_)
+        x = self.activation(x)
+        x_temp = x_+self.batch_norm_1(x)
+        x = self.LK(x_temp.transpose(-1, -3))
+        x = self.activation(x.transpose(-1, -3))
+        x = self.batch_norm_2(x)
+        return x
+
 """
 q = 0
 for p in freak_attention_encoder(squeeze_ratio=0.5, d_dim = 512).parameters():
