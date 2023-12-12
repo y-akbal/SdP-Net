@@ -1,0 +1,790 @@
+(base) sahmaran@sahmaran-MS-7B86:~/Desktop/AT-Net$ torchrun --standalone --nnodes=1 --nproc-per-node=2  model_train.py
+[2023-12-03 18:48:20,530] torch.distributed.run: [WARNING] master_addr is only used for static rdzv_backend and when rdzv_endpoint is not specified.
+[2023-12-03 18:48:20,530] torch.distributed.run: [WARNING] 
+[2023-12-03 18:48:20,530] torch.distributed.run: [WARNING] *****************************************
+[2023-12-03 18:48:20,530] torch.distributed.run: [WARNING] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+[2023-12-03 18:48:20,530] torch.distributed.run: [WARNING] *****************************************
+Train batch size 6673, test batch size 781
+Model has 53874192 params. There are 2 GPUs available on this machine!!!
+There is a problem with loading the model weights and the problem is: 'NoneType' object has no attribute 'seek'. You can only torch.load from a file that is seekable. Please pre-load the data into a buffer like io.BytesIO and try to load from it instead.
+[GPU0] Epoch 1
+
+There is a problem with loading the model weights and the problem is: 'NoneType' object has no attribute 'seek'. You can only torch.load from a file that is seekable. Please pre-load the data into a buffer like io.BytesIO and try to load from it instead.
+[GPU1] Epoch 1
+
+0 Batch passed the average loss is 6.9406958652921835, lr is [1.8750000000000002e-08]
+500 Batch passed the average loss is 6.965914521656729, lr is [1.8750000000000002e-08]
+1000 Batch passed the average loss is 6.976122141158567, lr is [1.8750000000000002e-08]
+1500 Batch passed the average loss is 6.9474360983488905, lr is [1.8750000000000002e-08]
+2000 Batch passed the average loss is 6.9657924574474395, lr is [1.8750000000000002e-08]
+2500 Batch passed the average loss is 6.976800169696104, lr is [1.8750000000000002e-08]
+3000 Batch passed the average loss is 6.952071677421988, lr is [1.8750000000000002e-08]
+3500 Batch passed the average loss is 6.996590783253805, lr is [1.8750000000000002e-08]
+4000 Batch passed the average loss is 6.93418164174799, lr is [1.8750000000000002e-08]
+4500 Batch passed the average loss is 6.940732103104317, lr is [1.8750000000000002e-08]
+5000 Batch passed the average loss is 6.973869198233203, lr is [1.8750000000000002e-08]
+5500 Batch passed the average loss is 6.9490324693360055, lr is [1.8750000000000002e-08]
+6000 Batch passed the average loss is 6.973633175641022, lr is [1.8750000000000002e-08]
+6500 Batch passed the average loss is 6.952761149479146, lr is [1.8750000000000002e-08]
+elapsed time: 5189.2635secs
+elapsed time: 5189.2215secs
+Epoch 1 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+6.937873425472252 0.0010403329506516457
+[GPU1] Epoch 2
+
+[GPU0] Epoch 2
+
+0 Batch passed the average loss is 6.956766381346459, lr is [1.8750000000000002e-08]
+500 Batch passed the average loss is 6.9523982945445, lr is [1.8750000000000002e-08]
+1000 Batch passed the average loss is 6.989253103110225, lr is [1.8750000000000002e-08]
+1500 Batch passed the average loss is 6.946662707147845, lr is [1.8750000000000002e-08]
+2000 Batch passed the average loss is 6.931883878370778, lr is [1.8750000000000002e-08]
+2500 Batch passed the average loss is 6.956096935448637, lr is [1.8750000000000002e-08]
+3000 Batch passed the average loss is 6.954571132832518, lr is [1.8750000000000002e-08]
+3500 Batch passed the average loss is 6.940952390857019, lr is [1.8750000000000002e-08]
+4000 Batch passed the average loss is 6.929360105481053, lr is [1.8750000000000002e-08]
+4500 Batch passed the average loss is 6.944493206553051, lr is [1.8750000000000002e-08]
+5000 Batch passed the average loss is 6.94995891761198, lr is [1.8750000000000002e-08]
+ 5500 Batch passed the average loss is 6.966550590622323, lr is [1.8750000000000002e-08]
+6000 Batch passed the average loss is 6.9374535347329305, lr is [1.8750000000000002e-08]
+6500 Batch passed the average loss is 6.930886861723808, lr is [1.8750000000000002e-08]
+/home/sahmaran/anaconda3/lib/python3.11/site-packages/torch/optim/lr_scheduler.py:149: UserWarning: The epoch parameter in `scheduler.step()` was not necessary and is being deprecated where possible. Please use `scheduler.step()` to step the scheduler. During the deprecation, if epoch is different from None, the closed form is used instead of the new chainable form, where available. Please open an issue if you are unable to replicate your use case: https://github.com/pytorch/pytorch/issues/new/choose.
+  warnings.warn(EPOCH_DEPRECATION_WARNING, UserWarning)
+/home/sahmaran/anaconda3/lib/python3.11/site-packages/torch/optim/lr_scheduler.py:149: UserWarning: The epoch parameter in `scheduler.step()` was not necessary and is being deprecated where possible. Please use `scheduler.step()` to step the scheduler. During the deprecation, if epoch is different from None, the closed form is used instead of the new chainable form, where available. Please open an issue if you are unable to replicate your use case: https://github.com/pytorch/pytorch/issues/new/choose.
+  warnings.warn(EPOCH_DEPRECATION_WARNING, UserWarning)
+elapsed time: 5186.7495secselapsed time: 5186.7135secs
+
+Epoch 2 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+6.926512290636217 0.0010203265119343996
+[GPU1] Epoch 3
+
+[GPU0] Epoch 3
+
+0 Batch passed the average loss is 6.927403740439198, lr is [3.7500000000000005e-08]
+500 Batch passed the average loss is 6.950302700013924, lr is [3.7500000000000005e-08]
+1000 Batch passed the average loss is 6.971391199421962, lr is [3.7500000000000005e-08]
+1500 Batch passed the average loss is 6.948312958039842, lr is [3.7500000000000005e-08]
+2000 Batch passed the average loss is 6.931416124506274, lr is [3.7500000000000005e-08]
+2500 Batch passed the average loss is 6.960864114997374, lr is [3.7500000000000005e-08]
+3000 Batch passed the average loss is 6.936862763032502, lr is [3.7500000000000005e-08]
+3500 Batch passed the average loss is 6.979476046034123, lr is [3.7500000000000005e-08]
+4000 Batch passed the average loss is 6.947889547813868, lr is [3.7500000000000005e-08]
+4500 Batch passed the average loss is 6.930264143531104, lr is [3.7500000000000005e-08]
+5000 Batch passed the average loss is 6.929064958037498, lr is [3.7500000000000005e-08]
+5500 Batch passed the average loss is 6.96033246814832, lr is [3.7500000000000005e-08]
+6000 Batch passed the average loss is 6.932441749952297, lr is [3.7500000000000005e-08]
+6500 Batch passed the average loss is 6.9175027119005374, lr is [3.7500000000000005e-08]
+elapsed time: 5202.856secselapsed time: 5202.891secs
+
+Epoch 3 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+6.911113614045223 0.001080345711670816
+[GPU1] Epoch 4
+
+[GPU0] Epoch 4
+
+0 Batch passed the average loss is 6.956636211310772, lr is [3.753e-05]
+500 Batch passed the average loss is 6.76712532781564, lr is [3.753e-05]
+1000 Batch passed the average loss is 6.820658589415499, lr is [3.753e-05]
+1500 Batch passed the average loss is 6.661952707113179, lr is [3.753e-05]
+2000 Batch passed the average loss is 6.650861075720627, lr is [3.753e-05]
+2500 Batch passed the average loss is 6.442641944898604, lr is [3.753e-05]
+3000 Batch passed the average loss is 6.479724193416794, lr is [3.753e-05]
+3500 Batch passed the average loss is 6.302965682099195, lr is [3.753e-05]
+4000 Batch passed the average loss is 6.625757808178927, lr is [3.753e-05]
+4500 Batch passed the average loss is 6.439368621473711, lr is [3.753e-05]
+5000 Batch passed the average loss is 6.351680268312023, lr is [3.753e-05]
+5500 Batch passed the average loss is 6.123009183860875, lr is [3.753e-05]
+6000 Batch passed the average loss is 6.51520959413455, lr is [3.753e-05]
+6500 Batch passed the average loss is 6.48537824573615, lr is [3.753e-05]
+elapsed time: 5204.83secselapsed time: 5204.7955secs
+
+Epoch 4 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+5.571478766630681 0.06512083858251572
+[GPU1] Epoch 5
+
+[GPU0] Epoch 5
+
+0 Batch passed the average loss is 6.347680281391203, lr is [7.502250000000001e-05]
+500 Batch passed the average loss is 6.409898697570004, lr is [7.502250000000001e-05]
+1000 Batch passed the average loss is 6.164584921083535, lr is [7.502250000000001e-05]
+1500 Batch passed the average loss is 6.097736647591448, lr is [7.502250000000001e-05]
+2000 Batch passed the average loss is 6.378529149409228, lr is [7.502250000000001e-05]
+2500 Batch passed the average loss is 6.431273761781881, lr is [7.502250000000001e-05]
+3000 Batch passed the average loss is 6.484124703524345, lr is [7.502250000000001e-05]
+3500 Batch passed the average loss is 6.212582380066787, lr is [7.502250000000001e-05]
+4000 Batch passed the average loss is 6.237534497786829, lr is [7.502250000000001e-05]
+4500 Batch passed the average loss is 5.61094458094478, lr is [7.502250000000001e-05]
+5000 Batch passed the average loss is 6.163812960322442, lr is [7.502250000000001e-05]
+5500 Batch passed the average loss is 6.165000702296427, lr is [7.502250000000001e-05]
+6000 Batch passed the average loss is 5.79319550486709, lr is [7.502250000000001e-05]
+6500 Batch passed the average loss is 5.91586669750985, lr is [7.502250000000001e-05]
+elapsed time: 5204.967secs
+elapsed time: 5204.933secs
+Epoch 5 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+4.902274664146948 0.12287931889295578
+[GPU0] Epoch 6
+
+[GPU1] Epoch 6
+
+0 Batch passed the average loss is 6.266024093509679, lr is [0.00011251500000000002]
+500 Batch passed the average loss is 5.963409276588172, lr is [0.00011251500000000002]
+1000 Batch passed the average loss is 6.2874139389344, lr is [0.00011251500000000002]
+1500 Batch passed the average loss is 5.6389611778566335, lr is [0.00011251500000000002]
+2000 Batch passed the average loss is 6.246420390772453, lr is [0.00011251500000000002]
+2500 Batch passed the average loss is 6.37513471540168, lr is [0.00011251500000000002]
+3000 Batch passed the average loss is 6.368421660704073, lr is [0.00011251500000000002]
+3500 Batch passed the average loss is 6.098751783144484, lr is [0.00011251500000000002]
+4000 Batch passed the average loss is 6.40114440506002, lr is [0.00011251500000000002]
+4500 Batch passed the average loss is 5.925924597629981, lr is [0.00011251500000000002]
+5000 Batch passed the average loss is 6.317055038819103, lr is [0.00011251500000000002]
+5500 Batch passed the average loss is 6.260626566755158, lr is [0.00011251500000000002]
+6000 Batch passed the average loss is 5.587926894853987, lr is [0.00011251500000000002]
+6500 Batch passed the average loss is 5.842431724849304, lr is [0.00011251500000000002]
+elapsed time: 5205.21secselapsed time: 5205.2445secs
+
+Epoch 6 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+4.357339694832606 0.18109795451164246
+[GPU1] Epoch 7
+
+[GPU0] Epoch 7
+
+0 Batch passed the average loss is 5.752315915088034, lr is [0.00015000750000000002]
+500 Batch passed the average loss is 6.144891577442611, lr is [0.00015000750000000002]
+1000 Batch passed the average loss is 6.018547491814862, lr is [0.00015000750000000002]
+1500 Batch passed the average loss is 6.266507582213662, lr is [0.00015000750000000002]
+2000 Batch passed the average loss is 6.155216493020563, lr is [0.00015000750000000002]
+2500 Batch passed the average loss is 5.933691886572663, lr is [0.00015000750000000002]
+3000 Batch passed the average loss is 5.777681429954381, lr is [0.00015000750000000002]
+3500 Batch passed the average loss is 5.2492282765012135, lr is [0.00015000750000000002]
+4000 Batch passed the average loss is 5.71346707322837, lr is [0.00015000750000000002]
+4500 Batch passed the average loss is 5.854309144589156, lr is [0.00015000750000000002]
+5000 Batch passed the average loss is 5.2091006213239135, lr is [0.00015000750000000002]
+5500 Batch passed the average loss is 5.98024603164373, lr is [0.00015000750000000002]
+6000 Batch passed the average loss is 5.442144083896879, lr is [0.00015000750000000002]
+6500 Batch passed the average loss is 5.686636787850548, lr is [0.00015000750000000002]
+elapsed time: 5205.0705secselapsed time: 5205.0365secs
+
+Epoch 7 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+3.9357385594517567 0.2326144278049469
+[GPU1] Epoch 8
+
+[GPU0] Epoch 8
+
+0 Batch passed the average loss is 5.814546728413091, lr is [0.0001875]
+500 Batch passed the average loss is 5.930629314634121, lr is [0.0001875]
+1000 Batch passed the average loss is 5.641763886537118, lr is [0.0001875]
+1500 Batch passed the average loss is 5.344038790186955, lr is [0.0001875]
+2000 Batch passed the average loss is 5.6292689935510545, lr is [0.0001875]
+2500 Batch passed the average loss is 5.481320496505692, lr is [0.0001875]
+3000 Batch passed the average loss is 5.43479639067363, lr is [0.0001875]
+3500 Batch passed the average loss is 5.99071637528353, lr is [0.0001875]
+4000 Batch passed the average loss is 5.439561662969097, lr is [0.0001875]
+4500 Batch passed the average loss is 5.788036861584654, lr is [0.0001875]
+5000 Batch passed the average loss is 5.811938559566162, lr is [0.0001875]
+5500 Batch passed the average loss is 5.527827437058322, lr is [0.0001875]
+6000 Batch passed the average loss is 5.199195301465395, lr is [0.0001875]
+6500 Batch passed the average loss is 6.0480488853975265, lr is [0.0001875]
+elapsed time: 5204.8185secselapsed time: 5204.8525secs
+
+Epoch 8 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+3.6557145947045715 0.2745278477668762
+[GPU1] Epoch 9
+
+[GPU0] Epoch 9
+
+0 Batch passed the average loss is 5.986794585746786, lr is [0.00018749510088280852]
+500 Batch passed the average loss is 5.428959242040339, lr is [0.00018749510088280852]
+1000 Batch passed the average loss is 5.834219092268042, lr is [0.00018749510088280852]
+1500 Batch passed the average loss is 5.0348425190434805, lr is [0.00018749510088280852]
+2000 Batch passed the average loss is 5.161143214659335, lr is [0.00018749510088280852]
+2500 Batch passed the average loss is 5.102188108825759, lr is [0.00018749510088280852]
+3000 Batch passed the average loss is 4.694363956576341, lr is [0.00018749510088280852]
+3500 Batch passed the average loss is 5.248821077928037, lr is [0.00018749510088280852]
+4000 Batch passed the average loss is 5.7476841505214775, lr is [0.00018749510088280852]
+4500 Batch passed the average loss is 5.404081030384515, lr is [0.00018749510088280852]
+5000 Batch passed the average loss is 5.467166293174598, lr is [0.00018749510088280852]
+5500 Batch passed the average loss is 5.331580611826341, lr is [0.00018749510088280852]
+6000 Batch passed the average loss is 5.461015878191685, lr is [0.00018749510088280852]
+6500 Batch passed the average loss is 5.602896448958069, lr is [0.00018749510088280852]
+elapsed time: 5205.1925secselapsed time: 5205.1585secs
+
+Epoch 9 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+3.381224900569789 0.3166213035583496
+[GPU1] Epoch 10
+
+[GPU0] Epoch 10
+
+0 Batch passed the average loss is 4.609593700917981, lr is [0.00018748040406847745]
+500 Batch passed the average loss is 4.779224329951715, lr is [0.00018748040406847745]
+1000 Batch passed the average loss is 5.919977305120339, lr is [0.00018748040406847745]
+1500 Batch passed the average loss is 5.181817363294432, lr is [0.00018748040406847745]
+2000 Batch passed the average loss is 4.76829004695395, lr is [0.00018748040406847745]
+2500 Batch passed the average loss is 5.6817389614528055, lr is [0.00018748040406847745]
+3000 Batch passed the average loss is 5.202488651049625, lr is [0.00018748040406847745]
+3500 Batch passed the average loss is 4.8178190303131325, lr is [0.00018748040406847745]
+4000 Batch passed the average loss is 4.852759910222262, lr is [0.00018748040406847745]
+4500 Batch passed the average loss is 5.00327843104915, lr is [0.00018748040406847745]
+5000 Batch passed the average loss is 4.844965919733798, lr is [0.00018748040406847745]
+5500 Batch passed the average loss is 4.333482552251781, lr is [0.00018748040406847745]
+6000 Batch passed the average loss is 5.631726966202959, lr is [0.00018748040406847745]
+6500 Batch passed the average loss is 5.2779238555772405, lr is [0.00018748040406847745]
+elapsed time: 5205.06secs
+elapsed time: 5205.026secs
+Epoch 10 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+3.1916117364925265 0.3448503613471985
+[GPU1] Epoch 11
+
+[GPU0] Epoch 11
+
+0 Batch passed the average loss is 4.293575184827184, lr is [0.00018745591116867813]
+500 Batch passed the average loss is 4.375220882815722, lr is [0.00018745591116867813]
+1000 Batch passed the average loss is 4.80791037276139, lr is [0.00018745591116867813]
+1500 Batch passed the average loss is 5.101446187303671, lr is [0.00018745591116867813]
+2000 Batch passed the average loss is 5.755964490593829, lr is [0.00018745591116867813]
+2500 Batch passed the average loss is 5.58412383183331, lr is [0.00018745591116867813]
+3000 Batch passed the average loss is 5.809059560754871, lr is [0.00018745591116867813]
+3500 Batch passed the average loss is 5.105092378742879, lr is [0.00018745591116867813]
+4000 Batch passed the average loss is 5.530134259888568, lr is [0.00018745591116867813]
+4500 Batch passed the average loss is 5.625685741469762, lr is [0.00018745591116867813]
+5000 Batch passed the average loss is 4.696581138502888, lr is [0.00018745591116867813]
+5500 Batch passed the average loss is 5.309010176627399, lr is [0.00018745591116867813]
+6000 Batch passed the average loss is 5.597505120776676, lr is [0.00018745591116867813]
+6500 Batch passed the average loss is 4.268069963658799, lr is [0.00018745591116867813]
+elapsed time: 5205.137secs
+elapsed time: 5205.1025secs
+Epoch 11 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+2.966273392644149 0.3827824890613556
+[GPU1] Epoch 12
+
+[GPU0] Epoch 12
+
+0 Batch passed the average loss is 5.362929180201146, lr is [0.000187421624869333]
+500 Batch passed the average loss is 5.546991517916779, lr is [0.000187421624869333]
+1000 Batch passed the average loss is 4.546625734204012, lr is [0.000187421624869333]
+1500 Batch passed the average loss is 5.050098637951403, lr is [0.000187421624869333]
+2000 Batch passed the average loss is 4.839065831742592, lr is [0.000187421624869333]
+2500 Batch passed the average loss is 4.278163624777745, lr is [0.000187421624869333]
+3000 Batch passed the average loss is 4.510662089728765, lr is [0.000187421624869333]
+3500 Batch passed the average loss is 5.3621996558253135, lr is [0.000187421624869333]
+4000 Batch passed the average loss is 4.9252145547019515, lr is [0.000187421624869333]
+4500 Batch passed the average loss is 5.827787357427782, lr is [0.000187421624869333]
+5000 Batch passed the average loss is 5.007955016067555, lr is [0.000187421624869333]
+5500 Batch passed the average loss is 5.0331650897923845, lr is [0.000187421624869333]
+6000 Batch passed the average loss is 5.058322237238968, lr is [0.000187421624869333]
+6500 Batch passed the average loss is 5.16483041204385, lr is [0.000187421624869333]
+elapsed time: 5205.1505secs
+elapsed time: 5205.185secs
+Epoch 12 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+2.8495804333655292 0.40284889936447144
+[GPU1] Epoch 13
+
+[GPU0] Epoch 13
+
+0 Batch passed the average loss is 4.6655162740520195, lr is [0.00018737754893032117]
+500 Batch passed the average loss is 3.823800347076762, lr is [0.00018737754893032117]
+1000 Batch passed the average loss is 5.631359819948455, lr is [0.00018737754893032117]
+1500 Batch passed the average loss is 5.289886148087614, lr is [0.00018737754893032117]
+2000 Batch passed the average loss is 5.195104243200926, lr is [0.00018737754893032117]
+2500 Batch passed the average loss is 5.4112141576148725, lr is [0.00018737754893032117]
+3000 Batch passed the average loss is 5.301472234890452, lr is [0.00018737754893032117]
+3500 Batch passed the average loss is 5.414165632050429, lr is [0.00018737754893032117]
+4000 Batch passed the average loss is 5.640466000686781, lr is [0.00018737754893032117]
+4500 Batch passed the average loss is 4.337061989826534, lr is [0.00018737754893032117]
+5000 Batch passed the average loss is 5.207022192072769, lr is [0.00018737754893032117]
+5500 Batch passed the average loss is 4.941837220577935, lr is [0.00018737754893032117]
+6000 Batch passed the average loss is 4.887090469084944, lr is [0.00018737754893032117]
+6500 Batch passed the average loss is 4.418313363201468, lr is [0.00018737754893032117]
+elapsed time: 5205.3195secs
+elapsed time: 5205.2855secs
+Epoch 13 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+2.655587117920159 0.4329785704612732
+[GPU1] Epoch 14
+
+[GPU0] Epoch 14
+
+0 Batch passed the average loss is 4.965309309760341, lr is [0.00018732368818506607]
+500 Batch passed the average loss is 5.119518842478286, lr is [0.00018732368818506607]
+1000 Batch passed the average loss is 4.9715765440060515, lr is [0.00018732368818506607]
+1500 Batch passed the average loss is 5.209584586841214, lr is [0.00018732368818506607]
+2000 Batch passed the average loss is 4.904382104045432, lr is [0.00018732368818506607]
+2500 Batch passed the average loss is 5.225788133811083, lr is [0.00018732368818506607]
+3000 Batch passed the average loss is 5.457684383542053, lr is [0.00018732368818506607]
+^A3500 Batch passed the average loss is 5.201340961394313, lr is [0.00018732368818506607]
+4000 Batch passed the average loss is 5.634288407344769, lr is [0.00018732368818506607]
+4500 Batch passed the average loss is 4.852399439354204, lr is [0.00018732368818506607]
+5000 Batch passed the average loss is 4.269949561756531, lr is [0.00018732368818506607]
+5500 Batch passed the average loss is 5.189033456042041, lr is [0.00018732368818506607]
+6000 Batch passed the average loss is 3.9891029416272104, lr is [0.00018732368818506607]
+6500 Batch passed the average loss is 5.235978588033489, lr is [0.00018732368818506607]
+elapsed time: 5205.568secs
+elapsed time: 5205.5345secs
+Epoch 14 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+2.599450095165647 0.44662290811538696
+[GPU1] Epoch 15
+
+[GPU0] Epoch 15
+
+0 Batch passed the average loss is 5.297222397791242, lr is [0.00018726004854000531]
+500 Batch passed the average loss is 5.015944976829527, lr is [0.00018726004854000531]
+1000 Batch passed the average loss is 4.888688747325329, lr is [0.00018726004854000531]
+1500 Batch passed the average loss is 4.51299609091811, lr is [0.00018726004854000531]
+2000 Batch passed the average loss is 4.603005571309569, lr is [0.00018726004854000531]
+2500 Batch passed the average loss is 5.250711165918754, lr is [0.00018726004854000531]
+3000 Batch passed the average loss is 4.773929318060464, lr is [0.00018726004854000531]
+3500 Batch passed the average loss is 5.100738119527128, lr is [0.00018726004854000531]
+4000 Batch passed the average loss is 4.412880552261449, lr is [0.00018726004854000531]
+4500 Batch passed the average loss is 4.2915134440421525, lr is [0.00018726004854000531]
+5000 Batch passed the average loss is 5.262458892436237, lr is [0.00018726004854000531]
+5500 Batch passed the average loss is 5.3610705618893855, lr is [0.00018726004854000531]
+6000 Batch passed the average loss is 4.666600070722782, lr is [0.00018726004854000531]
+6500 Batch passed the average loss is 4.525241610539101, lr is [0.00018726004854000531]
+elapsed time: 5205.002secs
+elapsed time: 5204.9735secs
+Epoch 15 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+2.509868309727541 0.46210789680480957
+[GPU0] Epoch 16
+
+[GPU1] Epoch 16
+
+0 Batch passed the average loss is 4.287176350105834, lr is [0.00018718663697394323]
+500 Batch passed the average loss is 4.130665239504138, lr is [0.00018718663697394323]
+1000 Batch passed the average loss is 4.701390277623569, lr is [0.00018718663697394323]
+1500 Batch passed the average loss is 5.273802281260448, lr is [0.00018718663697394323]
+2000 Batch passed the average loss is 4.396506306123903, lr is [0.00018718663697394323]
+2500 Batch passed the average loss is 4.866373884064585, lr is [0.00018718663697394323]
+3000 Batch passed the average loss is 5.434871727177801, lr is [0.00018718663697394323]
+3500 Batch passed the average loss is 4.380863491615457, lr is [0.00018718663697394323]
+4000 Batch passed the average loss is 4.938402257438397, lr is [0.00018718663697394323]
+4500 Batch passed the average loss is 5.124328458412284, lr is [0.00018718663697394323]
+5000 Batch passed the average loss is 5.224437321682499, lr is [0.00018718663697394323]
+5500 Batch passed the average loss is 5.12009674021914, lr is [0.00018718663697394323]
+6000 Batch passed the average loss is 4.3505801241920325, lr is [0.00018718663697394323]
+6500 Batch passed the average loss is 5.364732964981389, lr is [0.00018718663697394323]
+elapsed time: 5205.048secs
+elapsed time: 5205.0135secs
+Epoch 16 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+2.4374174738469128 0.4724311828613281
+[GPU1] Epoch 17
+
+[GPU0] Epoch 17
+
+0 Batch passed the average loss is 4.470601665229238, lr is [0.0001871034615372852]
+500 Batch passed the average loss is 5.414198055356021, lr is [0.0001871034615372852]
+1000 Batch passed the average loss is 3.964168942813235, lr is [0.0001871034615372852]
+1500 Batch passed the average loss is 4.208368644983278, lr is [0.0001871034615372852]
+2000 Batch passed the average loss is 3.9189095843059407, lr is [0.0001871034615372852]
+2500 Batch passed the average loss is 4.343737853085373, lr is [0.0001871034615372852]
+3000 Batch passed the average loss is 4.310362351297718, lr is [0.0001871034615372852]
+3500 Batch passed the average loss is 5.287983186137324, lr is [0.0001871034615372852]
+4000 Batch passed the average loss is 4.419655115877018, lr is [0.0001871034615372852]
+4500 Batch passed the average loss is 5.2309014798283515, lr is [0.0001871034615372852]
+5000 Batch passed the average loss is 4.558775891161496, lr is [0.0001871034615372852]
+5500 Batch passed the average loss is 5.167809541651823, lr is [0.0001871034615372852]
+6000 Batch passed the average loss is 5.038072452456478, lr is [0.0001871034615372852]
+6500 Batch passed the average loss is 5.252838706941605, lr is [0.0001871034615372852]
+elapsed time: 5205.7945secs
+elapsed time: 5205.829secs
+Epoch 17 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+2.360642754600336 0.49139726161956787
+[GPU0] Epoch 18
+
+[GPU1] Epoch 18
+
+0 Batch passed the average loss is 4.275186402423042, lr is [0.00018701053135115523]
+500 Batch passed the average loss is 4.687841150392431, lr is [0.00018701053135115523]
+1000 Batch passed the average loss is 4.826688234832643, lr is [0.00018701053135115523]
+1500 Batch passed the average loss is 4.428022235973162, lr is [0.00018701053135115523]
+2000 Batch passed the average loss is 5.295277476269009, lr is [0.00018701053135115523]
+2500 Batch passed the average loss is 5.0758436962185085, lr is [0.00018701053135115523]
+3000 Batch passed the average loss is 4.930541513085478, lr is [0.00018701053135115523]
+3500 Batch passed the average loss is 4.718204145639885, lr is [0.00018701053135115523]
+4000 Batch passed the average loss is 4.723853429826066, lr is [0.00018701053135115523]
+4500 Batch passed the average loss is 5.472831312200259, lr is [0.00018701053135115523]
+5000 Batch passed the average loss is 4.766786177750438, lr is [0.00018701053135115523]
+5500 Batch passed the average loss is 3.8065323143754917, lr is [0.00018701053135115523]
+6000 Batch passed the average loss is 3.8510371158077836, lr is [0.00018701053135115523]
+6500 Batch passed the average loss is 4.098875141997294, lr is [0.00018701053135115523]
+elapsed time: 5206.2235secs
+elapsed time: 5206.1885secs
+Epoch 18 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+2.2837631580497337 0.49985992908477783
+[GPU1] Epoch 19
+
+[GPU0] Epoch 19
+
+0 Batch passed the average loss is 3.8222611936877517, lr is [0.00018690785660639543]
+500 Batch passed the average loss is 4.025878360775565, lr is [0.00018690785660639543]
+1000 Batch passed the average loss is 4.692034723520171, lr is [0.00018690785660639543]
+1500 Batch passed the average loss is 5.111622813939869, lr is [0.00018690785660639543]
+2000 Batch passed the average loss is 4.343933346545563, lr is [0.00018690785660639543]
+2500 Batch passed the average loss is 4.453173184846617, lr is [0.00018690785660639543]
+3000 Batch passed the average loss is 4.147100517746329, lr is [0.00018690785660639543]
+3500 Batch passed the average loss is 5.355191453684151, lr is [0.00018690785660639543]
+4000 Batch passed the average loss is 3.76117377869815, lr is [0.00018690785660639543]
+4500 Batch passed the average loss is 5.071358790153753, lr is [0.00018690785660639543]
+5000 Batch passed the average loss is 4.26884049397994, lr is [0.00018690785660639543]
+5500 Batch passed the average loss is 4.038428564106463, lr is [0.00018690785660639543]
+6000 Batch passed the average loss is 5.169548956634199, lr is [0.00018690785660639543]
+6500 Batch passed the average loss is 5.087779287183102, lr is [0.00018690785660639543]
+elapsed time: 5202.869secs
+elapsed time: 5202.834secs
+Epoch 19 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+2.2477732060684565 0.5103232860565186
+[GPU1] Epoch 20
+
+[GPU0] Epoch 20
+
+0 Batch passed the average loss is 4.500940342997498, lr is [0.00018679544856244862]
+500 Batch passed the average loss is 4.342775643810582, lr is [0.00018679544856244862]
+1000 Batch passed the average loss is 3.884269573600177, lr is [0.00018679544856244862]
+1500 Batch passed the average loss is 4.03712400286968, lr is [0.00018679544856244862]
+2000 Batch passed the average loss is 4.8610402502946135, lr is [0.00018679544856244862]
+2500 Batch passed the average loss is 4.941613118318693, lr is [0.00018679544856244862]
+3000 Batch passed the average loss is 4.390230012425159, lr is [0.00018679544856244862]
+3500 Batch passed the average loss is 4.905960356126481, lr is [0.00018679544856244862]
+4000 Batch passed the average loss is 4.270664781732837, lr is [0.00018679544856244862]
+4500 Batch passed the average loss is 4.874625615337885, lr is [0.00018679544856244862]
+5000 Batch passed the average loss is 4.287793346538727, lr is [0.00018679544856244862]
+5500 Batch passed the average loss is 4.45628963669004, lr is [0.00018679544856244862]
+6000 Batch passed the average loss is 4.234893769837875, lr is [0.00018679544856244862]
+6500 Batch passed the average loss is 5.097441432249676, lr is [0.00018679544856244862]
+elapsed time: 5203.852secs
+elapsed time: 5203.817secs
+Epoch 20 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+2.1717316901500197 0.5230273604393005
+[GPU1] Epoch 21
+
+[GPU0] Epoch 21
+
+0 Batch passed the average loss is 5.003795773498678, lr is [0.0001866733195461235]
+500 Batch passed the average loss is 4.891067092153205, lr is [0.0001866733195461235]
+1000 Batch passed the average loss is 4.593738704483233, lr is [0.0001866733195461235]
+1500 Batch passed the average loss is 4.324868442857154, lr is [0.0001866733195461235]
+2000 Batch passed the average loss is 4.96647893282826, lr is [0.0001866733195461235]
+2500 Batch passed the average loss is 4.8978650196213325, lr is [0.0001866733195461235]
+3000 Batch passed the average loss is 4.334306485664486, lr is [0.0001866733195461235]
+3500 Batch passed the average loss is 4.105905277551064, lr is [0.0001866733195461235]
+4000 Batch passed the average loss is 4.810008828171872, lr is [0.0001866733195461235]
+4500 Batch passed the average loss is 4.733513667639372, lr is [0.0001866733195461235]
+5000 Batch passed the average loss is 3.8590876318610823, lr is [0.0001866733195461235]
+5500 Batch passed the average loss is 5.202436201584695, lr is [0.0001866733195461235]
+6000 Batch passed the average loss is 3.7873806306632907, lr is [0.0001866733195461235]
+6500 Batch passed the average loss is 4.306370947016614, lr is [0.0001866733195461235]
+elapsed time: 5201.3775secs
+elapsed time: 5201.3425secs
+Epoch 21 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+2.1357801879702185 0.5260883569717407
+[GPU1] Epoch 22
+[GPU0] Epoch 22
+
+
+0 Batch passed the average loss is 4.2251157591351385, lr is [0.00018654148295024303]
+500 Batch passed the average loss is 4.696194919715683, lr is [0.00018654148295024303]
+1000 Batch passed the average loss is 3.589416085454882, lr is [0.00018654148295024303]
+1500 Batch passed the average loss is 4.163765620007573, lr is [0.00018654148295024303]
+2000 Batch passed the average loss is 4.466272200306, lr is [0.00018654148295024303]
+2500 Batch passed the average loss is 4.525210140860144, lr is [0.00018654148295024303]
+3000 Batch passed the average loss is 4.035700238303514, lr is [0.00018654148295024303]
+3500 Batch passed the average loss is 4.327989662833752, lr is [0.00018654148295024303]
+4000 Batch passed the average loss is 4.764452176561093, lr is [0.00018654148295024303]
+4500 Batch passed the average loss is 3.987934510592585, lr is [0.00018654148295024303]
+5000 Batch passed the average loss is 3.5147084980498287, lr is [0.00018654148295024303]
+5500 Batch passed the average loss is 4.577300565361136, lr is [0.00018654148295024303]
+6000 Batch passed the average loss is 4.126829276364551, lr is [0.00018654148295024303]
+6500 Batch passed the average loss is 4.456030727058617, lr is [0.00018654148295024303]
+elapsed time: 5202.693secselapsed time: 5202.7285secs
+
+Epoch 22 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+2.1232319545886233 0.5308898687362671
+[GPU1] Epoch 23
+
+[GPU0] Epoch 23
+
+0 Batch passed the average loss is 4.458416224086256, lr is [0.00018639995323217555]
+500 Batch passed the average loss is 4.978866542817878, lr is [0.00018639995323217555]
+1000 Batch passed the average loss is 3.8439709808485403, lr is [0.00018639995323217555]
+1500 Batch passed the average loss is 4.242982430956577, lr is [0.00018639995323217555]
+2000 Batch passed the average loss is 4.337470618839663, lr is [0.00018639995323217555]
+2500 Batch passed the average loss is 4.6041928364702365, lr is [0.00018639995323217555]
+3000 Batch passed the average loss is 4.3043320932708244, lr is [0.00018639995323217555]
+3500 Batch passed the average loss is 4.391698597443174, lr is [0.00018639995323217555]
+4000 Batch passed the average loss is 4.0461143179718455, lr is [0.00018639995323217555]
+4500 Batch passed the average loss is 4.221950195520009, lr is [0.00018639995323217555]
+5000 Batch passed the average loss is 4.608099844794137, lr is [0.00018639995323217555]
+5500 Batch passed the average loss is 4.731945428637991, lr is [0.00018639995323217555]
+6000 Batch passed the average loss is 4.156650134869965, lr is [0.00018639995323217555]
+6500 Batch passed the average loss is 4.928464514274285, lr is [0.00018639995323217555]
+elapsed time: 5198.2135secs
+elapsed time: 5198.178secs
+Epoch 23 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+2.0630500439788704 0.5409730672836304
+[GPU1] Epoch 24
+
+[GPU0] Epoch 24
+
+0 Batch passed the average loss is 4.731850065974484, lr is [0.00018624874591224963]
+500 Batch passed the average loss is 4.302107282331195, lr is [0.00018624874591224963]
+1000 Batch passed the average loss is 4.582658039796985, lr is [0.00018624874591224963]
+1500 Batch passed the average loss is 4.706823088563589, lr is [0.00018624874591224963]
+2000 Batch passed the average loss is 4.033584140800284, lr is [0.00018624874591224963]
+2500 Batch passed the average loss is 5.160394617750802, lr is [0.00018624874591224963]
+3000 Batch passed the average loss is 4.160950990994151, lr is [0.00018624874591224963]
+3500 Batch passed the average loss is 5.013594763987386, lr is [0.00018624874591224963]
+4000 Batch passed the average loss is 4.450194055238644, lr is [0.00018624874591224963]
+4500 Batch passed the average loss is 4.48412885904777, lr is [0.00018624874591224963]
+5000 Batch passed the average loss is 4.795849379894286, lr is [0.00018624874591224963]
+5500 Batch passed the average loss is 3.8067211324492365, lr is [0.00018624874591224963]
+6000 Batch passed the average loss is 3.9973439446008654, lr is [0.00018624874591224963]
+6500 Batch passed the average loss is 4.825325979184439, lr is [0.00018624874591224963]
+elapsed time: 5195.5485secs
+elapsed time: 5195.5125secs
+Epoch 24 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+2.063719476904563 0.5469550490379333
+[GPU1] Epoch 25
+
+[GPU0] Epoch 25
+
+0 Batch passed the average loss is 4.693453719953162, lr is [0.00018608787757205177]
+500 Batch passed the average loss is 4.470738033838054, lr is [0.00018608787757205177]
+1000 Batch passed the average loss is 4.282028673529702, lr is [0.00018608787757205177]
+1500 Batch passed the average loss is 4.345200716343577, lr is [0.00018608787757205177]
+2000 Batch passed the average loss is 4.599295010072494, lr is [0.00018608787757205177]
+2500 Batch passed the average loss is 4.034532999302183, lr is [0.00018608787757205177]
+3000 Batch passed the average loss is 4.838899900708089, lr is [0.00018608787757205177]
+3500 Batch passed the average loss is 4.7494830992703285, lr is [0.00018608787757205177]
+4000 Batch passed the average loss is 4.595461907812812, lr is [0.00018608787757205177]
+4500 Batch passed the average loss is 3.1267667459217368, lr is [0.00018608787757205177]
+5000 Batch passed the average loss is 4.199257696111776, lr is [0.00018608787757205177]
+5500 Batch passed the average loss is 4.320740193153916, lr is [0.00018608787757205177]
+6000 Batch passed the average loss is 4.235890309671528, lr is [0.00018608787757205177]
+6500 Batch passed the average loss is 3.790584339343823, lr is [0.00018608787757205177]
+elapsed time: 5189.0365secselapsed time: 5189.001secs
+
+Epoch 25 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+1.987212030668244 0.5574983954429626
+[GPU1] Epoch 26
+
+[GPU0] Epoch 26
+
+0 Batch passed the average loss is 4.254858420256477, lr is [0.00018591736585260834]
+500 Batch passed the average loss is 5.147773846048908, lr is [0.00018591736585260834]
+1000 Batch passed the average loss is 3.275537745939851, lr is [0.00018591736585260834]
+1500 Batch passed the average loss is 4.692368492842447, lr is [0.00018591736585260834]
+2000 Batch passed the average loss is 4.155112888734225, lr is [0.00018591736585260834]
+2500 Batch passed the average loss is 4.432006964867821, lr is [0.00018591736585260834]
+3000 Batch passed the average loss is 4.849221478592818, lr is [0.00018591736585260834]
+3500 Batch passed the average loss is 4.342845258554943, lr is [0.00018591736585260834]
+4000 Batch passed the average loss is 4.64459275205185, lr is [0.00018591736585260834]
+4500 Batch passed the average loss is 4.154643227616451, lr is [0.00018591736585260834]
+5000 Batch passed the average loss is 3.879812322707839, lr is [0.00018591736585260834]
+5500 Batch passed the average loss is 4.540902067140295, lr is [0.00018591736585260834]
+6000 Batch passed the average loss is 3.835561424367136, lr is [0.00018591736585260834]
+6500 Batch passed the average loss is 4.23432159385683, lr is [0.00018591736585260834]
+elapsed time: 5194.856secs
+elapsed time: 5194.8205secs
+Epoch 26 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+2.018767126279313 0.5565180778503418
+[GPU1] Epoch 27
+
+[GPU0] Epoch 27
+
+0 Batch passed the average loss is 4.149096935106858, lr is [0.00018573722945245086]
+500 Batch passed the average loss is 4.358736015988507, lr is [0.00018573722945245086]
+1000 Batch passed the average loss is 4.427026172952827, lr is [0.00018573722945245086]
+1500 Batch passed the average loss is 4.521800925639753, lr is [0.00018573722945245086]
+2000 Batch passed the average loss is 4.189951253780084, lr is [0.00018573722945245086]
+2500 Batch passed the average loss is 4.606823415543089, lr is [0.00018573722945245086]
+3000 Batch passed the average loss is 3.193055717392353, lr is [0.00018573722945245086]
+3500 Batch passed the average loss is 5.0095270695754754, lr is [0.00018573722945245086]
+4000 Batch passed the average loss is 4.190902973161888, lr is [0.00018573722945245086]
+4500 Batch passed the average loss is 4.61943703504522, lr is [0.00018573722945245086]
+5000 Batch passed the average loss is 4.743384656939027, lr is [0.00018573722945245086]
+5500 Batch passed the average loss is 3.1360941680394006, lr is [0.00018573722945245086]
+6000 Batch passed the average loss is 4.5056841586936764, lr is [0.00018573722945245086]
+6500 Batch passed the average loss is 4.426034878065667, lr is [0.00018573722945245086]
+elapsed time: 5203.1645secselapsed time: 5203.1295secs
+
+Epoch 27 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+1.9574879896274495 0.5667613744735718
+[GPU1] Epoch 28
+
+[GPU0] Epoch 28
+
+0 Batch passed the average loss is 4.364806326334073, lr is [0.00018554748812556554]
+500 Batch passed the average loss is 4.921592203928621, lr is [0.00018554748812556554]
+1000 Batch passed the average loss is 4.434547903036977, lr is [0.00018554748812556554]
+1500 Batch passed the average loss is 4.4604655677250316, lr is [0.00018554748812556554]
+2000 Batch passed the average loss is 4.7940136486217675, lr is [0.00018554748812556554]
+2500 Batch passed the average loss is 4.113596753176257, lr is [0.00018554748812556554]
+3000 Batch passed the average loss is 3.8175116562317633, lr is [0.00018554748812556554]
+3500 Batch passed the average loss is 3.8970970438752226, lr is [0.00018554748812556554]
+4000 Batch passed the average loss is 4.6870854012841345, lr is [0.00018554748812556554]
+4500 Batch passed the average loss is 4.329863539171674, lr is [0.00018554748812556554]
+5000 Batch passed the average loss is 4.26731850587036, lr is [0.00018554748812556554]
+5500 Batch passed the average loss is 4.045228398827861, lr is [0.00018554748812556554]
+6000 Batch passed the average loss is 4.465334785323722, lr is [0.00018554748812556554]
+6500 Batch passed the average loss is 4.823549372763295, lr is [0.00018554748812556554]
+elapsed time: 5204.414secs
+elapsed time: 5204.38secs
+Epoch 28 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+1.9187870140421246 0.5739036798477173
+[GPU1] Epoch 29
+
+[GPU0] Epoch 29
+
+0 Batch passed the average loss is 3.999316282888858, lr is [0.00018534816267922708]
+500 Batch passed the average loss is 4.366554323956165, lr is [0.00018534816267922708]
+1000 Batch passed the average loss is 4.703882580834336, lr is [0.00018534816267922708]
+1500 Batch passed the average loss is 4.212057272807746, lr is [0.00018534816267922708]
+2000 Batch passed the average loss is 4.082025512982163, lr is [0.00018534816267922708]
+2500 Batch passed the average loss is 4.779192383459439, lr is [0.00018534816267922708]
+3000 Batch passed the average loss is 3.9533655450711347, lr is [0.00018534816267922708]
+3500 Batch passed the average loss is 4.6671679553839684, lr is [0.00018534816267922708]
+4000 Batch passed the average loss is 4.5984896723791735, lr is [0.00018534816267922708]
+4500 Batch passed the average loss is 4.97224074495738, lr is [0.00018534816267922708]
+5000 Batch passed the average loss is 3.4181802643876593, lr is [0.00018534816267922708]
+5500 Batch passed the average loss is 4.394574735374559, lr is [0.00018534816267922708]
+6000 Batch passed the average loss is 3.9803398280708517, lr is [0.00018534816267922708]
+6500 Batch passed the average loss is 4.561021681887096, lr is [0.00018534816267922708]
+elapsed time: 5204.574secs
+elapsed time: 5204.54secs
+Epoch 29 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+1.9075459176106968 0.5750839710235596
+[GPU1] Epoch 30
+
+[GPU0] Epoch 30
+
+0 Batch passed the average loss is 4.334833841193682, lr is [0.00018513927497171688]
+500 Batch passed the average loss is 4.542908497580491, lr is [0.00018513927497171688]
+1000 Batch passed the average loss is 4.780774926860346, lr is [0.00018513927497171688]
+1500 Batch passed the average loss is 3.6751487887946905, lr is [0.00018513927497171688]
+2000 Batch passed the average loss is 4.52643650471285, lr is [0.00018513927497171688]
+2500 Batch passed the average loss is 4.385751781746849, lr is [0.00018513927497171688]
+3000 Batch passed the average loss is 4.86898491379142, lr is [0.00018513927497171688]
+3500 Batch passed the average loss is 4.327614887566168, lr is [0.00018513927497171688]
+4000 Batch passed the average loss is 4.004297790023829, lr is [0.00018513927497171688]
+4500 Batch passed the average loss is 4.214455166981641, lr is [0.00018513927497171688]
+5000 Batch passed the average loss is 5.06734592927336, lr is [0.00018513927497171688]
+5500 Batch passed the average loss is 4.1191530587655185, lr is [0.00018513927497171688]
+6000 Batch passed the average loss is 3.689596709129387, lr is [0.00018513927497171688]
+6500 Batch passed the average loss is 4.12893393034816, lr is [0.00018513927497171688]
+elapsed time: 5205.1285secselapsed time: 5205.0945secs
+
+Epoch 30 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+1.9016349639838372 0.5778249502182007
+[GPU1] Epoch 31
+
+[GPU0] Epoch 31
+
+0 Batch passed the average loss is 3.7991417079536642, lr is [0.00018492084790992599]
+500 Batch passed the average loss is 3.371445168662587, lr is [0.00018492084790992599]
+1000 Batch passed the average loss is 3.106367003350882, lr is [0.00018492084790992599]
+1500 Batch passed the average loss is 4.300814641427352, lr is [0.00018492084790992599]
+2000 Batch passed the average loss is 4.8542208662271955, lr is [0.00018492084790992599]
+2500 Batch passed the average loss is 3.8099093446969494, lr is [0.00018492084790992599]
+3000 Batch passed the average loss is 3.7899208536124704, lr is [0.00018492084790992599]
+3500 Batch passed the average loss is 4.028548038540455, lr is [0.00018492084790992599]
+4000 Batch passed the average loss is 4.5579757984146685, lr is [0.00018492084790992599]
+4500 Batch passed the average loss is 4.813776607007052, lr is [0.00018492084790992599]
+5000 Batch passed the average loss is 4.149280031420791, lr is [0.00018492084790992599]
+5500 Batch passed the average loss is 3.709997405326877, lr is [0.00018492084790992599]
+6000 Batch passed the average loss is 3.851558034357193, lr is [0.00018492084790992599]
+6500 Batch passed the average loss is 4.204857391712934, lr is [0.00018492084790992599]
+elapsed time: 5205.1675secs
+elapsed time: 5205.1335secs
+Epoch 31 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+1.8856026471685245 0.5824463963508606
+[GPU1] Epoch 32
+
+[GPU0] Epoch 32
+
+0 Batch passed the average loss is 4.639575245511406, lr is [0.00018469290544684318]
+500 Batch passed the average loss is 4.608380687838166, lr is [0.00018469290544684318]
+1000 Batch passed the average loss is 4.586792964886667, lr is [0.00018469290544684318]
+1500 Batch passed the average loss is 4.53347236202643, lr is [0.00018469290544684318]
+2000 Batch passed the average loss is 4.439013736569031, lr is [0.00018469290544684318]
+2500 Batch passed the average loss is 4.265826556999786, lr is [0.00018469290544684318]
+3000 Batch passed the average loss is 4.406047340607823, lr is [0.00018469290544684318]
+3500 Batch passed the average loss is 3.6906211425421156, lr is [0.00018469290544684318]
+4000 Batch passed the average loss is 3.8576321592092997, lr is [0.00018469290544684318]
+4500 Batch passed the average loss is 4.3791545926854045, lr is [0.00018469290544684318]
+5000 Batch passed the average loss is 4.362395558200605, lr is [0.00018469290544684318]
+5500 Batch passed the average loss is 3.771698955869467, lr is [0.00018469290544684318]
+6000 Batch passed the average loss is 4.496401080214543, lr is [0.00018469290544684318]
+6500 Batch passed the average loss is 4.310529712772174, lr is [0.00018469290544684318]
+elapsed time: 5204.945secselapsed time: 5204.911secs
+
+Epoch 32 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+1.8902047445451509 0.5800256133079529
+[GPU1] Epoch 33
+
+[GPU0] Epoch 33
+
+0 Batch passed the average loss is 4.034114834022703, lr is [0.00018445547257892826]
+500 Batch passed the average loss is 4.4049945368027, lr is [0.00018445547257892826]
+1000 Batch passed the average loss is 3.9488720563666635, lr is [0.00018445547257892826]
+1500 Batch passed the average loss is 3.869903665156097, lr is [0.00018445547257892826]
+2000 Batch passed the average loss is 4.255679015975959, lr is [0.00018445547257892826]
+2500 Batch passed the average loss is 4.794231075494564, lr is [0.00018445547257892826]
+3000 Batch passed the average loss is 4.033360992167676, lr is [0.00018445547257892826]
+3500 Batch passed the average loss is 3.958356350065797, lr is [0.00018445547257892826]
+4000 Batch passed the average loss is 4.8533101527907, lr is [0.00018445547257892826]
+4500 Batch passed the average loss is 4.359308668782869, lr is [0.00018445547257892826]
+5000 Batch passed the average loss is 3.2574269456998337, lr is [0.00018445547257892826]
+5500 Batch passed the average loss is 4.538077425047204, lr is [0.00018445547257892826]
+6000 Batch passed the average loss is 4.385217750831208, lr is [0.00018445547257892826]
+6500 Batch passed the average loss is 4.703954102831967, lr is [0.00018445547257892826]
+elapsed time: 5203.4895secselapsed time: 5203.455secs
+
+Epoch 33 | Training checkpoint saved at model/model_1.pt
+Validation is started!!!
+1.8565139656521148 0.5874079465866089
+[GPU1] Epoch 34
+
+[GPU0] Epoch 34
+
+0 Batch passed the average loss is 4.249337875666031, lr is [0.00018420857534337076]
+500 Batch passed the average loss is 4.423561647387601, lr is [0.00018420857534337076]
+1000 Batch passed the average loss is 3.8746534410187445, lr is [0.00018420857534337076]
+1500 Batch passed the average loss is 3.2649601193036046, lr is [0.00018420857534337076]
+2000 Batch passed the average loss is 4.2431979505761035, lr is [0.00018420857534337076]
+2500 Batch passed the average loss is 4.604892321607064, lr is [0.00018420857534337076]
+3000 Batch passed the average loss is 4.509897757980752, lr is [0.00018420857534337076]
+3500 Batch passed the average loss is 4.002832065885719, lr is [0.00018420857534337076]
+4000 Batch passed the average loss is 4.736203848376917, lr is [0.00018420857534337076]
+4500 Batch passed the average loss is 4.3483753394117395, lr is [0.00018420857534337076]
+5000 Batch passed the average loss is 4.482578738952456, lr is [0.00018420857534337076]
+
+

@@ -74,6 +74,7 @@ class StochasticDepth(torch.nn.Module):
         return self.module(inputs).div_(1-self.p)
 
 
+
 class squeezer(nn.Module):
     def __init__(self, 
                  embedding_dim = 512,

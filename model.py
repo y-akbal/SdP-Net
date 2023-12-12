@@ -2,8 +2,8 @@ import torch
 from torch import nn as nn
 from torch.nn import functional as F
 from layers import conv_int, conv_mixer, embedding_layer, encoder_layer, squeezer
-import torchvision 
-from torchvision.ops import StochasticDepth, stochastic_depth, Stochastic
+
+
 
 
 class main_model(nn.Module):
