@@ -20,21 +20,19 @@ Enjoy SdP-Net!!!
 
 # Training Details
 
-(The following table will be updated!!!)
+
 | #Size  |  #Params  |  ConvMix | TransMix |  Patch_size | Conv_Size | Embed_Dim | Top1 Acc | 
 | :---:  | :-------: | :-----:  | :------: | :------:    | :------:  | :-----:   | :-----:  | 
-|  S (*) |  19M      |  5       |  10      |  14         |     7     | 512C 512T | 70.2%    | 
-|  M     |  33M      |  5       |  15      |  14         |     7     | 768C 512T | ?        | 
 |  L     |  55M      | 5        |  7       |  16         |     7     | 768C 768T | 70.1%    | 
-|  XL    |  ~70M      | 5        |  10     |  16         |     7     | 768C 768T | 72.1%    | 
+|  XL    |  76M      | 5        |  10      |  16         |     7     | 768C 768T | 72.5%    | 
 
 
-Bitter lesson: I have trained L and XL models, with modicum of augmentation and for over 200 epochs. Initial learning rate was 0.001*batch_size/512, with a linear warming up period for 5 epochs and cos decay. The classification head is the same as the one in the original VIT paper. A quick take away is that VIT like models suffer a lot from inductive bias issue. Even though adding some convolutional prior layers does not mitigate this.
-On availabilty of better GPUs, I will increase the depth of the convolutional section.
+Bitter lesson: I have trained L and XL models, with modicum of augmentation and for over 200 epochs. Initial learning rate was 0.001*batch_size/512, with a linear warming up period for 5 epochs and cos-decay. The classification head was the same as the one in the original VIT paper. A quick take away is that VIT like models suffer a lot from inductive bias issue. Even though adding some convolutional prior layers does not mitigate this.
+On availabilty of better GPUs (Currently two V100s), I will increase the depth of the convolutional section and use some stochastic depth + EMA kinda stuff hoping to get at least 81% accuracy.  
 
 
 # Optimizers
-AdamW: lr = 0.001875 -
+AdamW: lr = 0.001875
 Weight decay 0.05
 CosineAnnealing with warm starts in addition to 5 warming up epochs.
  
