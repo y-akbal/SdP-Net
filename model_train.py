@@ -92,7 +92,7 @@ def main(cfg : DictConfig):
     gpu_id = int(os.environ["LOCAL_RANK"]) ### this local rank is determined by torch run!!!
     
     if gpu_id == 0:
-        print(f"Train batch size {len(train_images)}, test batch size {len(test_images)}")
+        print(f"One epoch #batches {len(train_images)}, test #batch {len(test_images)}")
         print(f"Model has {model.return_num_params()} params. There are {torch.cuda.device_count()} GPUs available on this machine!!!")
     
     
