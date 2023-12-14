@@ -1,11 +1,8 @@
 
 # SdP-Net - SlapDash Net 
 
-
-<a href="https://www.youtube.com/shorts/3BW1lBgtbbs" class="follow"> 
-<img align="left" width="350" height="200" src="at_net.JPG"> 
-</a>
 This is actually a less serious weekend project called SlapDash-Net which can be considered a variation on hybrid Mobile-Net architecture. We start with a convolutional layer for patching then use depthwise and 1D convs for mixing channels. Finally use some encoder type transformer layers, together with some register tokens and a class token. The convolution part is highly motivated by "Patches are all you need" paper. The dudes will be trained on ImageNet1k dataset. 
+
  <h1> Our motto in coming up with SdP-Net:</h1>
  <ul> 
   <li> No promise to get very high accuracy,</li>
