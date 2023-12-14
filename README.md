@@ -13,7 +13,6 @@ This is actually a less serious weekend project called SlapDash-Net which can be
   <li> In SdP-Net we trust!</li>
   
 </ul> 
-Enjoy SdP-Net!!!
 
 # Training Details
 
