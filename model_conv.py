@@ -6,11 +6,13 @@ class freak_mixer(nn.Module):
     def __init__(self,
                  embedding_dim:int = 512,
                  conv_kernel_size:int = 5,
-                 conv_mixer_repetition:int = 5, 
+                 conv_mixer_repetition:int = 16, 
                  activation = nn.GELU("tanh"),
                  patch_size:int = 14,
-                 multiplication_factor:int = 1, 
+                 multiplication_factor:int = 4, 
+                 dropout_mlp:float = 0.2,
                  output_classes = 1000,
+                 cheap:bool = True,
                  **kwargs,
                  ):
         super().__init__(**kwargs)        
@@ -21,7 +23,9 @@ class freak_mixer(nn.Module):
         self.conv_mixer = nn.Sequential(*[weirdo_conv_mixer(embedding_dim=embedding_dim, 
                                                             kernel_size=conv_kernel_size, 
                                                             activation= activation,
-                                                            multiplication_factor = multiplication_factor)
+                                                            multiplication_factor = multiplication_factor,
+                                                            dropout_mlp = dropout_mlp,
+                                                            cheap=cheap)
                                                             for _ in range(conv_mixer_repetition)])
         self.base = nn.Sequential(*[self.conv_init,
                                     self.conv_mixer])
@@ -77,12 +81,9 @@ class freak_mixer(nn.Module):
         except Exception as exp:
             print(f"Something went wrong with {exp}!!!!!")
 
-"""
 
-l = 0
-for p in freak_mixer(embedding_dim=768,multiplication_factor=4, conv_mixer_repetition=15).parameters():
-    l += p.shape.numel()
-print(l)
+"""
+freak_mixer(embedding_dim=768,multiplication_factor= 4, conv_kernel_size=7,patch_size=14, conv_mixer_repetition=30, cheap = True).return_num_params()
 """
 if __name__ == '__main__':
     pass

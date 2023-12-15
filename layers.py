@@ -179,25 +179,55 @@ class encoder_layer(nn.Module):
 ## Below is just for extreme testing purposes. I would like to see how attention stuff works in MLP part by just doing 
 ## some experiments on them. 
 
-
-
-class libido_killer(nn.Module):
+class conv_2_conv_cheap(nn.Module):
   def __init__(self, 
-               d_in = 512, 
-               squeeze_ratio = 0.5, 
+               embedding_dim = 512, 
+               squeeze_ratio = 4, 
+               dropout = 0.2,
+               activation = nn.GELU("tanh")):
+    super().__init__()
+    #""
+    intermediate_dim = int(embedding_dim*squeeze_ratio)
+    self.W = nn.Parameter(torch.randn(intermediate_dim, embedding_dim, 1, 1)/(2*(embedding_dim+intermediate_dim))**0.5)
+    #
+    self.bias_out = nn.Parameter(torch.zeros(embedding_dim))
+    self.bias_int = nn.Parameter(torch.zeros(intermediate_dim))
+    #
+    self.activation = activation
+    self.dropout = nn.Dropout2d(dropout) if dropout > 0 else lambda x: x
+    #
+  def forward(self, x):
+    x = self.dropout(x)
+    x = F.conv2d(x, self.W, self.bias_int, padding="same")
+    x = self.activation(x)
+    return F.conv2d(x, self.W.transpose(1,0), self.bias_out, padding="same")
+
+
+class conv_2_conv(nn.Module):
+  def __init__(self, 
+               embedding_dim = 512, 
+               squeeze_ratio = 2.0, 
                dropout = 0.2,
                activation = nn.GELU("tanh")): ## Silu might be better here
     super().__init__()
-    self.intermediate_dim = int(d_in*squeeze_ratio)
-    self.W = nn.Parameter(torch.randn(d_in, self.intermediate_dim)/((d_in+self.intermediate_dim)/2)**0.5)
-    self.bias_out = nn.Parameter(torch.zeros(d_in))
-    self.bias_int = nn.Parameter(torch.zeros(self.intermediate_dim))
+    self.intermediate_dim = int(embedding_dim*squeeze_ratio)
+    self.conv1d_1 = nn.Conv2d(in_channels = embedding_dim,
+                                out_channels = self.intermediate_dim,
+                                kernel_size =1,
+                                )
+    self.conv1d_2 = nn.Conv2d(in_channels = self.intermediate_dim,
+                                out_channels = embedding_dim,
+                                kernel_size =1,
+                                )
+    self.dropout = nn.Dropout2d(dropout) if dropout > 0 else lambda x: x
     self.activation = activation
-    self.dropout = nn.Dropout1d(dropout) if dropout > 0 else lambda x: x
-  def forward(self, X):
-    X = self.dropout(X)
-    intermediate = self.activation(X @ self.W+self.bias_int)
-    return intermediate @ self.W.transpose(-1,-2)+self.bias_out
+  def forward(self, x):
+    x = self.dropout(x)
+    x = self.conv1d_1(x)
+    x = self.activation(x)
+    x = self.conv1d_2(x)
+    return x
+
 
 
 class cheap_attention(nn.Module):
@@ -230,7 +260,7 @@ class freak_attention_encoder(nn.Module):
                  
     ):
         super().__init__(**kwargs)
-        self.ffn = libido_killer(d_in = d_dim,
+        self.ffn = conv_mixer(d_in = d_dim,
                                  dropout= dropout_ffn,
                                  squeeze_ratio= squeeze_ratio,
                                  activation = activation
@@ -257,8 +287,9 @@ class weirdo_conv_mixer(nn.Module):
                  embedding_dim:int = 512, 
                  kernel_size:int = 5, 
                  activation = nn.GELU(),
-                 multiplication_factor:int = 2
-
+                 multiplication_factor:int = 2,
+                 dropout_mlp:float = 0.2,
+                 cheap = False,
                  ):
         super().__init__()
         self.conv2d = nn.Conv2d(in_channels = embedding_dim, 
@@ -267,20 +298,32 @@ class weirdo_conv_mixer(nn.Module):
                               groups = embedding_dim,
                               padding = "same",
                               )
-        self.LK = libido_killer(d_in = embedding_dim, squeeze_ratio = multiplication_factor,
-                                    activation = activation, dropout=0.0)
+        if not cheap:
+            self.MLP = conv_2_conv(embedding_dim= embedding_dim, 
+                              squeeze_ratio = multiplication_factor,
+                              activation = activation, 
+                              dropout=dropout_mlp)
+        else:
+            self.MLP = conv_2_conv_cheap(embedding_dim= embedding_dim, 
+                              squeeze_ratio = multiplication_factor,
+                              activation = activation, 
+                              dropout=dropout_mlp)
+            
         self.batch_norm_1 = nn.SyncBatchNorm(embedding_dim)
         self.batch_norm_2 = nn.SyncBatchNorm(embedding_dim)
         self.activation = activation
     def forward(self, x_):
-        x = self.conv2d(x_)
-        x = self.activation(x)
-        x_temp = x_+self.batch_norm_1(x)
-        x = self.LK(x_temp.transpose(-1, -3))
-        x = self.activation(x.transpose(-1, -3))
-        x = self.batch_norm_2(x)
+        x = self.batch_norm_1(x_)
+        x = self.conv2d(x)
+        x_ = self.activation(x)+x_
+        ## -- ##
+        x = self.batch_norm_2(x_)
+        x = self.MLP(x)
+        x = self.activation(x) + x_
         return x
-
+"""
+weirdo_conv_mixer(cheap = True,multiplication_factor=4)(torch.randn(1, 512, 24, 24)).std()
+"""
 """
 q = 0
 for p in freak_attention_encoder(squeeze_ratio=0.5, d_dim = 512).parameters():
