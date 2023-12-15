@@ -20,11 +20,11 @@ This is actually a less serious weekend project called SlapDash-Net which can be
 | #Size  |  #Params  |  ConvMix | TransMix |  Patch_size | Conv_Size | Embed_Dim | Top1 Acc | 
 | :---:  | :-------: | :-----:  | :------: | :------:    | :------:  | :-----:   | :-----:  | 
 |  L     |  55M      | 5        |  7       |  16         |     7     | 768C 768T | 70.1%    | 
-|  XL    |  76M      | 5        |  10      |  16         |     7     | 768C 768T | 72.5%    | 
+|  XL    |  76M      | 5        |  10      |  16         |     7     | 768C 768T | 75.0%    | 
 |  XXL   |  86M      | 20       |  10      |  16         |     7     | 768C 768T | ?        | 
 
 
-Bitter lesson: I have trained L and XL models with modicum of augmentation for over 200 epochs. Initial learning rate was 0.001*batch_size/512, with a linear warming up period for 5 epochs and cos-decay. The classification head was the same as that of the original VIT paper. A quick take away is that VIT like models suffer a lot from inductive bias issue. Even though adding some convolutional prior layers does not mitigate this.
+Bitter lesson: I have trained L and XL models with modicum of augmentation for over 200 epochs (XL is still being trained). Initial learning rate was 0.001*batch_size/512, with a linear warming up period for 5 epochs and cos-decay. The classification head is the same as that of the original VIT paper. A quick take away is that VIT like models suffer a lot from inductive bias issue. Even though adding some convolutional prior layers does not mitigate this.
 On availabilty of better GPUs (Currently two V100s), I will increase the depth of the convolutional section and use some stochastic depth + EMA kinda stuff hoping to get at least 81 or 82% accuracy.  
 
 
