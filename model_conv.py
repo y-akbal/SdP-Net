@@ -7,7 +7,7 @@ class freak_mixer(nn.Module):
                  embedding_dim:int = 512,
                  conv_kernel_size:int = 5,
                  conv_mixer_repetition:int = 16, 
-                 activation = nn.GELU("tanh"),
+                 activation = nn.GELU(),
                  patch_size:int = 14,
                  multiplication_factor:int = 4, 
                  dropout_mlp:float = 0.2,
@@ -82,9 +82,7 @@ class freak_mixer(nn.Module):
             print(f"Something went wrong with {exp}!!!!!")
 
 
-"""
-freak_mixer(embedding_dim=768,multiplication_factor= 4, conv_kernel_size=7,patch_size=14, conv_mixer_repetition=30, cheap = True).return_num_params()
-"""
+
 if __name__ == '__main__':
     pass
 ## oh sweet, again??
