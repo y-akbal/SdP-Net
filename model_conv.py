@@ -2,6 +2,7 @@ from torch import nn as nn
 from layers import weirdo_conv_mixer
 import torch
 
+
 class freak_mixer(nn.Module):
     def __init__(self,
                  embedding_dim:int = 512,
@@ -16,26 +17,24 @@ class freak_mixer(nn.Module):
                  **kwargs,
                  ):
         super().__init__(**kwargs)        
-        self.conv_init = nn.Sequential(*[nn.Conv2d(in_channels=3, out_channels=embedding_dim,
+        self.conv_init = nn.Sequential(*[nn.Conv2d(in_channels=3, out_channels=embedding_dim, stride = patch_size,
                                                  kernel_size=patch_size,bias=True),
-                                                 activation,
                                                  nn.SyncBatchNorm(embedding_dim)])
-        self.conv_mixer = nn.Sequential(*[weirdo_conv_mixer(embedding_dim=embedding_dim, 
-                                                            kernel_size=conv_kernel_size, 
-                                                            activation= activation,
+        self.conv_mixer = nn.Sequential(*[weirdo_conv_mixer(embedding_dim = embedding_dim, 
+                                                            kernel_size = conv_kernel_size, 
+                                                            activation = activation,
                                                             multiplication_factor = multiplication_factor,
                                                             dropout_mlp = dropout_mlp,
-                                                            cheap=cheap)
+                                                            cheap = cheap)
                                                             for _ in range(conv_mixer_repetition)])
-        self.base = nn.Sequential(*[self.conv_init,
-                                    self.conv_mixer])
         self.head = nn.Sequential(*[
             nn.AdaptiveAvgPool2d((1,1)),
             nn.Flatten(),
             nn.Linear(embedding_dim, output_classes)
         ])
     def forward(self, x):
-        x = self.base(x)
+        x = self.conv_init(x)
+        x = self.conv_mixer(x)
         x = self.head(x)
         return x
     
@@ -80,9 +79,9 @@ class freak_mixer(nn.Module):
             )
         except Exception as exp:
             print(f"Something went wrong with {exp}!!!!!")
-
-
-
+"""
+freak_mixer(embedding_dim=768, conv_kernel_size=7, patch_size=7, multiplication_factor=4, conv_mixer_repetition=20, cheap= True).return_num_params()
+"""
 if __name__ == '__main__':
     pass
 ## oh sweet, again??

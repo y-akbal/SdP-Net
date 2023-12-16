@@ -321,8 +321,9 @@ class weirdo_conv_mixer(nn.Module):
         x = self.MLP(x)
         x = self.activation(x) + x_
         return x
+    
 """
-weirdo_conv_mixer(cheap = True,multiplication_factor=4)(torch.randn(1, 512, 24, 24)).std()
+nn.Sequential(*[weirdo_conv_mixer(cheap = True,multiplication_factor=4) for _ in range(25)])(torch.randn(32, 512, 24, 24)).std()
 """
 """
 q = 0
