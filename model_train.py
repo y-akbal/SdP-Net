@@ -15,7 +15,8 @@ from torch.distributed import init_process_group, destroy_process_group
 import hydra
 from omegaconf import DictConfig
 ### import model and train and validation data and trainer ###
-from model import main_model
+#from model import main_model
+from model_conv import freak_mixer
 #from model_conv import freak_mixer as main_model
 from dataset_generator import test_data, train_data
 from train_tools import Trainer, distributed_loss_track, track_accuracy, return_scheduler_optimizer
@@ -73,7 +74,7 @@ def train_val_data_loader(train_data, test_data, **kwargs):
     return train_data, test_data
 
 
-@hydra.main(version_base=None, config_path=".", config_name="model_config")
+@hydra.main(version_base=None, config_path=".", config_name="model_config_conv")
 def main(cfg : DictConfig):
     ddp_setup()
     ## model configuration ##
@@ -84,7 +85,7 @@ def main(cfg : DictConfig):
 
     ## model_config -- optimizer config -- scheduler config ##
     torch.manual_seed(10)
-    model = main_model.from_dict(**model_config)
+    model = freak_mixer.from_dict(**model_config)
     optimizer, scheduler = return_scheduler_optimizer(model, **optimizer_scheduler_config)
     ## batched train and validation data loader ## 
     train_images, test_images = train_val_data_loader(train_data, test_data, **data_config)

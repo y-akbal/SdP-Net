@@ -28,6 +28,7 @@ class freak_mixer(nn.Module):
                                                             cheap = cheap)
                                                             for _ in range(conv_mixer_repetition)])
         self.head = nn.Sequential(*[
+            nn.SyncBatchNorm(embedding_dim),
             nn.AdaptiveAvgPool2d((1,1)),
             nn.Flatten(),
             nn.Linear(embedding_dim, output_classes)

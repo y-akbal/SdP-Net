@@ -1,7 +1,7 @@
 import torch
 from torch import nn as nn
 from torch.nn import functional as F
-from layers import conv_int, conv_mixer, embedding_layer, encoder_layer, squeezer
+from layers import conv_int, conv_mixer, embedding_layer, encoder_layer, squeezer, output_head
 
 
 
@@ -56,11 +56,11 @@ class main_model(nn.Module):
                                         ) for i in range(transformer_encoder_repetition)])
  
         
-        self.output_head = nn.Sequential(*[nn.Dropout(p = dropout),
-                                        nn.Linear(embedding_dim_trans, output_classes),
-                                        nn.Tanh(),
-                                        nn.Dropout(p = dropout),
-                                        nn.Linear(output_classes, output_classes)])        
+        self.output_head = output_head(embedding_dim = embedding_dim_trans,
+                                       output_classes= output_classes,
+                                       dropout = dropout)  
+                                        ### Add here some normalization without which we would never existSssss!!! 
+
         """
         self.output_head = nn.Linear(embedding_dim_trans, output_classes)
         torch.nn.init.normal_(self.output_head.weight, 0, 1/((embedding_dim_trans + output_classes))**.5)
@@ -124,7 +124,6 @@ class main_model(nn.Module):
         except Exception as exp:
             print(f"Something went wrong with {exp}!!!!!")
 
-"""
 ### Below is just debugging purposses should be considered seriously useful ###
 model = main_model(embedding_dim_conv=768,
                    embedding_dim_trans=768,
@@ -136,13 +135,10 @@ model = main_model(embedding_dim_conv=768,
                 num_register = 1,
                 multiplication_factor= 4,
                 squeeze_ratio = 1,
-                ).cuda()
+                )
 
-
-
-model(torch.randn(1,3,224,224).cuda()).shape
 """
-"""
+
 optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
 for i in range(1000):
     optimizer.zero_grad()

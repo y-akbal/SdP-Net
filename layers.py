@@ -27,6 +27,38 @@ class conv_int(nn.Module):
         return self.batch_norm(x) 
 
 
+
+class output_head(nn.Module):
+    ## Here we embed C instead of the batch H*W
+    ## this may sound a bit weirdo!!! 
+    def __init__(self, 
+                 embedding_dim:int = 768, 
+                 output_classes:int=1000,
+                 dropout:float = 0.2,
+                 ):
+        
+        super().__init__()
+        self.output_head = nn.Sequential(*[nn.LayerNorm(embedding_dim),
+                                        nn.Dropout(p = dropout),
+                                        nn.Linear(embedding_dim, output_classes),
+                                        nn.Tanh(),
+                                        nn.Dropout(p = dropout),
+                                        nn.Linear(output_classes, output_classes)])   
+        self.__initweights__()
+    def __initweights__(self):
+        for weight_key, weight_val in self.state_dict().items():
+            if len(weight_val.shape) > 1:
+                torch.nn.init.xavier_uniform_(weight_val)
+            if "bias" in weight_key:
+                torch.nn.init.zeros_(weight_val)
+
+    def forward(self, x):
+        return self.output_head(x)
+    
+## Below is just for extreme testing purposes. I would like to see how attention stuff works in MLP part by just doing 
+## some experiments on them. 
+
+
 class conv_mixer(nn.Module):
     def __init__(self, 
                  embedding_dim = 512, 
@@ -188,7 +220,7 @@ class conv_2_conv_cheap(nn.Module):
     super().__init__()
     #""
     intermediate_dim = int(embedding_dim*squeeze_ratio)
-    self.W = nn.Parameter(torch.randn(intermediate_dim, embedding_dim, 1, 1)/(2*(embedding_dim+intermediate_dim))**0.5)
+    self.W = nn.Parameter(torch.randn(intermediate_dim, embedding_dim, 1, 1)/((embedding_dim+intermediate_dim)/2)**0.5)
     #
     self.bias_out = nn.Parameter(torch.zeros(embedding_dim))
     self.bias_int = nn.Parameter(torch.zeros(intermediate_dim))
