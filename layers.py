@@ -39,11 +39,10 @@ class output_head(nn.Module):
         
         super().__init__()
         self.output_head = nn.Sequential(*[nn.LayerNorm(embedding_dim),
-                                        nn.Dropout(p = dropout),
                                         nn.Linear(embedding_dim, output_classes),
                                         nn.Tanh(),
-                                        nn.Dropout(p = dropout),
-                                        nn.Linear(output_classes, output_classes)])   
+                                        nn.Linear(output_classes, output_classes)
+                                        ])   
         self.__initweights__()
     def __initweights__(self):
         for weight_key, weight_val in self.state_dict().items():
@@ -55,10 +54,6 @@ class output_head(nn.Module):
     def forward(self, x):
         return self.output_head(x)
     
-## Below is just for extreme testing purposes. I would like to see how attention stuff works in MLP part by just doing 
-## some experiments on them. 
-
-
 class conv_mixer(nn.Module):
     def __init__(self, 
                  embedding_dim = 512, 
@@ -85,13 +80,10 @@ class conv_mixer(nn.Module):
         x = self.activation(x)
         x = self.batch_norm_2(x)
         return x
-"""
-con = conv_mixer(512)
-k = 0
-for i in con.parameters():
-     k += i.shape.numel()
-print(k)
-""" 
+
+
+
+
 class StochasticDepth(torch.nn.Module):
     def __init__(self, module: torch.nn.Module, p: float = 0.5):
         super().__init__()
@@ -126,19 +118,8 @@ class squeezer(nn.Module):
         
     def forward(self, x):
         return self.seq(x)
-"""
-squeezer(128, squeeze_ratio = 7)(torch.randn(1, 128, 224,224)).shape     
-for i in con.parameters():
-     k += i.shape.numel()
-print(k) 
-"""
-"""
-k = 0
-for i in nn.TransformerEncoderLayer(512, nhead = 8, batch_first=True,
-                                    dim_feedforward=256).parameters():
-    k += i.shape.numel()
-print(k) 
-"""
+
+
 class embedding_layer(nn.Module):
     ## We isolated this layer in the case that you want to 
     ## do something like enumerating the pixels...
@@ -207,6 +188,15 @@ class encoder_layer(nn.Module):
         
     def forward(self, x):
         return self.transformer_layer(x)
+
+
+
+
+
+
+### BELOW IS AN EXPERIMENTAL ### NO ACTIVE DEVELOPMENT ###
+
+
 
 ## Below is just for extreme testing purposes. I would like to see how attention stuff works in MLP part by just doing 
 ## some experiments on them. 

@@ -13,7 +13,9 @@ trainer_config:
   snapshot_name: "model_1.pt"
   save_every: 1
   total_epochs: 300
-  
+## Check the variance of the weights
+## All conv, linear and transformer blocks.
+## initialize the weights more carefully   
   
 optimizer_scheduler_config:
   optimizer_config:

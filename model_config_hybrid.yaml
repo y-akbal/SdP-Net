@@ -1,10 +1,10 @@
 model_config:
   embedding_dim_conv: 768
   conv_kernel_size: 7
-  conv_mixer_repetition: 20
+  conv_mixer_repetition: 10
   patch_size: 16
   embedding_dim_trans: 768
-  n_head: 16
+  n_head: 12
   squeeze_ratio: 1
   transformer_encoder_repetition: 10
   dropout: 0.20 # default 0.2

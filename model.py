@@ -30,7 +30,6 @@ class main_model(nn.Module):
 
         self.conv_init = conv_int(embedding_dim= embedding_dim_conv, 
                                   patch_size = patch_size
-                                  
                                   )
         self.conv_mixer = nn.Sequential(*[conv_mixer(embedding_dim_conv, 
                                         kernel_size= conv_kernel_size, 

@@ -15,8 +15,8 @@ from torch.distributed import init_process_group, destroy_process_group
 import hydra
 from omegaconf import DictConfig
 ### import model and train and validation data and trainer ###
-#from model import main_model
-from model_conv import freak_mixer
+from model import main_model
+#from model_conv import freak_mixer
 #from model_conv import freak_mixer as main_model
 from dataset_generator import test_data, train_data
 from train_tools import Trainer, distributed_loss_track, track_accuracy, return_scheduler_optimizer
@@ -74,7 +74,7 @@ def train_val_data_loader(train_data, test_data, **kwargs):
     return train_data, test_data
 
 
-@hydra.main(version_base=None, config_path=".", config_name="model_config_conv")
+@hydra.main(version_base=None, config_path=".", config_name="model_config_hybrid")
 def main(cfg : DictConfig):
     ddp_setup()
     ## model configuration ##
@@ -85,7 +85,7 @@ def main(cfg : DictConfig):
 
     ## model_config -- optimizer config -- scheduler config ##
     torch.manual_seed(10)
-    model = freak_mixer.from_dict(**model_config)
+    model = main_model.from_dict(**model_config)
     optimizer, scheduler = return_scheduler_optimizer(model, **optimizer_scheduler_config)
     ## batched train and validation data loader ## 
     train_images, test_images = train_val_data_loader(train_data, test_data, **data_config)
@@ -95,7 +95,7 @@ def main(cfg : DictConfig):
     if gpu_id == 0:
         print(f"One epoch #batches {len(train_images)}, test #batch {len(test_images)}")
         print(f"Model has {model.return_num_params()} params. There are {torch.cuda.device_count()} GPUs available on this machine!!!")
-    
+        print(f"Current setup is {model_config}")
     
     train_loss_tracker = distributed_loss_track()
     val_loss_tracker = distributed_loss_track(file_name="valloss.log")
