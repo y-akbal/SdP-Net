@@ -1,5 +1,5 @@
+# SdP-Net - SlapDash Net -- AS OF June 12 -- BACK IN TOWN
 
-# SdP-Net - SlapDash Net 
 
 This is actually a less serious weekend project called SlapDash-Net which can be considered a variation on hybrid Mobile-Net architecture. We start with a convolutional layer for patching then use depthwise and 1D convs for mixing channels. Finally use some encoder type transformer layers, together with some register tokens and a class token. The convolution part is highly motivated by "Patches are all you need" paper. The dudes will be trained on ImageNet1k dataset. 
 
@@ -29,6 +29,7 @@ On availabilty of better GPUs (Currently two V100s), I will increase the depth o
 
 
 # Optimizers
+
 AdamW: lr = 0.001875
 Weight decay 0.05
 CosineAnnealing with warm starts in addition to 5 warming up epochs.
@@ -36,4 +37,13 @@ CosineAnnealing with warm starts in addition to 5 warming up epochs.
 # Augmentation and Regularization
 
 RandAugment + Random erase + Random resize+ CutMix + MixUp + Dropout(0.2) (Only to FFN parts of Attention layers) 
+
+# Augmentation and Regularization
+
+1) EMA Model
+2) Gradient Accumulation -- larger learning rate
+3) Register tokens
+4) Stochastic Depth
+5) No more batchnorm layers
+6) If possible binary loss - instead of cross-entropy loss
 
