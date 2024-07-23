@@ -23,8 +23,12 @@ class conv_patcher(nn.Module):
                               kernel_size = patch_size,
                               stride = patch_size,                               
                               )
-    def forward(self, x):
-        return self.conv(x) 
+    def forward(self, x:torch.Tensor)->torch.Tensor:
+        ## B, 3, H, W --> B, 3, H*W ### 
+        B, C, H, W = x.shape
+        x = self.conv(x) 
+        x = x.view(B, C, H*W).contiguous().transpose(-1,-2)
+        return x
 
 
 
@@ -78,19 +82,20 @@ class conv_mixer(nn.Module):
 class embedding_layer(nn.Module):
     ## We isolated this layer in the case that you want to 
     ## do something like enumerating the pixels...
-    def __init__(self, embedding_dim_in:int = 512,
-                 embedding_dim_out:int = 512,
+    def __init__(self, 
+                 embedding_dim: int = 768,
                  num_registers:int = 1,
+                 image_size:list[int, int] = [14,14]
                  ):
         super().__init__()
         ### -- ###
-        self.embedding = nn.Embedding(num_registers, embedding_dim_in)
         self.num_registers = num_registers
-
-        if embedding_dim_in != embedding_dim_out:
-            self.Linear = nn.Linear(embedding_dim_in, embedding_dim_out)
-        else:
-            self.Linear = lambda x: x 
+        self.vertical_im_size = image_size[0]
+        self.horizontal_im_size = image_size[1]
+        ###
+        self.register_embedding_layer = nn.Embedding(num_registers, embedding_dim)
+        self.vertical_embedding_layer = nn.Embedding(image_size[0], embedding_dim)
+        self.horizontal_embedding_layer = nn.Embedding(image_size[1], embedding_dim)
         ### --- ###
         ### --- ###
         ### --- ###
@@ -103,20 +108,42 @@ class embedding_layer(nn.Module):
                 requires_grad=False,
             ),
         )
-    def forward(self, x, y = None):
+
+        self.register_buffer(
+            "vertical_embedding",
+            torch.tensor(
+                [i for i in range(image_size[0])],
+                dtype=torch.int,
+                requires_grad=False,
+            ),
+        )
+
+        self.register_buffer(
+            "horizontal_embedding",
+            torch.tensor(
+                [i for i in range(image_size[1])],
+                dtype=torch.int,
+                requires_grad=False,
+            ),
+        )
+
+    def forward(self, x:torch.Tensor)->torch.Tensor:
         ### Here y will be localtions as there will be 2 more inputs that we save for extra 
         
-        B, C, H, W = x.shape
+        B, C, HW = x.shape
+        assert HW == self.horizontal_im_size*self.vertical_im_size
         # C here is the embedding dimension!!!
-        x = x.view(B, C, H*W).contiguous().transpose(-1,-2)
+        x = x.view(B, C, self.horizontal_im_size, self.vertical_im_size)
+        ## NO NEED TO COMPUTE THESE DUDES FOR EACH FORWARD PASS!!!!!
+        register_embeddings = self.register_embedding_layer(self.num_register)
+        horizontal_embeddings = self.horizontal_embedding_layer(self.horizontal_embedding).transpose(-1, -2)
+        vertical_embeddings = self.vertical_embedding_layer(self.vertical_embedding).transpose(-1, -2)
 
-        if y == None:
-            embeddings = self.embedding(self.num_register)
-        else:
-            embeddings = self.embedding(y)
-        
-        x = torch.cat((embeddings.repeat(B, 1, 1), x), 1)
-        return self.Linear(x)
+        ## Do something here!!! to add the vectors both verticall and horizontally!!!
+        ## Here you may repeat some tokens --- !!!
+        x = x.view(B, C, HW).transpose(-1, -2)
+        ## and the concat with register tokens, and give the output to the 
+        return  x
 
 class encoder_layer(nn.Module):
     def __init__(self, 
