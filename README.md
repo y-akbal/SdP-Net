@@ -46,4 +46,5 @@ RandAugment + Random erase + Random resize+ CutMix + MixUp + Dropout(0.2) (Only 
 4) Stochastic Depth
 5) No more batchnorm layers
 6) If possible binary loss - instead of cross-entropy loss
-
+7) Write kind-of-a unit-test for intermediate activations!!!
+8) Write trainer class from scratch -- if possible do some subclassing kinda thing!!!
