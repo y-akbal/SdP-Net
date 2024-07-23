@@ -11,8 +11,10 @@ import torch.nn.functional as F
 ## We shall mostly use the optimized torch layers
 ## rather than coming up with our own implementations
 
-class conv_int(nn.Module):
-    def __init__(self, embedding_dim = 128, patch_size = 4):
+class conv_patcher(nn.Module):
+    def __init__(self, 
+                 embedding_dim = 128, 
+                 patch_size = 4):
         super().__init__()
 
         self.embedding_dim = embedding_dim
@@ -21,14 +23,12 @@ class conv_int(nn.Module):
                               kernel_size = patch_size,
                               stride = patch_size,                               
                               )
-        self.batch_norm = nn.SyncBatchNorm(embedding_dim)
     def forward(self, x):
-        x = self.conv(x)
-        return self.batch_norm(x) 
+        return self.conv(x) 
 
 
 
-class output_head(nn.Module):
+class classification_head(nn.Module):
     ## Here we embed C instead of the batch H*W
     ## this may sound a bit weirdo!!! 
     def __init__(self, 
@@ -41,15 +41,9 @@ class output_head(nn.Module):
         self.output_head = nn.Sequential(*[nn.LayerNorm(embedding_dim),
                                         nn.Linear(embedding_dim, output_classes),
                                         nn.Tanh(),
+                                        nn.Dropout(dropout),
                                         nn.Linear(output_classes, output_classes)
                                         ])   
-        self.__initweights__()
-    def __initweights__(self):
-        for weight_key, weight_val in self.state_dict().items():
-            if len(weight_val.shape) > 1:
-                torch.nn.init.xavier_uniform_(weight_val)
-            if "bias" in weight_key:
-                torch.nn.init.zeros_(weight_val)
 
     def forward(self, x):
         return self.output_head(x)
@@ -70,19 +64,16 @@ class conv_mixer(nn.Module):
                                 out_channels = embedding_dim,
                                 kernel_size =1,
                                 )
-        self.batch_norm_1 = nn.SyncBatchNorm(embedding_dim)
-        self.batch_norm_2 = nn.SyncBatchNorm(embedding_dim)
+        self.layer_norm_1 = nn.LayerNorm(embedding_dim)
+        self.layer_norm_2 = nn.LayerNorm(embedding_dim)
         self.activation = activation
     def forward(self, x_):
         x = self.conv2d(x_)
         x = self.activation(x)
-        x = self.conv1d(x_+self.batch_norm_1(x))
+        x = self.conv1d(x_+self.layer_norm_1(x))
         x = self.activation(x)
-        x = self.batch_norm_2(x)
+        x = self.layer_norm_2(x)
         return x
-
-
-
 
 class StochasticDepth(torch.nn.Module):
     def __init__(self, module: torch.nn.Module, p: float = 0.5):
@@ -96,29 +87,6 @@ class StochasticDepth(torch.nn.Module):
         if self.training and self._sampler.uniform_().item() < self.p:
             return inputs
         return self.module(inputs).div_(1-self.p)
-
-
-
-class squeezer(nn.Module):
-    def __init__(self, 
-                 embedding_dim = 512,
-                 squeeze_ratio = 5,
-                 activation = nn.GELU()
-                 ):
-        super().__init__()
-        self.seq = nn.Sequential(nn.Conv2d(embedding_dim, 
-                              embedding_dim, 
-                              kernel_size = squeeze_ratio,
-                              stride = squeeze_ratio,
-                              groups = embedding_dim
-                              ),
-                              nn.SyncBatchNorm(embedding_dim),
-                              activation
-        )
-        
-    def forward(self, x):
-        return self.seq(x)
-
 
 class embedding_layer(nn.Module):
     ## We isolated this layer in the case that you want to 
