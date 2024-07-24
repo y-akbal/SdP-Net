@@ -166,47 +166,49 @@ class embedding_layer(nn.Module):
 """
 _, x = embedding_layer(max_image_size=[15,15])(torch.randn(1, 768, 14, 15))
 x.shape
-"""
+""""""
 x = torch.randn(4, 3, 2)
 y = torch.randn(3, 2)
 
 # Step 1: Expand y to match the shape of x
 y_expanded = y.unsqueeze(0).expand(2, -1, -1).shape
 # Now y_expanded has shape (4, 3, 2)
-
+"""
 class EncoderLayer(nn.Module):
     def __init__(
         self,
-        channels: int,
+        embedding_dim: int,
         n_head: int,
         activation_func: Callable = F.gelu,
         multiplication_factor: int = 2,
-        dropout: float = 0.2
+        ff_dropout: float = 0.2,
+        att_dropout: float = 0.2
     ):
         super().__init__()
-        assert channels % n_head == 0, "Number of channels must be divisible by n_head"
+        assert embedding_dim % n_head == 0, "Number of embedding_dim must be divisible by n_head"
         
-        self.channels = channels
+        self.embedding_dim = embedding_dim
         self.n_head = n_head
-        self.head_dim = channels // n_head
+        self.head_dim = embedding_dim // n_head
+        self.att_dropout = att_dropout
 
         # Multi-head self-attention
-        self.q_proj = nn.Linear(channels, channels)
-        self.k_proj = nn.Linear(channels, channels)
-        self.v_proj = nn.Linear(channels, channels)
-        self.o_proj = nn.Linear(channels, channels)
+        self.q_proj = nn.Linear(embedding_dim, embedding_dim)
+        self.k_proj = nn.Linear(embedding_dim, embedding_dim)
+        self.v_proj = nn.Linear(embedding_dim, embedding_dim)
+        self.o_proj = nn.Linear(embedding_dim, embedding_dim)
         
         # Feed-forward network
-        self.ff_linear1 = nn.Linear(channels, multiplication_factor * channels)
-        self.ff_linear2 = nn.Linear(multiplication_factor * channels, channels)
+        self.ff_linear1 = nn.Linear(embedding_dim, multiplication_factor * embedding_dim)
+        self.ff_linear2 = nn.Linear(multiplication_factor * embedding_dim, embedding_dim)
         
         # Layer normalization
-        self.norm1 = nn.LayerNorm(channels)
-        self.norm2 = nn.LayerNorm(channels)
+        self.norm1 = nn.LayerNorm(embedding_dim)
+        self.norm2 = nn.LayerNorm(embedding_dim)
         
         # Activation and dropout
         self.activation = activation_func
-        self.dropout = nn.Dropout(dropout)
+        self.dropout = nn.Dropout(ff_dropout)
 
     def forward(self, x: torch.tensor, register: torch.tensor, mask:torch.tensor)->tuple[torch.tensor, torch.tensor]:
         # x shape: (B, C, H, W) --> 
@@ -232,7 +234,7 @@ class EncoderLayer(nn.Module):
         v = self.v_proj(x_norm).view(B, H*W+R, self.n_head, self.head_dim).transpose(1, 2)
         
         with sdpa_kernel([SDPBackend.MATH, SDPBackend.EFFICIENT_ATTENTION]):
-            attn_output = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, dropout_p = self.attn_dropout)
+            attn_output = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, dropout_p = self.att_dropout)
 
         attn_output = attn_output.transpose(1, 2).contiguous().view(B, H*W+R, C)
         attn_output = self.o_proj(attn_output)
@@ -260,7 +262,7 @@ import time
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 x = torch.randn(10, 196, 768, device=device)
-layer = EncoderLayer_conv().to(device)
+layer = EncoderLayer().to(device)
 layer = torch.compile(layer)
 layer(x)
 # Measure transpose
