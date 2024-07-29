@@ -1,31 +1,28 @@
 import torch
 from torch import nn as nn
 from torch.nn import functional as F
-from layers import conv_int, conv_mixer, embedding_layer, encoder_layer, squeezer, output_head
+from layers import conv_int, conv_mixer, embedding_layer, encoder_layer, output_head
 
 
 
 
 class main_model(nn.Module):
     def __init__(self, 
-                 embedding_dim_conv:int = 512,
-                 embedding_dim_trans:int = 512,
-                 n_head:int = 4,
-                 conv_kernel_size:int = 5,
-                 conv_mixer_repetition:int = 5, 
-                 transformer_encoder_repetition:int = 5,
+                 embedding_dim:int = 512,
+                 num_blocks:int = 10,
+                 n_head:int = 4,                 
                  activation = nn.GELU("tanh"),
+                 conv_kernel_size:int = 5,
                  patch_size:int = 4,
-                 dropout:float = 0.2,
-                 num_register:int = 2,  
+                 ffn_dropout:float = 0.2,
+                 attn_dropout:float = 0.2,
+                 max_num_register:int = 2,  
                  multiplication_factor:int = 1, 
                  output_classes = 1000,
-                 squeeze_ratio = 2,
                  ):
         super().__init__()
         ## Here we go again ##
         self.patch_size = patch_size
-        
         self.num_register = num_register        
 
         self.conv_init = conv_int(embedding_dim= embedding_dim_conv, 
@@ -35,13 +32,6 @@ class main_model(nn.Module):
                                         kernel_size= conv_kernel_size, 
                                         activation = activation)
                                         for i in range(conv_mixer_repetition)])
-        
-        if squeeze_ratio == 1:
-            self.squeezer = lambda x: x
-        else:
-            self.squeezer = squeezer(embedding_dim = embedding_dim_conv,
-                                     squeeze_ratio=squeeze_ratio,
-                                     activation=activation)
         
         self.embedding_layer = embedding_layer(embedding_dim_in=embedding_dim_conv,
                                             embedding_dim_out=embedding_dim_trans,
@@ -60,11 +50,6 @@ class main_model(nn.Module):
                                        dropout = dropout)  
                                         ### Add here some normalization without which we would never existSssss!!! 
 
-        """
-        self.output_head = nn.Linear(embedding_dim_trans, output_classes)
-        torch.nn.init.normal_(self.output_head.weight, 0, 1/((embedding_dim_trans + output_classes))**.5)
-        torch.nn.init.zeros_(self.output_head.bias)
-        """
     def forward(self, x, y = None):
         ## Patches 
         x = self.conv_init(x)
@@ -122,31 +107,6 @@ class main_model(nn.Module):
             )
         except Exception as exp:
             print(f"Something went wrong with {exp}!!!!!")
-
-### Below is just debugging purposses should be considered seriously useful ###
-model = main_model(embedding_dim_conv=768,
-                   embedding_dim_trans=768,
-                   n_head= 8,
-                conv_mixer_repetition = 5,
-                conv_kernel_size = 7,
-                transformer_encoder_repetition = 10, 
-                patch_size = 14, 
-                num_register = 1,
-                multiplication_factor= 4,
-                squeeze_ratio = 1,
-                )
-
-"""
-
-optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
-for i in range(1000):
-    optimizer.zero_grad()
-    loss = F.cross_entropy(model(X),y)
-    loss.backward()
-    print(loss.item())
-    optimizer.step()
-
-""" 
 
 if __name__ == "__main__":
     print("Ok boomer!!!")
