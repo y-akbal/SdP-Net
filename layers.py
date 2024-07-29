@@ -7,7 +7,6 @@ from typing import Callable
 from torch.nn.attention import SDPBackend, sdpa_kernel
 
 
-
 ## Here we will have layers to be used 
 ## We shall mostly use the optimized torch layers
 ## rather than coming up with our own implementations
@@ -63,6 +62,7 @@ classification_head(768, 10)(torch.randn(10, 12, 768))
 """    
 
 
+
 class conv_mixer(nn.Module):
     def __init__(self, 
                  embedding_dim:int = 768, 
@@ -74,24 +74,28 @@ class conv_mixer(nn.Module):
                               kernel_size = kernel_size,
                               groups = embedding_dim,
                               padding = "same",
+                              bias = False,
                               )
         self.conv1d = nn.Conv2d(in_channels = embedding_dim,
                                 out_channels = embedding_dim,
                                 kernel_size =1,
                                 )
-        self.layer_norm_1 = nn.LayerNorm(embedding_dim)
-        self.layer_norm_2 = nn.LayerNorm(embedding_dim)
+        self.layer_norm_1 = nn.GroupNorm(1,embedding_dim)
+        self.layer_norm_2 = nn.GroupNorm(1, embedding_dim)
         self.activation = activation
 
     def forward(self, x_:torch.Tensor)->torch.Tensor:
         """
         Shape here is to be of the form: B, C, H, W --> B, C, H, W
+        where we normalize the channel!!!
         """
+        #TODO the layer to be deleted below may be included here, in this case watchout the bias!!!
         x = self.conv2d(x_)
         x = self.activation(x)
         x = self.conv1d(x_+self.layer_norm_1(x))
         x = self.activation(x)
         x = self.layer_norm_2(x)
+        #TODO may remove the last layer norm since this dude will be going to trans-layer!!!
         return x
 
 
