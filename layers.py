@@ -104,18 +104,18 @@ class embedding_layer(nn.Module):
     ## do something like enumerating the pixels...
     def __init__(self, 
                  embedding_dim: int = 768,
-                 num_registers:int = 1,
+                 max_num_registers:int = 5,
                  max_image_size:list[int, int] = [14,14],
                  activation:Callable = None
                  ):
         super().__init__()
         ### -- ###
-        self.num_registers = num_registers
+        self.max_num_registers = max_num_registers
         self.vertical_im_size = max_image_size[0]
         self.horizontal_im_size = max_image_size[1]
         self.activation = activation if activation != None else lambda x: x
         ###
-        self.register_embedding_layer = nn.Embedding(num_registers, embedding_dim)
+        self.register_embedding_layer = nn.Embedding(max_num_registers, embedding_dim)
         self.vertical_embedding_layer = nn.Embedding(max_image_size[0], embedding_dim)
         self.horizontal_embedding_layer = nn.Embedding(max_image_size[1], embedding_dim)
         ### --- ###
@@ -125,7 +125,7 @@ class embedding_layer(nn.Module):
         self.register_buffer(
             "num_register",
             torch.tensor(
-                [i for i in range(self.num_registers)],
+                [i for i in range(self.max_num_registers)],
                 dtype=torch.int,
                 requires_grad=False,
             ),
@@ -150,20 +150,21 @@ class embedding_layer(nn.Module):
         )
 
 
-    def forward(self, x:torch.Tensor)->tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, x:torch.Tensor, num_registers:int = 3)->tuple[torch.Tensor, torch.Tensor]:
         
         B, C, H, W = x.shape
 
         ## NO NEED TO COMPUTE THESE DUDES FOR EACH FORWARD PASS!!!!! Do we have kind a caching mechanism?
 
-        register_embeddings = self.register_embedding_layer(self.num_register)
+        register_embeddings = self.register_embedding_layer(self.max_num_register[:num_registers+1])
         horizontal_embeddings = self.horizontal_embedding_layer(self.horizontal_embedding[:H]).transpose(-1, -2).unsqueeze(-1)
         vertical_embeddings = self.vertical_embedding_layer(self.vertical_embedding[:W]).transpose(-1,-2).unsqueeze(-2)
-
-        ## Do something here!!! to add the vectors both verticall and horizontally!!!
-        ## Here you may repeat some tokens --- !!!
+        
+        ## We are adding embeddings both vertically and horizontally!!!
+        
         x += horizontal_embeddings
         x += vertical_embeddings
+        
         ## and the concat with register tokens, and give the output to the 
         return  self.activation(x), register_embeddings
 
