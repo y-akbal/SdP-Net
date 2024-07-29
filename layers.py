@@ -151,7 +151,9 @@ class embedding_layer(nn.Module):
 
 
     def forward(self, x:torch.Tensor, num_registers:int = 3)->tuple[torch.Tensor, torch.Tensor]:
+        """
         
+        """
         B, C, H, W = x.shape
 
         ## NO NEED TO COMPUTE THESE DUDES FOR EACH FORWARD PASS!!!!! Do we have kind a caching mechanism?
@@ -228,21 +230,21 @@ class EncoderLayer(nn.Module):
 
         # Concat register tokens to x_flat here!!!  that is of shape (R, C)  
 
-        x_flat_register = torch.concat([x_flat, register.unsqueeze(0).repeat(B, -1, -1)], axis = 1)  ###(B, H*W+R, C)
+        x_flat_register = torch.concat([register.unsqueeze(0).repeat(B, -1, -1), x_flat], axis = 1)  ###(B, R+H*W, C)
 
         # Multi-head self-attention
         residual = x_flat_register
         x_norm = self.norm1(x_flat_register)
         
-        q = self.q_proj(x_norm).view(B, H*W+R, self.n_head, self.head_dim).transpose(1, 2)
-        k = self.k_proj(x_norm).view(B, H*W+R, self.n_head, self.head_dim).transpose(1, 2)
-        v = self.v_proj(x_norm).view(B, H*W+R, self.n_head, self.head_dim).transpose(1, 2)
+        q = self.q_proj(x_norm).view(B, R+H*W, self.n_head, self.head_dim).transpose(1, 2)
+        k = self.k_proj(x_norm).view(B, R+H*W, self.n_head, self.head_dim).transpose(1, 2)
+        v = self.v_proj(x_norm).view(B, R+H*W, self.n_head, self.head_dim).transpose(1, 2)
         
         ## Glad to use flash attention here!!!
         with sdpa_kernel([SDPBackend.MATH, SDPBackend.EFFICIENT_ATTENTION]):
             attn_output = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, dropout_p = self.att_dropout)
 
-        attn_output = attn_output.transpose(1, 2).contiguous().view(B, H*W+R, C)
+        attn_output = attn_output.transpose(1, 2).contiguous().view(B, R+H*W, C)
         attn_output = self.o_proj(attn_output)
         
         x_flat = residual + self.dropout(attn_output)
@@ -282,7 +284,12 @@ transpose_time = (time.time() - start) / 1000
 print(f"Transpose time: {transpose_time*1e6:.2f} microseconds")
 """
 
-
+class block(nn.Module):
+    def __init__(self, 
+                 **kwargs):
+        pass
+    def forward(self, x:torch.tensor, register:torch.tensor)->tuple[torch.tensor, torch.tensor]:
+        pass
 
 if __name__ == "__main__":
     print("Okkayy!!")

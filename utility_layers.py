@@ -67,7 +67,7 @@ class SdPModel(nn.Module):
         try:
             torch.save(model, f"{fn}.pt")
             print(
-                f"Model saved succesfully, see the file {fn} for the weights and config file!!!"
+                f"Model saved succesfully, see the file {fn}.pt for the weights and config file!!!"
             )
         except Exception as exp:
             print(f"Something went wrong with {exp}!!!!!")

@@ -2,7 +2,7 @@ import torch
 from torch import nn as nn
 from torch.nn import functional as F
 from layers import conv_int, conv_mixer, embedding_layer, encoder_layer, output_head
-
+from utility_layers import SdPModel, StochasticDepth
 
 
 
@@ -16,7 +16,9 @@ class main_model(nn.Module):
                  patch_size:int = 4,
                  ffn_dropout:float = 0.2,
                  attn_dropout:float = 0.2,
-                 max_num_register:int = 2,  
+                 max_num_register:int = 5,  
+                 stochastic_depth:bool = True,
+                 stochastic_depth_p:float = 0.1,
                  multiplication_factor:int = 1, 
                  output_classes = 1000,
                  ):
@@ -41,7 +43,7 @@ class main_model(nn.Module):
                                         n_head = n_head,
                                         multiplication_factor= multiplication_factor,
                                         activation_func= activation,
-                                        dropout=dropout,
+                                        dropout = dropout,
                                         ) for i in range(transformer_encoder_repetition)])
  
         
@@ -63,50 +65,6 @@ class main_model(nn.Module):
         x =  self.encoder_rest(x)
         
         return self.output_head(x[:,0,:])
-            
-    def return_num_params(self)->int:
-        ## This dude will return the number of parameters
-        total_params:int = 0 
-        for param in self.parameters():
-            total_params += param.shape.numel()
-        return total_params
-
-    ## The methods will work in tandem with the methods from_dict ## 
-    ## They may not function if you use __init__ method!!! ##
-    @classmethod
-    def from_dict(cls, **kwargs):
-        model = cls(**kwargs)
-        model.config = kwargs
-        return model
-    ""
-    @classmethod
-    def from_pretrained(cls, file_name):
-        try:
-            dict_ = torch.load(file_name)
-            config = dict_["config"]
-            state_dict = dict_["state_dict"]
-            model = cls.from_dict(**config)
-            model.load_state_dict(state_dict)
-            print(
-                f"Model loaded successfully!!!! The current configuration is {config}"
-            )
-
-        except Exception as e:
-            print(f"Something went wrong with {e}")
-        return model
-
-    def save_model(self, file_name):
-        fn = "Model" if file_name == None else file_name
-        model = {}
-        model["state_dict"] = self.state_dict()
-        model["config"] = self.config
-        try:
-            torch.save(model, f"{fn}.pt")
-            print(
-                f"Model saved succesfully, see the file {fn} for the weights and config file!!!"
-            )
-        except Exception as exp:
-            print(f"Something went wrong with {exp}!!!!!")
 
 if __name__ == "__main__":
     print("Ok boomer!!!")
