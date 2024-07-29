@@ -25,6 +25,7 @@ class Trainer:
         snapshot_name:str = "model.pt",
         snapshot_dir:str = "model",
         total_epochs:int = 300,
+        use_ema_model:bool = False, 
         # tracker ## this dude is for tracking stuff
     ) -> None:
         self.gpu_id = gpu_id
@@ -62,12 +63,13 @@ class Trainer:
         
     def _run_batch(self, source, targets):
         ### All the things like low precision training will happen here dude!!!
+        ## Accumulate some gradients here!!!
         
         self.optimizer.zero_grad()
         
         with self.autocast(device_type="cuda", dtype=torch.bfloat16):
             output = self.model(source)
-
+            ## Use here binary-cross entropy loss instead of cross entropy loss
             loss = F.cross_entropy(output, 
                                    targets,
                                    label_smoothing=0.1)
