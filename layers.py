@@ -95,7 +95,7 @@ class conv_mixer(nn.Module):
         x = self.conv1d(x_+self.layer_norm_1(x))
         x = self.activation(x)
         x = self.layer_norm_2(x)
-        #TODO may remove the last layer norm since this dude will be going to trans-layer!!!
+        #TODO may remove the last layer norm since this dude will be going into to the transformer layer!!!
         return x
 
 
@@ -238,6 +238,7 @@ class EncoderLayer(nn.Module):
         k = self.k_proj(x_norm).view(B, H*W+R, self.n_head, self.head_dim).transpose(1, 2)
         v = self.v_proj(x_norm).view(B, H*W+R, self.n_head, self.head_dim).transpose(1, 2)
         
+        ## Glad to use flash attention here!!!
         with sdpa_kernel([SDPBackend.MATH, SDPBackend.EFFICIENT_ATTENTION]):
             attn_output = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, dropout_p = self.att_dropout)
 
