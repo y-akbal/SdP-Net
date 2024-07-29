@@ -21,6 +21,7 @@ class SdPModel(nn.Module):
     ## Though not abstract this class contains some utility functions to inherited 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.config = {}  
 
     def layer_init(self):
         ## This function inits the weights of the layers with a proper variance
@@ -32,7 +33,7 @@ class SdPModel(nn.Module):
             
     def return_num_params(self)->int:
         ## This dude will return the number of parameters
-        return sum([param.numel() for param in self.parameters()])
+        return sum([param.numel() for param in self.parameters() if param.requires_grad])
 
     ## The methods will work in tandem with the methods from_dict ## 
     ## They may not function if you use __init__ method!!! ##
@@ -71,5 +72,3 @@ class SdPModel(nn.Module):
             )
         except Exception as exp:
             print(f"Something went wrong with {exp}!!!!!")
-
-    

@@ -90,11 +90,10 @@ class conv_mixer(nn.Module):
         where we normalize the channel!!!
         """
         #TODO the layer to be deleted below may be included here, in this case watchout the bias!!!
-        x = self.conv2d(x_)
+        x = self.conv2d(self.layer_norm_1(x_))
         x = self.activation(x)
-        x = self.conv1d(x_+self.layer_norm_1(x))
+        x = self.conv1d(x_+self.layer_norm_2(x))
         x = self.activation(x)
-        x = self.layer_norm_2(x)
         #TODO may remove the last layer norm since this dude will be going into to the transformer layer!!!
         return x
 
@@ -123,7 +122,7 @@ class embedding_layer(nn.Module):
         ### --- ###
         ### ----###
         self.register_buffer(
-            "num_register",
+            "register_embeddings",
             torch.tensor(
                 [i for i in range(self.max_num_registers)],
                 dtype=torch.int,
@@ -150,7 +149,7 @@ class embedding_layer(nn.Module):
         )
 
 
-    def forward(self, x:torch.Tensor, num_registers:int = 3)->tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, x:torch.Tensor, num_registers:int = 0)->tuple[torch.Tensor, torch.Tensor]:
         """
         
         """
@@ -158,7 +157,8 @@ class embedding_layer(nn.Module):
 
         ## NO NEED TO COMPUTE THESE DUDES FOR EACH FORWARD PASS!!!!! Do we have kind a caching mechanism?
 
-        register_embeddings = self.register_embedding_layer(self.max_num_register[:num_registers+1])
+        register_embeddings = self.register_embedding_layer(self.register_embeddings[:num_registers+1])
+    
         horizontal_embeddings = self.horizontal_embedding_layer(self.horizontal_embedding[:H]).transpose(-1, -2).unsqueeze(-1)
         vertical_embeddings = self.vertical_embedding_layer(self.vertical_embedding[:W]).transpose(-1,-2).unsqueeze(-2)
         
@@ -167,25 +167,21 @@ class embedding_layer(nn.Module):
         x += horizontal_embeddings
         x += vertical_embeddings
         
-        ## and the concat with register tokens, and give the output to the 
-        return  self.activation(x), register_embeddings
+        #Expand the embeddings though not the best memory efficient way!!!
+        expanded_register_embeddings = register_embeddings.expand(B, register_embeddings.shape[-2] ,C)
+
+        return  self.activation(x), expanded_register_embeddings
 
 """
-_, x = embedding_layer(max_image_size=[15,15])(torch.randn(1, 768, 14, 15))
+x, register = embedding_layer(max_image_size=[15,15])(torch.randn(2, 768, 15, 15), 15)
 x.shape
-""""""
-x = torch.randn(4, 3, 2)
-y = torch.randn(3, 2)
 
-# Step 1: Expand y to match the shape of x
-y_expanded = y.unsqueeze(0).expand(2, -1, -1).shape
-# Now y_expanded has shape (4, 3, 2)
 """
 class EncoderLayer(nn.Module):
     def __init__(
         self,
-        embedding_dim: int,
-        n_head: int,
+        embedding_dim: int = 768,
+        n_head: int = 8,
         activation_func: Callable = F.gelu,
         multiplication_factor: int = 2,
         ff_dropout: float = 0.2,
@@ -217,20 +213,23 @@ class EncoderLayer(nn.Module):
         self.activation = activation_func
         self.dropout = nn.Dropout(ff_dropout)
 
-    def forward(self, x: torch.tensor, register: torch.tensor, mask:torch.tensor)->tuple[torch.tensor, torch.tensor]:
+    def forward(self, 
+                x: torch.tensor, 
+                register: torch.tensor, 
+                mask:torch.tensor = None)->tuple[torch.tensor, torch.tensor]:
         # x shape: (B, C, H, W) --> 
         
         B, C, H, W = x.shape
         
-        R, C = register.shape
+        B, R, C = register.shape
         
         # Flatten spatial dimensions and transpose: (B, C, H*W) -> (B, H*W, C)
 
         x_flat = x.flatten(2).transpose(1, 2)
 
-        # Concat register tokens to x_flat here!!!  that is of shape (R, C)  
+        # Concat register tokens to x_flat here!!!  that is of shape (B, R, C)  
 
-        x_flat_register = torch.concat([register.unsqueeze(0).repeat(B, -1, -1), x_flat], axis = 1)  ###(B, R+H*W, C)
+        x_flat_register = torch.concat([register, x_flat], axis = 1)  ###(B, R+H*W, C)
 
         # Multi-head self-attention
         residual = x_flat_register
@@ -242,8 +241,7 @@ class EncoderLayer(nn.Module):
         
         ## Glad to use flash attention here!!!
         with sdpa_kernel([SDPBackend.MATH, SDPBackend.EFFICIENT_ATTENTION]):
-            attn_output = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, dropout_p = self.att_dropout)
-
+            attn_output = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, dropout_p = self.att_dropout if self.training else 0.0)
         attn_output = attn_output.transpose(1, 2).contiguous().view(B, R+H*W, C)
         attn_output = self.o_proj(attn_output)
         
@@ -261,23 +259,26 @@ class EncoderLayer(nn.Module):
         # Reshape back to (B, C, H, W) !!!
         x = x_flat.transpose(1, 2).view(B, C, H, W)
         
-        return x, register[0, :, :]  # Output shape: (B, C, H, W), (R, C)
-    
+        return x, register  # Output shape: (B, C, H, W), (B, R, C)
 
 """
 import time
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+x, register = embedding_layer(max_image_size=[15,15])(torch.randn(2, 768, 15, 15), 15)
 
-x = torch.randn(10, 196, 768, device=device)
-layer = EncoderLayer().to(device)
+layer = EncoderLayer(ff_dropout=0.1, att_dropout=0.1)
+
 layer = torch.compile(layer)
-layer(x)
-# Measure transpose
+layer.train()
+layer(x, register)
+
+import time    
+    # Measure transpose
 start = time.time()
 for _ in range(1000):
     with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
-        y = layer(x)
+        y = layer(x, register)
         torch.cuda.synchronize()
 transpose_time = (time.time() - start) / 1000
 
@@ -285,11 +286,49 @@ print(f"Transpose time: {transpose_time*1e6:.2f} microseconds")
 """
 
 class block(nn.Module):
-    def __init__(self, 
-                 **kwargs):
-        pass
-    def forward(self, x:torch.tensor, register:torch.tensor)->tuple[torch.tensor, torch.tensor]:
-        pass
+    def __init__(
+            self, 
+            embedding_dim: int = 768,
+            n_head: int = 8,
+            activation_func: Callable = F.gelu,
+            multiplication_factor: int = 2,
+            ff_dropout: float = 0.2,
+            att_dropout: float = 0.2,
+            conv_kernel_size:int = 5,
+            conv_activation:Callable = F.gelu,
+            conv_first = False):
+        super().__init__()
+        self.t_block = EncoderLayer(
+            embedding_dim= embedding_dim,
+            n_head = n_head,
+            activation_func=activation_func,
+            multiplication_factor= multiplication_factor,
+            ff_dropout=ff_dropout,
+            att_dropout=att_dropout,
+        )
+        self.conv_block = conv_mixer(
+            embedding_dim= embedding_dim,
+            kernel_size=conv_kernel_size,
+            activation=conv_activation
+        )
+        self.conv_first = conv_first
+    def forward(self, x:torch.tensor, 
+                register:torch.tensor, 
+                mask:torch.tensor = None)->tuple[torch.tensor, torch.tensor]:
+        
+        if not self.conv_first:
+            x, register = self.t_block(x, register, mask)
+            return self.conv_block(x), register
+        x = self.conv_block(x)
+        return self.t_block(x, register, mask)
+
+"""
+bl = block(conv_first=False)
+bl.eval()
+x, register = bl(x, register)
+x.shape
+register.shape
+"""
 
 if __name__ == "__main__":
     print("Okkayy!!")
