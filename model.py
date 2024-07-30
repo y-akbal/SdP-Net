@@ -1,17 +1,17 @@
 import torch
 from torch import nn as nn
 from torch.nn import functional as F
-from layers import conv_int, conv_mixer, embedding_layer, encoder_layer, output_head
+from layers import conv_int, embedding_layer, output_head
 from utility_layers import SdPModel, StochasticDepth
+from typing import Callable, Optional, Any, Union
 
 
-
-class main_model(nn.Module):
+class main_model(SdPModel):
     def __init__(self, 
                  embedding_dim:int = 512,
                  num_blocks:int = 10,
                  n_head:int = 4,                 
-                 activation = nn.GELU("tanh"),
+                 activation:Callable = nn.GELU("tanh"),
                  conv_kernel_size:int = 5,
                  patch_size:int = 4,
                  ffn_dropout:float = 0.2,
@@ -20,51 +20,32 @@ class main_model(nn.Module):
                  stochastic_depth:bool = True,
                  stochastic_depth_p:float = 0.1,
                  multiplication_factor:int = 1, 
-                 output_classes = 1000,
+                 output_classes:int = 1000,
+                 max_num_registers:int = 5,
+                 embedding_activation:Callable = None,
+                 conv_first:bool = True,
                  ):
         super().__init__()
         ## Here we go again ##
-        self.patch_size = patch_size
-        self.num_register = num_register        
+        self.conv_init = None
+        self.embedding_layer = None
+        self.blocks = None
+        self.output_head = None
 
-        self.conv_init = conv_int(embedding_dim= embedding_dim_conv, 
-                                  patch_size = patch_size
-                                  )
-        self.conv_mixer = nn.Sequential(*[conv_mixer(embedding_dim_conv, 
-                                        kernel_size= conv_kernel_size, 
-                                        activation = activation)
-                                        for i in range(conv_mixer_repetition)])
-        
-        self.embedding_layer = embedding_layer(embedding_dim_in=embedding_dim_conv,
-                                            embedding_dim_out=embedding_dim_trans,
-                                            num_registers=num_register,
-                                            )
-        self.encoder_rest= nn.Sequential(*[encoder_layer(embedding_dim = embedding_dim_trans,
-                                        n_head = n_head,
-                                        multiplication_factor= multiplication_factor,
-                                        activation_func= activation,
-                                        dropout = dropout,
-                                        ) for i in range(transformer_encoder_repetition)])
- 
-        
-        self.output_head = output_head(embedding_dim = embedding_dim_trans,
-                                       output_classes= output_classes,
-                                       dropout = dropout)  
-                                        ### Add here some normalization without which we would never existSssss!!! 
 
-    def forward(self, x, y = None):
-        ## Patches 
+    def forward(self, 
+                x:torch.tensor, 
+                num_registers:int = 3) -> tuple[torch.tensor, torch.tensor]:
+        ## Patches ##B, 3, H, W --> B, embedding_dim, H//Patch_size, W//Patch_size
         x = self.conv_init(x)
+        ## Add embeddings
+        x, registers = self.embedding_layer(x, num_registers)
         ## Mixing with convs
-        x = self.conv_mixer(x)
+        x_raw_output, registers = self.blocks(x, registers)
         ## Squeezer only works when the input dim is different than the ouput dim
-        x = self.squeezer(x)
-        ## Together with embeddings
-        x = self.embedding_layer(x,y)
-        ## Transformers take the wheel!!
-        x =  self.encoder_rest(x)
-        
-        return self.output_head(x[:,0,:])
+        x_classification_head = self.output_head(registers[:, 0, :])
+
+        return x_classification_head, x_raw_output, registers
 
 if __name__ == "__main__":
     print("Ok boomer!!!")
