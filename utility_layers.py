@@ -11,11 +11,14 @@ class StochasticDepth(torch.nn.Module):
         self.p: float = p
         self._sampler = torch.Tensor(1)
 
-    def forward(self, inputs:torch.tensor)->torch.tensor:
+    def forward(self, 
+                x:torch.tensor, 
+                register:torch.tensor)->tuple[torch.tensor, torch.tensor]:
         if self.training and self._sampler.uniform_().item() < self.p:
             # Direct input 
-            return inputs
-        return self.module(inputs).div_(1-self.p)
+            return x, register
+        x, register = self.module(x, register)
+        return x.div(1-self.p), register.div(1-self.p)
 """
 model = nn.Sequential(*[StochasticDepth(nn.Linear(10,10)) for i in range(10)])
 model(torch.randn(10))

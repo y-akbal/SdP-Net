@@ -1,14 +1,14 @@
 import torch
 from torch import nn as nn
 from torch.nn import functional as F
-from layers import conv_patcher, embedding_layer, output_head, block
+from layers import conv_patcher, embedding_layer, classification_head, block
 from utility_layers import SdPModel, StochasticDepth
 from typing import Callable, Optional, Any, Union
 from numpy import arccos, cos
 
 class main_model(SdPModel):
     def __init__(self, 
-                 embedding_dim:int = 512,
+                 embedding_dim:int = 768,
                  num_blocks:int = 10,
                  n_head:int = 4,                 
                  activation:Callable = nn.GELU("tanh"),
@@ -43,7 +43,7 @@ class main_model(SdPModel):
         ## The following function will adjust stochastic depth p value according to cosine schedule!!!
         ST_p = lambda i: cos(arccos(stochastic_depth_p[0])*(1 - i/num_blocks) + arccos(stochastic_depth_p[1])*(i/num_blocks))
 
-        self.blocks = nn.Sequential(*[
+        self.blocks = nn.ModuleList([
                         ST(block(embedding_dim  = embedding_dim,
                         n_head = n_head,
                         activation_func = activation,
@@ -54,7 +54,7 @@ class main_model(SdPModel):
                         conv_first = conv_first), p = ST_p(i))
                         for i in range(num_blocks)])
         
-        self.output_head = output_head(embedding_dim, 
+        self.output_head = classification_head(embedding_dim, 
                                        output_classes,
                                        ffn_dropout)
 
@@ -65,13 +65,21 @@ class main_model(SdPModel):
         ## Patches ##B, 3, H, W --> B, embedding_dim, H//Patch_size, W//Patch_size
         x = self.conv_init(x)
         ## Add embeddings
-        x, registers = self.embedding_layer(x, num_registers)
+        x_raw_output, registers = self.embedding_layer(x, num_registers)
         ## Mixing with convs
-        x_raw_output, registers = self.blocks(x, registers)
+        for block in self.blocks:
+            x_raw_output, registers = block(x, registers)
+        
         ## Squeezer only works when the input dim is different than the ouput dim
         x_classification_head = self.output_head(registers[:, 0, :])
 
         return x_classification_head, x_raw_output, registers
+
+"""
+model = main_model(conv_first=True)
+with torch.inference_mode():
+    print(model(torch.randn(5, 3, 224,224), num_registers = 5)[1].std())
+"""
 
 if __name__ == "__main__":
     print("Ok boomer!!!")

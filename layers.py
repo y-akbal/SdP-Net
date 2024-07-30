@@ -314,13 +314,15 @@ class block(nn.Module):
             activation=conv_activation
         )
         self.conv_first = conv_first
+        self.register_norm = nn.LayerNorm(embedding_dim)
     def forward(self, x:torch.tensor, 
                 register:torch.tensor, 
                 mask:torch.tensor = None)->tuple[torch.tensor, torch.tensor]:
         
         if not self.conv_first:
             x, register = self.t_block(x, register, mask)
-            return self.conv_block(x), register
+            x, register = self.conv_block(x), self.register_norm(register)
+            return x, register
         x = self.conv_block(x)
         return self.t_block(x, register, mask)
 
