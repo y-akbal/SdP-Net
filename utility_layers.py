@@ -39,7 +39,9 @@ class SdPModel(nn.Module):
             
     def return_num_params(self)->int:
         ## This dude will return the number of parameters
-        return sum([param.numel() for param in self.parameters() if param.requires_grad])
+        
+        params = sum([param.numel()*1j if param.requires_grad else param.numel() for param in self.parameters()])
+        return params.imag, params.real
 
     ## The methods will work in tandem with the methods from_dict ## 
     ## They may not function if you use __init__ method!!! ##
