@@ -1,7 +1,7 @@
 import torch
 from torch import nn as nn
 from torch.nn import functional as F
-from layers import conv_int, embedding_layer, output_head
+from layers import conv_patcher, embedding_layer, output_head, block
 from utility_layers import SdPModel, StochasticDepth
 from typing import Callable, Optional, Any, Union
 
@@ -13,24 +13,49 @@ class main_model(SdPModel):
                  n_head:int = 4,                 
                  activation:Callable = nn.GELU("tanh"),
                  conv_kernel_size:int = 5,
-                 patch_size:int = 4,
+                 patch_size:int = 16,
                  ffn_dropout:float = 0.2,
                  attn_dropout:float = 0.2,
-                 max_num_register:int = 5,  
                  stochastic_depth:bool = True,
-                 stochastic_depth_p:float = 0.1,
-                 multiplication_factor:int = 1, 
+                 stochastic_depth_p:list[float] = [0.9, 0.55],
                  output_classes:int = 1000,
+                 max_image_size:list[int, int] = [14,14],
                  max_num_registers:int = 5,
                  embedding_activation:Callable = None,
                  conv_first:bool = True,
                  ):
         super().__init__()
         ## Here we go again ##
-        self.conv_init = None
-        self.embedding_layer = None
-        self.blocks = None
-        self.output_head = None
+        self.conv_init = conv_patcher(
+                embedding_dim= embedding_dim,
+                patch_size= patch_size,
+        )
+        
+        self.embedding_layer = embedding_layer(
+            embedding_dim= embedding_dim,
+            max_num_registers=max_num_registers,
+            max_image_size= max_image_size,
+            activation = embedding_activation,
+
+        )
+        ### Helper functions -- Below we apply stochastic depth only when asked!!!
+        ST = lambda x, p: StochasticDepth(x, p) if stochastic_depth else x
+
+
+        self.blocks = nn.Sequential(*[
+                        ST(block(embedding_dim  = embedding_dim,
+                        n_head = n_head,
+                        activation_func = activation,
+                        ff_dropout = ffn_dropout,
+                        att_dropout = attn_dropout,
+                        conv_kernel_size = conv_kernel_size,
+                        conv_activation = activation,
+                        conv_first = conv_first), p = stochastic_depth_p)
+                        for i in range(num_blocks)])
+        
+        self.output_head = output_head(embedding_dim, 
+                                       output_classes,
+                                       ffn_dropout)
 
 
     def forward(self, 

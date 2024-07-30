@@ -4,19 +4,22 @@ from torch import nn as nn
 class StochasticDepth(torch.nn.Module):
     def __init__(self, 
                  module: torch.nn.Module, 
-                 p: float = 0.5):
+                 p: float = 0.2):
         super().__init__()
         assert 0<p<1, "p must be a positive number or <1"
         self.module: torch.nn.Module = module
         self.p: float = p
         self._sampler = torch.Tensor(1)
 
-    def forward(self, inputs):
+    def forward(self, inputs:torch.tensor)->torch.tensor:
         if self.training and self._sampler.uniform_().item() < self.p:
+            # Direct input 
             return inputs
         return self.module(inputs).div_(1-self.p)
-
-
+"""
+model = nn.Sequential(*[StochasticDepth(nn.Linear(10,10)) for i in range(10)])
+model(torch.randn(10))
+"""
 class SdPModel(nn.Module):
     ## Though not abstract this class contains some utility functions to inherited 
     def __init__(self, **kwargs):
@@ -63,6 +66,7 @@ class SdPModel(nn.Module):
         fn = "Model" if file_name == None else file_name
         model = {
             "state_dict":self.state_dict(),
+            ## We may need to carry all the weights to cpu then save it!!!
             "config":self.config
         }
         try:

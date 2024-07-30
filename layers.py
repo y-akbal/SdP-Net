@@ -46,7 +46,7 @@ class classification_head(nn.Module):
         
         super().__init__()
         self.output_head = nn.Sequential(*[nn.LayerNorm(embedding_dim),
-                                        nn.Linear(embedding_dim, output_classes),
+                                        nn.Linear(embedding_dim, output_classes, bias = bias),
                                         nn.Tanh(),
                                         nn.Dropout(dropout),
                                         nn.Linear(output_classes, output_classes, bias = bias)
@@ -149,7 +149,9 @@ class embedding_layer(nn.Module):
         )
 
 
-    def forward(self, x:torch.Tensor, num_registers:int = 0)->tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, 
+                x:torch.Tensor, 
+                num_registers:int = 0)->tuple[torch.Tensor, torch.Tensor]:
         """
         
         """
@@ -321,6 +323,7 @@ class block(nn.Module):
             return self.conv_block(x), register
         x = self.conv_block(x)
         return self.t_block(x, register, mask)
+
 
 """
 bl = block(conv_first=False)
