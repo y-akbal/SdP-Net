@@ -4,7 +4,7 @@ from torch.nn import functional as F
 from layers import conv_patcher, embedding_layer, output_head, block
 from utility_layers import SdPModel, StochasticDepth
 from typing import Callable, Optional, Any, Union
-
+from numpy import arccos, cos
 
 class main_model(SdPModel):
     def __init__(self, 
@@ -40,7 +40,8 @@ class main_model(SdPModel):
         )
         ### Helper functions -- Below we apply stochastic depth only when asked!!!
         ST = lambda x, p: StochasticDepth(x, p) if stochastic_depth else x
-
+        ## The following function will adjust stochastic depth p value according to cosine schedule!!!
+        ST_p = lambda i: cos(arccos(stochastic_depth_p[0])*(1 - i/num_blocks) + arccos(stochastic_depth_p[1])*(i/num_blocks))
 
         self.blocks = nn.Sequential(*[
                         ST(block(embedding_dim  = embedding_dim,
@@ -50,7 +51,7 @@ class main_model(SdPModel):
                         att_dropout = attn_dropout,
                         conv_kernel_size = conv_kernel_size,
                         conv_activation = activation,
-                        conv_first = conv_first), p = stochastic_depth_p)
+                        conv_first = conv_first), p = ST_p(i))
                         for i in range(num_blocks)])
         
         self.output_head = output_head(embedding_dim, 
