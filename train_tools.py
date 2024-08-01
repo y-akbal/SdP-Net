@@ -7,6 +7,7 @@ from torch.distributed import (
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.nn.functional as F
 import os
+import wandb
 
 class Trainer:
     def __init__(
@@ -225,123 +226,86 @@ def return_scheduler_optimizer(model, **kwargs):
     return optimizer, scheduler
 
 
-"""
-## place holder for the wandb_log class, a class to be used by wandb_logging...
-class wandb_log:
-    
-    def __init__(self, user_name, password, **kwargs):
-        ## init should be done here
-        ## .. --- .. ##
-        ## .. ...... ##
-        ## ---...----##
-        for keys, values in kwargs.items():
-            vars(self)[keys] = values
-        this includes logging in to wandb and doing some intial stuff...
-    @classmethod
-    def from_dict(**kwargs):
-        pass
-    
-    def add_tracked(a:dict):
-        pass
-
-    def __call__(self, f):
-        def wrapper(*args, **kwargs):
-            print(args[0].a**2)
-            return f(*args)
-        return wrapper 
-
-w = wandb_log(**{"temp_loss":0})
-
-
-class d:
-    def __init__(self, a):
-        self.a = a
-    @w
-    def __call__(self, b):
-        return (self.a)*b
-    def w(self, f):
-        return f
-
-"""
-
-
-
 class distributed_loss_track:
     ## This is from one for all repo!!!
-    def __init__(self, project="at_net_pred", file_name: str = "loss.log"):
-        self.project = project
-        self.file_name = file_name
-        self.temp_loss = 0
-        self.counter = 0
-        self.epoch = 0
+    def __init__(self, 
+                 wandb_log:bool = False):
 
-    def update(self, loss, epoch = None):
+        self.temp_loss:float = 0
+        self.counter:int = 0
+        self.epoch:int = 0
+
+        self.log = wandb_log
+
+    def update(self, loss):
         self.temp_loss += loss
         self.counter += 1
-        if epoch is not None:
-            self.epoch += epoch
-
+        
     def reset(self):
-        self.temp_loss, self.counter = 0, 0
+        self.temp_loss, self.counter = 0.0, 0
+        self.epoch += 1
+        
 
-    def get_avg_loss(self):
+    def get_loss(self):
+        avg_loss = self.__get_avg_loss__()
+        if self.log:
+            wandb.log({f"Epoch_{self.epoch}_loss": avg_loss})
+        return avg_loss
+
+
+    def __get_avg_loss__(self):
         ## we have very little number in the denominator
         ## to avoid overflow!!!
+        try:
+            self.all_reduce()
+        except Exception:
+            Warning("Buddy something wrong with you GPU!!!! We can not sync the values!!!!")
         return self.temp_loss / (self.counter+1e-4)
 
-    def all_reduce(self):
-        if torch.cuda.is_available():
-            device = torch.device("cuda")
+    def __all_reduce__(self):
             loss_tensor = torch.tensor(
-            [self.temp_loss, self.counter], device=device, dtype=torch.float32
-            )
+            [self.temp_loss, self.counter], dtype=torch.float32
+            ).cuda()
+            ## We send the stuff to GPU and aggreage it !!!!
             all_reduce(loss_tensor, ReduceOp.SUM, async_op=False)
+            ##  We then get back to cpu 
             self.temp_loss, self.counter = loss_tensor.tolist()
 
-
-    def save_log(self):
-        ### no need to call this dude unless you really need!!!
-        dict_ = {f"epoch-{self.epoch}": self.temp_loss}
-        with open(f"{self.epoch}_epoch" + self.file_name, mode="ab") as file:
-            pickle.dump(dict_, file)
-
-    @property
-    def loss(self):
-        return self.temp_loss, self.counter 
-
 class track_accuracy:
-    def __init__(self, initial_acc = 0.1):
-        self.temp_acc = initial_acc
-        self.counter = 0
+    ##  This is class will be updated by its own worker,
+    ##  At the end of the one epoch, the accuracies will be averaged!!! 
+    ##  BTW all this stuff will be done on each GPU
+    ##  At the end of the day the main worker will tell the result to W & B
+    def __init__(self):
+        self.temp_acc:int = 0
+        self.total_size:int = 0
+        self.epoch:int = 0
 
-    def update(self, batch_acc):
-        self.temp_acc += (batch_acc- self.temp_acc)/(self.counter+1)
-        self.counter += 1
+    def update(self, 
+               batch_accuracy:int, 
+               batch_size:int):
+        self.temp_acc += batch_accuracy
+        self.total_size += batch_size
 
     def reset(self):
-        self.counter = 0
-        self.temp_acc = 0.0
+        self.temp_acc = 0
+        self.total_size = 0
+        self.epoch += 1
 
-    @property
-    def accuracy(self):
-        ### This is for logging purposses 
-        ### should be called at the end of each epoch!!!
-        ## This dude takes average of accuracies from different processes
-        if self.counter != 0:
-            return self.temp_acc
-        return 1e-10
+    def get_accuracy(self):
+        acc = self.__get_accuracy__()
+        wandb.log({f"Epoch_{self.epoch}_acc:{acc}"})
+        return acc
 
-    def all_reduce(self):
-        if torch.cuda.is_available():
-            device = torch.device("cuda")
-        else:
-            device = torch.device("cpu")
-        loss_tensor = torch.tensor(
-        [self.temp_acc], device=device, dtype=torch.float32
-             )
-        all_reduce(loss_tensor, ReduceOp.AVG, async_op=False)
-        self.temp_acc = loss_tensor.item()
+    def __get_accuracy__(self):
+        self.__all_reduce__()
+        return self.temp_acc/self.total_size
 
+    def __all_reduce__(self):
+        loss_tensor = torch.tensor([self.temp_acc, self.total_size], dtype=torch.float32).cuda()
+        all_reduce(loss_tensor, ReduceOp.SUM, async_op=False)
+        self.temp_acc, self.total_size = loss_tensor.item()
+        
 """
 t = track_accuracy()
 t.update(0.9)
