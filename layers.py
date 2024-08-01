@@ -6,11 +6,9 @@ import torch.nn.functional as F
 from typing import Callable
 from torch.nn.attention import SDPBackend, sdpa_kernel
 
-
 ## Here we will have layers to be used 
 ## We shall mostly use the optimized torch layers
 ## rather than coming up with our own implementations
-
 class conv_patcher(nn.Module):
     def __init__(self, 
                  embedding_dim = 128, 

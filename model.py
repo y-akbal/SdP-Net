@@ -74,12 +74,13 @@ class main_model(SdPModel):
         x_classification_head = self.output_head(registers[:, 0, :])
 
         return x_classification_head, x_raw_output, registers
-"""
 
-model = main_model(conv_first=False, stochastic_depth=True, stochastic_depth_p=[0.1, 0.01])
+"""
+model = main_model(num_blocks = 15 ,conv_first=False, stochastic_depth=True, stochastic_depth_p=[0.9, 0.1])
 with torch.inference_mode():
-    print(model(torch.randn(5, 3, 224,224), num_registers = 5)[2].std())
-"""
+    print(model(torch.randn(5, 3, 224,224), num_registers = 5)[0].std())
 
+model.return_num_params()
+"""
 if __name__ == "__main__":
     print("Ok boomer!!!")

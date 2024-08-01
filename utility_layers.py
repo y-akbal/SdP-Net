@@ -18,7 +18,8 @@ class StochasticDepth(torch.nn.Module):
             # Direct input 
             return x, register
         x, register = self.module(x, register)
-        return x.div(1-self.p), register.div(1-self.p)
+        ## Expected value of the output will be 0, but we will change the variance if we divide the things by 1-p!!!
+        return x, register
 """
 model = nn.Sequential(*[StochasticDepth(nn.Linear(10,10)) for i in range(10)])
 model(torch.randn(10))
@@ -33,15 +34,44 @@ class SdPModel(nn.Module):
         ## This function inits the weights of the layers with a proper variance
         pass
 
-    def layer_test(self):
-        ## This function tests whether something blows up or vanishes by hooking on to interim values
-        pass
+    def layer_test(self, input = None):
+        ## This function tests whether something blows up or vanishes by hooking up to interim values
+        ## 
+        Means = []
+        Stds = []
+
+        def forward_hook(module, input, output):
+            if isinstance(output, tuple):
+                output_1, output_2 = output
+                mean_1, mean_2, std_1, std_2 = output_1.mean(), output_2.mean(), output_1.std(), output_2.mean()
+                Means.append(mean_1)
+                Means.append(mean_2)
+                Stds.append(std_1)
+                Stds.append(std_2)
+                
+            mean, std = output.mean(), output.std()
+            Means.append(mean)
+            Stds.append(std)
+        
+        
+        for module in self.modules():
+            module.register_forward_hook(forward_hook)
+        
+        if not input:
+            y = self(torch.randn(1, 3, 224, 224))
+        
+        for module in self.modules():
+            module.remove_forward_hook(forward_hook)
+        
+        return Means, Stds
+
+    
             
     def return_num_params(self)->int:
         ## This dude will return the number of parameters
-        
+        ## Here we use complex numbers for no purpose a tall
         params = sum([param.numel()*1j if param.requires_grad else param.numel() for param in self.parameters()])
-        return params.imag, params.real
+        return int(params.imag), int(params.real)
 
     ## The methods will work in tandem with the methods from_dict ## 
     ## They may not function if you use __init__ method!!! ##
@@ -81,3 +111,6 @@ class SdPModel(nn.Module):
             )
         except Exception as exp:
             print(f"Something went wrong with {exp}!!!!!")
+
+
+

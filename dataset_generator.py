@@ -36,7 +36,7 @@ def return_transforms():
 transforms_train, transforms_test = return_transforms()
 
 def train_data(root_dir:str, 
-                transformations = transforms_train):
+            transformations = transforms_train):
     
     
     Images = datasets.ImageFolder(root = root_dir,
