@@ -1,5 +1,6 @@
 import torch
 from torch import nn as nn
+from typing import Union
 
 class StochasticDepth(torch.nn.Module):
     def __init__(self, 
@@ -41,25 +42,21 @@ class SdPModel(nn.Module):
         Means_forward = []
         Stds_forward = []
 
-        Means_backward = []
-        Stds_backward = []
-
         ## Gotta make sure that the model is in eval mode!!!
         self.eval()
         
+        @torch.no_grad
         def forward_hook(module, input, output):
-            if isinstance(output, tuple):
-                output_1, output_2 = output
-                mean_1, mean_2, std_1, std_2 = output_1.mean(), output_2.mean(), output_1.std(), output_2.mean()
-                Means.append(mean_1)
-                Means.append(mean_2)
-                Stds.append(std_1)
-                Stds.append(std_2)
+            if isinstance(output, Union[tuple, list]):
+                for output_ in output:
+                    Means_forward.append(output_.mean().item())
+                    Stds_forward.append(output_.std().item())
 
-            mean, std = output.mean(), output.std()
-            Means.append(mean)
-            Stds.append(std)
-        
+            else:
+                Means_forward.append(output.mean().item())
+                Stds_forward.append(output.std().item())
+
+            
         
         for module in self.modules():
             module.register_forward_hook(forward_hook)
@@ -71,14 +68,14 @@ class SdPModel(nn.Module):
         
         ## Remove forward hook
         for module in self.modules():
-            module.remove_forward_hook(forward_hook)
+            module._forward_hooks.clear()
 
         ## Put the model in the train mode!!!
         ## Shall fix a local seed here to make sure that the result is producible!!!
         self.train()
         ### Now do some training for a single example!!! to find out if there is exploding stuff in backward pass!!!
         
-        return Means_forward, Stds_backward, Means_backward, Means_backward
+        return Means_forward, Stds_forward
 
     
             
@@ -126,6 +123,3 @@ class SdPModel(nn.Module):
             )
         except Exception as exp:
             print(f"Something went wrong with {exp}!!!!!")
-
-
-
