@@ -32,14 +32,21 @@ class SdPModel(nn.Module):
 
     def layer_init(self):
         ## This function inits the weights of the layers with a proper variance
+        ## For deeper layers we may keep the variance a bit lower than, we expect!!!
         pass
 
     def layer_test(self, input = None):
         ## This function tests whether something blows up or vanishes by hooking up to interim values
         ## 
-        Means = []
-        Stds = []
+        Means_forward = []
+        Stds_forward = []
 
+        Means_backward = []
+        Stds_backward = []
+
+        ## Gotta make sure that the model is in eval mode!!!
+        self.eval()
+        
         def forward_hook(module, input, output):
             if isinstance(output, tuple):
                 output_1, output_2 = output
@@ -48,7 +55,7 @@ class SdPModel(nn.Module):
                 Means.append(mean_2)
                 Stds.append(std_1)
                 Stds.append(std_2)
-                
+
             mean, std = output.mean(), output.std()
             Means.append(mean)
             Stds.append(std)
@@ -59,11 +66,19 @@ class SdPModel(nn.Module):
         
         if not input:
             y = self(torch.randn(1, 3, 224, 224))
+        else:
+            y = self(input)
         
+        ## Remove forward hook
         for module in self.modules():
             module.remove_forward_hook(forward_hook)
+
+        ## Put the model in the train mode!!!
+        ## Shall fix a local seed here to make sure that the result is producible!!!
+        self.train()
+        ### Now do some training for a single example!!! to find out if there is exploding stuff in backward pass!!!
         
-        return Means, Stds
+        return Means_forward, Stds_backward, Means_backward, Means_backward
 
     
             
