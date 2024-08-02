@@ -19,6 +19,7 @@ class Trainer:
         scheduler: torch.optim.lr_scheduler,
         gpu_id: int,
         save_every: int,
+        gradient_accumulation_steps:int,
         val_loss_logger = None,
         train_loss_logger = None,
         val_accuracy_logger = None,
@@ -34,102 +35,107 @@ class Trainer:
         self.model = model.to(gpu_id)
         self.model = DDP(self.model, device_ids=[gpu_id])
         #
+        if compile_model:
+            self.model = torch.compile(self.model)
+        #
         self.snapshot_dir = snapshot_dir
         self.snapshot_name = snapshot_name
         self.PATH = os.path.join(self.snapshot_dir, self.snapshot_name) if os.path.exists(self.snapshot_dir) else None
         #
-        if compile_model:
-            self.model = torch.compile(self.model)
-        ##
         self.train_data = train_data
         self.val_data = val_data
         self.total_epochs = total_epochs
-        ##
+        #
         self.optimizer = optimizer
         self.scheduler = scheduler
-        ##
+        self.grad_accum_steps = gradient_accumulation_steps
+        #
         self.save_every = save_every
         self.epoch = 0
-        ##
+        #
         self.val_loss_logger = val_loss_logger
         self.train_loss_logger = train_loss_logger
         self.val_accuracy_logger = val_accuracy_logger
-        ##
+        #  Mixed precision training
         self.autocast = torch.autocast
         self.scaler = torch.cuda.amp.GradScaler()
+        # Recover from a checkpoint!
         try:
             self._load_checkpoint(self.PATH)
         except Exception as e:
             print(f"There is a problem with loading the model weights and the problem is: {e}")
         
-    def _run_batch(self, source, targets):
-        ### All the things like low precision training will happen here dude!!!
-        ## Accumulate some gradients here!!!
-        
+    def _run_batch(self, 
+                   source: torch.tensor, 
+                   targets: torch.tensor, 
+                   batch_enum = None)-> float:
+        # -- Zero the grads on the graph -- #
         self.optimizer.zero_grad()
-        
+
         with self.autocast(device_type="cuda", dtype=torch.bfloat16):
             output = self.model(source)
             ## Use here binary-cross entropy loss instead of cross entropy loss
             loss = F.cross_entropy(output, 
                                    targets,
                                    label_smoothing=0.1)
+
         self.scaler.scale(loss).backward()
         self.scaler.unscale_(self.optimizer)
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1)
-        self.scaler.step(self.optimizer)
-        self.scaler.update()
         
+        if (batch_enum+1)%self.grad_accum_steps == 0:
+            # every 2 iterations we update the grads!!!
+            self.scaler.step(self.optimizer)
+            self.scaler.update()
+
+        ### We return the batch loss for logging purposses ###
+        return loss.item()
         
-        ### We log the loss ### 
-        self.train_loss_logger.update(loss.item())
-        ## update the loss
 
-
- 
     def _run_epoch(self, epoch, report_in_every = 1):
-        # b_sz = len(next(iter(self.train_data))[0])
+        
         self.epoch = epoch
+        
         if epoch % report_in_every == 0:
             print(f"[GPU{self.gpu_id}] Epoch {self.epoch}\n")
+        ##
         self.train_data.sampler.set_epoch(self.epoch)
         ## 
+        
         self.model.train() ## Model in train mode!!!
         
         for i, (source, targets) in enumerate(self.train_data):
-            source = source.to(self.gpu_id, non_blocking=False)
-            targets = targets.to(self.gpu_id, non_blocking=False)
+            source, targets = source.to(self.gpu_id, non_blocking=False), targets.to(self.gpu_id, non_blocking=False)
             
-            self._run_batch(source, targets)
-            
-            ### 
-            ## sync the losses
-            self.train_loss_logger.all_reduce()
+            batch_loss = self._run_batch(source, targets, batch_enum = i)
+            # log the batch loss onto local logger!!!
+            self.train_loss_logger.update(batch_loss)
             ## prtint the loss
             if (self.gpu_id == 0) and i % 500 == 0:
                 batch_loss = self.train_loss_logger.get_avg_loss()
                 print(f"{i} Batch passed the average loss is {batch_loss}, lr is {self.scheduler.get_last_lr()}")
             ### -- ###
-            self.train_loss_logger.reset()       
-        self.scheduler.step()
-
-
 
     def train(self):
                 
         for epoch in range(self.epoch+1, self.total_epochs):
+            
+            """
             init_start = torch.cuda.Event(enable_timing=True)
             init_end = torch.cuda.Event(enable_timing=True)
-            
+            """
 
-            init_start.record() ## How much time we spent!!!
+            #init_start.record() ## How much time we spent!!!
             self._run_epoch(epoch)
-            init_end.record() ## let's record it now!!!
-
-            torch.cuda.synchronize() 
-            print(f"elapsed time: {init_start.elapsed_time(init_end) / 1000}secs")
+            #init_end.record() ## let's record it now!!!
+            self.train_loss_logger.log_loss()
+            ##  Epoch is done take one step scheduler, 
+            self.scheduler.step()
+            #torch.cuda.synchronize() 
+            #print(f"elapsed time: {init_start.elapsed_time(init_end) / 1000}secs")
             if self.gpu_id == 0 and epoch % self.save_every == 0:
                self._save_checkpoint()
+            ## You gottta update the EMA model here!!!!
             self.validate()
 
     def validate(self):
@@ -137,6 +143,7 @@ class Trainer:
         if self.gpu_id == 0:
             print("Validation is started!!!")
         with torch.no_grad():  ## block tracking gradients
+    
             for source, targets, _ in self.val_data:
                 source = source.to(self.gpu_id)
                 targets = targets.to(self.gpu_id)
@@ -145,13 +152,16 @@ class Trainer:
                 accuracy = (output.argmax(-1) == targets).float().mean()
                 self.val_loss_logger.update(loss.item())
                 self.val_accuracy_logger.update(accuracy.item())
+            
             self.val_loss_logger.all_reduce()
             self.val_accuracy_logger.all_reduce()
+            
             if self.gpu_id == 0:
                 print(self.val_loss_logger.get_avg_loss(), self.val_accuracy_logger.accuracy)
                 
             self.val_loss_logger.reset()
             self.val_accuracy_logger.reset()   
+    
     ## Some tools ## 
     def _load_checkpoint(self, checkpoint_file):
         model_dict = torch.load(checkpoint_file)
@@ -229,11 +239,13 @@ def return_scheduler_optimizer(model, **kwargs):
 class distributed_loss_track:
     ## This is from one for all repo!!!
     def __init__(self, 
-                 wandb_log:bool = False):
+                 wandb_log:bool = False,
+                 task:str = "Train"):
 
         self.temp_loss:float = 0
         self.counter:int = 0
         self.epoch:int = 0
+        self.task = task
 
         self.log = wandb_log
 
@@ -246,12 +258,15 @@ class distributed_loss_track:
         self.epoch += 1
         
 
-    def get_loss(self):
+    def get_loss(self, 
+                 additional_log = None):
         avg_loss = self.__get_avg_loss__()
         if self.log:
-            wandb.log({f"Epoch_{self.epoch}_loss": avg_loss})
+            wandb.log({f"Epoch_{self.epoch}_{self.task}_loss": avg_loss})
         return avg_loss
 
+    def log_loss(self, additional_log = None)->None:
+        self.get_loss(additional_log)
 
     def __get_avg_loss__(self):
         ## we have very little number in the denominator
@@ -260,7 +275,7 @@ class distributed_loss_track:
             self.all_reduce()
         except Exception:
             Warning("Buddy something wrong with you GPU!!!! We can not sync the values!!!!")
-        return self.temp_loss / (self.counter+1e-4)
+        return self.temp_loss / (self.counter+1e-5)
 
     def __all_reduce__(self):
             loss_tensor = torch.tensor(
@@ -276,10 +291,11 @@ class track_accuracy:
     ##  At the end of the one epoch, the accuracies will be averaged!!! 
     ##  BTW all this stuff will be done on each GPU
     ##  At the end of the day the main worker will tell the result to W & B
-    def __init__(self):
+    def __init__(self, wandb_log = False):
         self.temp_acc:int = 0
         self.total_size:int = 0
         self.epoch:int = 0
+        self.wandb_log = wandb_log
 
     def update(self, 
                batch_accuracy:int, 
@@ -294,7 +310,8 @@ class track_accuracy:
 
     def get_accuracy(self):
         acc = self.__get_accuracy__()
-        wandb.log({f"Epoch_{self.epoch}_acc:{acc}"})
+        if self.wandb_log:
+            wandb.log({f"Epoch_{self.epoch}_acc:{acc}"})
         return acc
 
     def __get_accuracy__(self):
