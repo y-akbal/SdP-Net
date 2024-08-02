@@ -90,7 +90,7 @@ class track_accuracy:
     
     @property
     def accuracy(self):
-        return 
+        return self.temp_acc/self.total_size
 
     def get_accuracy(self):
         acc = self.__get_accuracy__()

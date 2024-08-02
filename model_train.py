@@ -16,18 +16,25 @@ import hydra
 from omegaconf import DictConfig
 from model import main_model
 from dataset_generator import test_data, train_data
-from train_tools import Trainer, distributed_loss_track, track_accuracy, return_scheduler_optimizer
+from training_tools import Trainer, distributed_loss_track, track_accuracy, return_scheduler_optimizer
 from torchvision.transforms import v2
 from torch.utils.data import default_collate
 
 #
 torch.set_float32_matmul_precision("medium")
-#
 
+## We replaced function with DDP setup, (in which case we may use FSDP!!!)
+class DDP_setup(object):
+    def __init__(self, backend = "nccl"):
+        torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
+        self.backend = backend
+    
+    def __enter__(self):
+        init_process_group(backend=self.backend)
 
-def ddp_setup():
-    init_process_group(backend="nccl")
-    torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
+    def __exit__(self, *args):
+        destroy_process_group()
+
 
 
 
@@ -73,6 +80,7 @@ def train_val_data_loader(train_data, test_data, **kwargs):
 
 @hydra.main(version_base=None, config_path=".", config_name="model_config_hybrid")
 def main(cfg : DictConfig):
+    
     ddp_setup()
     ## model configuration ##
     model_config, optimizer_scheduler_config = cfg["model_config"], cfg["optimizer_scheduler_config"]
@@ -95,7 +103,7 @@ def main(cfg : DictConfig):
         print(f"Current setup is {model_config}")
     
     train_loss_tracker = distributed_loss_track()
-    val_loss_tracker = distributed_loss_track(file_name="valloss.log")
+    val_loss_tracker = distributed_loss_track()
     val_acc_tracker = track_accuracy()
     
 
@@ -114,7 +122,6 @@ def main(cfg : DictConfig):
     )
     trainer.train()
 
-    destroy_process_group()
 
 
 if __name__ == '__main__':
