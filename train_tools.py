@@ -81,6 +81,7 @@ class Trainer:
 
         self.scaler.scale(loss).backward()
         self.scaler.unscale_(self.optimizer)
+
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1)
         
         if (batch_enum+1)%self.grad_accum_steps == 0:
@@ -92,17 +93,7 @@ class Trainer:
         return loss.item()
         
 
-    def _run_epoch(self, epoch, report_in_every = 1):
-        
-        self.epoch = epoch
-        
-        if epoch % report_in_every == 0:
-            print(f"[GPU{self.gpu_id}] Epoch {self.epoch}\n")
-        ##
-        self.train_data.sampler.set_epoch(self.epoch)
-        ## 
-        
-        self.model.train() ## Model in train mode!!!
+    def _run_epoch(self):
         
         for i, (source, targets) in enumerate(self.train_data):
             source, targets = source.to(self.gpu_id, non_blocking=False), targets.to(self.gpu_id, non_blocking=False)
@@ -125,9 +116,17 @@ class Trainer:
             init_end = torch.cuda.Event(enable_timing=True)
             """
 
+            self.epoch = epoch
+            if epoch % self.report_in_every == 0:
+                print(f"[GPU{self.gpu_id}] Epoch {self.epoch}\n")
+            ##
+            self.train_data.sampler.set_epoch(self.epoch)
+            ## 
+            self.model.train() ## Model in train mode!!!
             #init_start.record() ## How much time we spent!!!
             self._run_epoch(epoch)
-            #init_end.record() ## let's record it now!!!
+            #init_end.record() 
+            # ## let's log the loss now!!!
             self.train_loss_logger.log_loss()
             ##  Epoch is done take one step scheduler, 
             self.scheduler.step()
@@ -145,22 +144,17 @@ class Trainer:
         with torch.no_grad():  ## block tracking gradients
     
             for source, targets, _ in self.val_data:
-                source = source.to(self.gpu_id)
-                targets = targets.to(self.gpu_id)
+                source, targets = source.to(self.gpu_id), targets.to(self.gpu_id)
                 output = self.model(source)  
+
                 loss = F.cross_entropy(output, targets)
                 accuracy = (output.argmax(-1) == targets).float().mean()
-                self.val_loss_logger.update(loss.item())
-                self.val_accuracy_logger.update(accuracy.item())
-            
-            self.val_loss_logger.all_reduce()
-            self.val_accuracy_logger.all_reduce()
-            
-            if self.gpu_id == 0:
-                print(self.val_loss_logger.get_avg_loss(), self.val_accuracy_logger.accuracy)
                 
-            self.val_loss_logger.reset()
-            self.val_accuracy_logger.reset()   
+                self.val_loss_logger.update(loss.item())
+                self.val_accuracy_logger.update(batch_accuracy = accuracy.item(), batch_size = targets.shape[0])
+                            
+            self.val_loss_logger.log()
+            self.val_accuracy_logger.log()   
     
     ## Some tools ## 
     def _load_checkpoint(self, checkpoint_file):
@@ -267,6 +261,7 @@ class distributed_loss_track:
 
     def log_loss(self, additional_log = None)->None:
         self.get_loss(additional_log)
+        self.reset()
 
     def __get_avg_loss__(self):
         ## we have very little number in the denominator
@@ -291,10 +286,13 @@ class track_accuracy:
     ##  At the end of the one epoch, the accuracies will be averaged!!! 
     ##  BTW all this stuff will be done on each GPU
     ##  At the end of the day the main worker will tell the result to W & B
-    def __init__(self, wandb_log = False):
+    def __init__(self, 
+                 task = "Validation", 
+                 wandb_log = False):
         self.temp_acc:int = 0
         self.total_size:int = 0
-        self.epoch:int = 0
+        self.epoch:int = 0,
+        self.task = task,
         self.wandb_log = wandb_log
 
     def update(self, 
@@ -307,11 +305,19 @@ class track_accuracy:
         self.temp_acc = 0
         self.total_size = 0
         self.epoch += 1
+    
+    def log(self):
+        self.get_accuracy()
+        self.reset()
+    
+    @property
+    def accuracy(self):
+        return 
 
     def get_accuracy(self):
         acc = self.__get_accuracy__()
         if self.wandb_log:
-            wandb.log({f"Epoch_{self.epoch}_acc:{acc}"})
+            wandb.log({f"Epoch_{self.epoch}_{self.task}_acc:{acc}"})
         return acc
 
     def __get_accuracy__(self):
