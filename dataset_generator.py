@@ -94,5 +94,21 @@ col = test_data(classes_dict = dict_,
           )
 """
 
+"""
+import datasets
+
+from datasets import load_dataset
+dset = load_dataset('Shubbair/oxford_flowers_102', use_auth_token=True, cache_dir = "/Users/yildirimakbal/Desktop")
+""""""
+import datasets
+
+from datasets import load_dataset
+dset = load_dataset('imagenet-1k', 
+                    split='train',
+                    trust_remote_code=True,
+                    use_auth_token=True, cache_dir = "/Users/yildirimakbal/Desktop", streaming=True)
+"""
+
+
 if __name__ == '__main__':
     print("Ok boomer!!!")

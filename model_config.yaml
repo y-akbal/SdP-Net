@@ -1,14 +1,13 @@
 model_config:
-  embedding_dim_conv: 768
+  num_blocks: 15
+  embedding_dim: 768
   conv_kernel_size: 7
   conv_mixer_repetition: 20
   patch_size: 16
-  embedding_dim_trans: 768
   n_head: 16
-  squeeze_ratio: 1
   transformer_encoder_repetition: 10
   dropout: 0.20 # default 0.2
-  num_register: 1 ## This dude is for cls token to be used later!!!
+  num_registers: 1 ## This dude is for cls token to be used later!!!
   multiplication_factor: 4 ## NN after attention layers!!!
   output_classes: 1000
 
@@ -22,7 +21,7 @@ trainer_config:
   
 optimizer_scheduler_config:
   optimizer_config:
-    lr: 0.0001875  #0.0005*batch_size*GPU/512
+    lr: 0.0001875  #0.0005*batch_size*gradient_accumulation_steps*GPU/512
     weight_decay: 0.05
 
   scheduler_config:
@@ -42,12 +41,15 @@ data:
   val_path:
    root_dir: "/home/sahmaran/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/val"
    csv_file: "~/Desktop/ImageNet/LOC_val_solution.csv"
+  cache_dir:
+
   train_data_details:
    batch_size: 64
    num_workers: 8
    pin_memory: True
    persistent_workers: True
    prefetch_factor: 2
+   gradient_accumulation_steps: 8
    
   val_data_details:
    batch_size: 32

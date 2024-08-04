@@ -11,7 +11,7 @@ import wandb
 class distributed_loss_track:
     ## This is from one for all repo!!!
     def __init__(self, 
-                 wandb_log:bool = False,
+                 wandb_log:bool = True,
                  task:str = "Train"):
 
         self.temp_loss:float = 0
@@ -29,7 +29,6 @@ class distributed_loss_track:
         self.temp_loss, self.counter = 0.0, 0
         self.epoch += 1
         
-
     def get_loss(self, 
                  additional_log = None):
         avg_loss = self.__get_avg_loss__()
@@ -60,13 +59,13 @@ class distributed_loss_track:
             self.temp_loss, self.counter = loss_tensor.tolist()
 
 class track_accuracy:
-    ##  This is class will be updated by its own worker,
+    ##  This is class will be updated by its own worker,ß
     ##  At the end of the one epoch, the accuracies will be averaged!!! 
     ##  BTW all this stuff will be done on each GPU
     ##  At the end of the day the main worker will tell the result to W & B
     def __init__(self, 
                  task = "Validation", 
-                 wandb_log = False):
+                 wandb_log = True):
         self.temp_acc:int = 0
         self.total_size:int = 0
         self.epoch:int = 0,

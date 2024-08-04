@@ -70,7 +70,7 @@ class main_model(SdPModel):
         for block in self.blocks:
             x_raw_output, registers = block(x, registers)
         
-        ## Squeezer only works when the input dim is different than the ouput dim
+        ## Here depending on your needs we may further put a head, because the last conv layer in which case will not be used!
         x_classification_head = self.output_head(registers[:, 0, :])
 
         return x_classification_head, x_raw_output, registers

@@ -1,4 +1,3 @@
-### Here we go!!!
 import os
 os.environ["OMP_NUM_THREADS"] = "3"
 import torch
@@ -34,7 +33,6 @@ class DDP_setup(object):
 
     def __exit__(self, *args):
         destroy_process_group()
-
 
 
 
@@ -81,46 +79,45 @@ def train_val_data_loader(train_data, test_data, **kwargs):
 @hydra.main(version_base=None, config_path=".", config_name="model_config_hybrid")
 def main(cfg : DictConfig):
     
-    ddp_setup()
-    ## model configuration ##
-    model_config, optimizer_scheduler_config = cfg["model_config"], cfg["optimizer_scheduler_config"]
-    trainer_config = cfg["trainer_config"]
-    data_config = cfg["data"]
-    ## --- ### 
+    ## We will do everything with the following context window
+    with DDP_setup():
+        ## model configuration ##
+        model_config, optimizer_scheduler_config = cfg["model_config"], cfg["optimizer_scheduler_config"]
+        trainer_config = cfg["trainer_config"]
+        data_config = cfg["data"]
+        ## --- ### 
 
-    ## model_config -- optimizer config -- scheduler config ##
-    torch.manual_seed(10)
-    model = main_model.from_dict(**model_config)
-    optimizer, scheduler = return_scheduler_optimizer(model, **optimizer_scheduler_config)
-    ## batched train and validation data loader ## 
-    train_images, test_images = train_val_data_loader(train_data, test_data, **data_config)
+        ## model_config -- optimizer config -- scheduler config ##
+        torch.manual_seed(10)
+        model = main_model.from_dict(**model_config)
+        optimizer, scheduler = return_scheduler_optimizer(model, **optimizer_scheduler_config)
+        ## batched train and validation data loader ## 
+        train_images, test_images = train_val_data_loader(train_data, test_data, **data_config)
     
-    gpu_id = int(os.environ["LOCAL_RANK"]) ### this local rank is determined by torch run!!!
+        gpu_id = int(os.environ["LOCAL_RANK"]) ### this local rank is determined by torch run!!!
     
-    if gpu_id == 0:
-        print(f"One epoch #batches {len(train_images)}, test #batch {len(test_images)}")
-        print(f"Model has {model.return_num_params()} params. There are {torch.cuda.device_count()} GPUs available on this machine!!!")
-        print(f"Current setup is {model_config}")
+        if gpu_id == 0:
+            print(f"One epoch #batches {len(train_images)}, test #batch {len(test_images)}")
+            print(f"Model has {model.return_num_params()} params. There are {torch.cuda.device_count()} GPUs available on this machine!!!")
+            print(f"Current setup is {model_config}")
     
-    train_loss_tracker = distributed_loss_track()
-    val_loss_tracker = distributed_loss_track()
-    val_acc_tracker = track_accuracy()
+        train_loss_tracker = distributed_loss_track()
+        val_loss_tracker = distributed_loss_track()
+        val_acc_tracker = track_accuracy()
     
-
-
-    trainer = Trainer(
-        model = model,
-        train_data= train_images,
-        val_data = test_images,
-        optimizer = optimizer,
-        scheduler= scheduler,
-        gpu_id = gpu_id,
-        val_loss_logger=val_loss_tracker,
-        train_loss_logger=train_loss_tracker,
-        val_accuracy_logger=val_acc_tracker,
-        **trainer_config
-    )
-    trainer.train()
+        trainer = Trainer(
+            model = model,
+            train_data= train_images,
+            val_data = test_images,
+            optimizer = optimizer,
+            scheduler= scheduler,
+            gpu_id = gpu_id,
+            val_loss_logger=val_loss_tracker,
+            train_loss_logger=train_loss_tracker,
+            val_accuracy_logger=val_acc_tracker,
+            **trainer_config
+        )
+        trainer.train()
 
 
 
