@@ -9,21 +9,31 @@ class StochasticDepth(torch.nn.Module):
         super().__init__()
         assert 0<p<1, "p must be a positive number or <1"
         self.module: torch.nn.Module = module
-        self.p: float = p
-        self._sampler = torch.Tensor(1)
+        self.transform = lambda x: (x <= p).long()
 
     def forward(self, 
                 x:torch.tensor, 
                 register:torch.tensor)->tuple[torch.tensor, torch.tensor]:
-        if self.training and self._sampler.uniform_().item() < self.p:
-            # Direct input 
-            return x, register
-        x, register = self.module(x, register)
+
+        x_new, register_new = self.module(x, register)
+
+        if self.training:
+            u_x, u_register = map(self.transform, [x.uniform_(), register.uniform_()])
+            return u_x*x + (1-u_x)*x_new, u_register*register + (1-u_register)*register_new
+
         ## Expected value of the output will be 0, but we will change the variance if we divide the things by 1-p!!!
-        return x, register
-"""
-model = nn.Sequential(*[StochasticDepth(nn.Linear(10,10)) for i in range(10)])
-model(torch.randn(10))
+        return x_new, register_new
+    
+"""class m(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.layer = nn.Linear(10,10)
+    def forward(self, x, register):
+        return self.layer(x), register
+        
+x,y = torch.randn(20).split(10)
+model = StochasticDepth(m())
+model(x,y)
 """
 class SdPModel(nn.Module):
     ## Though not abstract this class contains some utility functions to inherited 

@@ -41,7 +41,7 @@ data:
   val_path:
    root_dir: "/home/sahmaran/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/val"
    csv_file: "~/Desktop/ImageNet/LOC_val_solution.csv"
-  cache_dir:
+  cache_dir: 
 
   train_data_details:
    batch_size: 64

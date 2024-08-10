@@ -242,6 +242,7 @@ class EncoderLayer(nn.Module):
         ## Glad to use flash attention here!!!
         with sdpa_kernel([SDPBackend.MATH, SDPBackend.EFFICIENT_ATTENTION]):
             attn_output = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, dropout_p = self.att_dropout if self.training else 0.0)
+        
         attn_output = attn_output.transpose(1, 2).contiguous().view(B, R+H*W, C)
         attn_output = self.o_proj(attn_output)
         
