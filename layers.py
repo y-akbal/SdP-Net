@@ -39,26 +39,40 @@ class classification_head(nn.Module):
                  embedding_dim:int = 768, 
                  output_classes:int=1000,
                  dropout:float = 0.2,
+                 from_register:bool = True,
+                 simple_output:bool = False, 
+                 ### Active only when from_register is True, 
+                 #in which case we do not use MLP, 
+                 # just linear layer as pointed out by a recent VIT paper
                  bias:bool = False,
                  ):
         
         super().__init__()
-        self.output_head = nn.Sequential(*[nn.LayerNorm(embedding_dim),
+        self.from_register = True
+        if from_register:
+            self.output_head = nn.Sequential(*[nn.LayerNorm(embedding_dim),
                                         nn.Linear(embedding_dim, output_classes, bias = bias),
                                         nn.Tanh(),
                                         nn.Dropout(dropout),
                                         nn.Linear(output_classes, output_classes, bias = bias)
-                                        ])   
+                                        ]) if not simple_output else nn.Sequential(*[nn.LayerNorm(embedding_dim),
+                                        nn.Linear(embedding_dim, output_classes, bias = bias),
+                                        ])
+        else:
+            self.output_head = nn.Sequential(*[
+                nn.AdaptiveAvgPool2d((1,1)), 
+                nn.Flatten(),
+                nn.Linear(embedding_dim, output_classes)
+            ])
 
     def forward(self, x):
         return self.output_head(x)
 
-
 """
 torch.manual_seed(0)
-classification_head(768, 10)(torch.randn(10, 12, 768))    
-"""    
-
+head = classification_head(768, 1000, from_register= True, simple_output= False)
+head(torch.randn(10, 14*14, 768)).std()
+"""
 
 
 class conv_mixer(nn.Module):

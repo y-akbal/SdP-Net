@@ -23,7 +23,8 @@ class StochasticDepth(torch.nn.Module):
 
         ## Expected value of the output will be 0, but we will change the variance if we divide the things by 1-p!!!
         return x_new, register_new
-    
+
+
 """class m(nn.Module):
     def __init__(self):
         super().__init__()
@@ -143,3 +144,5 @@ class SdPModel(nn.Module):
             )
         except Exception as exp:
             print(f"Something went wrong with {exp}!!!!!")
+
+

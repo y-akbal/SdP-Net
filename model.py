@@ -23,6 +23,9 @@ class main_model(SdPModel):
                  max_num_registers:int = 5,
                  embedding_activation:Callable = None,
                  conv_first:bool = True,
+                 head_output_from_register:bool = False,
+                 simple_mlp_output:bool = False,
+                 output_head_bias:bool = False,
                  ):
         super().__init__()
         ## Here we go again ##
@@ -56,7 +59,11 @@ class main_model(SdPModel):
         
         self.output_head = classification_head(embedding_dim, 
                                        output_classes,
-                                       ffn_dropout)
+                                       ffn_dropout,
+                                       from_register = head_output_from_register,
+                                       simple_output = simple_mlp_output,
+                                       bias = output_head_bias,
+                                       )
 
 
     def forward(self, 
