@@ -5,9 +5,13 @@
 ### I would like to use collate_fn in the dataloader because of the mixup and cutmix---
 
 import datasets
+import torch
 from torch.utils.data import DataLoader, Dataset
 from datasets import load_dataset
 import os
+import torchvision.transforms.v2 as transforms
+
+
 
 def get_cache_dir():
     try:
@@ -16,6 +20,33 @@ def get_cache_dir():
         cache_dir = os.environ["HOME"]
     return cache_dir
 
+
+def val_transforms(crop_size = (224,224),
+        mean = [0.485, 0.456, 0.406], 
+        std = [0.229, 0.224, 0.225]):
+
+    transforms_val = transforms.Compose([
+        transforms.Resize(crop_size),
+        transforms.ToImage(), 
+        transforms.ToDtype(torch.float32, scale=True),
+        transforms.Normalize(mean, std)
+    ])
+    return transforms_val
+
+def train_trainsforms(crop_size = (224,224),
+                    mean = [0.485, 0.456, 0.406], 
+                    std = [0.229, 0.224, 0.225]):
+        ### Here we define the transformation functions for training and testing
+    transforms_train = transforms.Compose([
+        transforms.RandomResizedCrop(crop_size),
+        transforms.RandAugment(), ## RandAugment ---
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomErasing(),
+        transforms.ToImage(), 
+        transforms.ToDtype(torch.float32, scale=True),
+        transforms.Normalize(mean, std)
+    ])
+    return transforms_train
 
 class hf_dataset(Dataset):
     def __init__(self, 
