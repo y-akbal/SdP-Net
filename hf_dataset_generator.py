@@ -10,6 +10,11 @@ from torch.utils.data import DataLoader, Dataset
 from datasets import load_dataset
 import os
 import torchvision.transforms.v2 as transforms
+from torchvision.transforms import v2
+from torch.utils.data import DataLoader
+from torch.utils.data.distributed import DistributedSampler
+from torchvision.transforms import v2
+from torch.utils.data import default_collate
 
 
 
@@ -75,4 +80,50 @@ class hf_dataset(Dataset):
             transformed_image = self.transform(image)
 
         return transformed_image, label
+
+
+def batch_collate_function(batch):
+    pass
+
+def train_val_data_loader(train_data, test_data, **kwargs):
+    ### This dude prepares the training and validation data ###
+    root_dir_train = kwargs["train_path"]["root_dir"]
+    root_dir_val = kwargs["val_path"]["root_dir"]
+    csv_file_val = kwargs["val_path"]["csv_file"]
+    ##
+    train_image_generator, dict_val = train_data(root_dir = root_dir_train)
+    test_image_generator = test_data(root_dir = root_dir_val,
+              csv_file = csv_file_val,
+              classes_dict = dict_val
+    )
+    ##
+    kwargs_train = kwargs["train_data_details"]
+    kwargs_test = kwargs["val_data_details"]
+    ##
+    train_sampler = DistributedSampler(train_image_generator, shuffle = True)
+    val_sampler = DistributedSampler(test_image_generator, shuffle = False)
+    ## --- MixUp and CutMix --- ##
+    
+    NUM_CLASSES = 1000
+    cutmix = v2.CutMix(num_classes=NUM_CLASSES)
+    mixup = v2.MixUp(num_classes=NUM_CLASSES, alpha = 0.8)
+
+    cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
+
+    collate_fn = lambda batch : cutmix_or_mixup(*default_collate(batch))
+
+
+    train_data = DataLoader(
+        dataset= train_image_generator,
+        sampler = train_sampler,
+        collate_fn=collate_fn,
+        **kwargs_train,
+    )
+    test_data = DataLoader(
+        dataset= test_image_generator,
+        sampler = val_sampler,
+        **kwargs_test,
+    )
+    
+    return train_data, test_data
 
