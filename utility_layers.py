@@ -1,6 +1,8 @@
 import torch
 from torch import nn as nn
 from typing import Union
+from functools import partial
+
 
 class StochasticDepth(torch.nn.Module):
     def __init__(self, 
@@ -145,4 +147,7 @@ class SdPModel(nn.Module):
         except Exception as exp:
             print(f"Something went wrong with {exp}!!!!!")
 
+partial(torch.compile, static_argnums = 1)
+def KeLu(x:torch.Tensor, a:float = 3.5)->torch.tensor:
+    return torch.where(x < -a, torch.zeros(x.shape), torch.where(x > a, x, 0.5*x*(1+x/a+(1/torch.pi)*torch.sin(x*torch.pi/a))))
 

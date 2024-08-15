@@ -92,7 +92,7 @@ class conv_mixer(nn.Module):
                                 out_channels = embedding_dim,
                                 kernel_size =1,
                                 )
-        self.layer_norm_1 = nn.GroupNorm(1,embedding_dim)
+        self.layer_norm_1 = nn.GroupNorm(1, embedding_dim)
         self.layer_norm_2 = nn.GroupNorm(1, embedding_dim)
         self.activation = activation
 
@@ -108,7 +108,6 @@ class conv_mixer(nn.Module):
         x = self.activation(x)
         #TODO may remove the last layer norm since this dude will be going into to the transformer layer!!!
         return x
-
 
 class embedding_layer(nn.Module):
     ## We isolated this layer in the case that you want to 
