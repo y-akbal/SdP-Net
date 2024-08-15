@@ -48,4 +48,5 @@ RandAugment + Random erase + Random resize+ CutMix + MixUp + Dropout(0.2) (Only 
 6) If possible binary loss - instead of cross-entropy loss (Resnet strikes back!!!)
 7) Write kind-of-a unit-test for intermediate activations!!! (ok!!!)
 8) Write trainer class from scratch -- if possible do some subclassing kinda thing!!!
-9) Use KeLü activation instead of GeLu
+9) Use KeLü activation instead of GeLu (KeLü implemented but may not be really optimized!)
+10) May want to remove stochastic depth layer??? stil open to debate

@@ -10,6 +10,7 @@ class StochasticDepth(torch.nn.Module):
                  p: float = 0.2):
         super().__init__()
         assert 0<p<1, "p must be a positive number or <1"
+        self.p = p
         self.module: torch.nn.Module = module
         self.transform = lambda x: (x <= p).long()
 
@@ -20,14 +21,15 @@ class StochasticDepth(torch.nn.Module):
         x_new, register_new = self.module(x, register)
 
         if self.training:
-            u_x, u_register = map(self.transform, [x.uniform_(), register.uniform_()])
+            u_x, u_register = self.transform(x.uniform_()), self.transform(register.uniform_())
             return u_x*x + (1-u_x)*x_new, u_register*register + (1-u_register)*register_new
 
         ## Expected value of the output will be 0, but we will change the variance if we divide the things by 1-p!!!
         return x_new, register_new
 
 
-"""class m(nn.Module):
+"""
+class m(nn.Module):
     def __init__(self):
         super().__init__()
         self.layer = nn.Linear(10,10)
@@ -146,6 +148,7 @@ class SdPModel(nn.Module):
             )
         except Exception as exp:
             print(f"Something went wrong with {exp}!!!!!")
+
 
 partial(torch.compile, static_argnums = 1)
 def KeLu(x:torch.Tensor, a:float = 3.5)->torch.tensor:

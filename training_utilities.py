@@ -5,9 +5,6 @@ from torch.distributed import (
 )
 import wandb
 
-
-
-
 class distributed_loss_track:
     ## This is from one for all repo!!!
     def __init__(self, 
@@ -105,11 +102,3 @@ class track_accuracy:
         loss_tensor = torch.tensor([self.temp_acc, self.total_size], dtype=torch.float32).cuda()
         all_reduce(loss_tensor, ReduceOp.SUM, async_op=False)
         self.temp_acc, self.total_size = loss_tensor.item()
-        
-"""
-t = track_accuracy()
-t.update(0.9)
-t.accuracy
-t.counter
-t.reset()"""
-
