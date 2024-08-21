@@ -82,6 +82,8 @@ class test_data(Dataset):
         anotations = self.anotations[index]
         classes = self.classes_dict[anotations]
         return transformed_image, classes, anotations
+    def __split__(self, n):
+        return n.split()[0]
 
 """
 #train_set test ok
