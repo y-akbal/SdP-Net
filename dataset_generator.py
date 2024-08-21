@@ -82,8 +82,6 @@ class test_data(Dataset):
         anotations = self.anotations[index]
         classes = self.classes_dict[anotations]
         return transformed_image, classes, anotations
-    def __split__(self, n):
-        return n.split()[0]
 
 """
 #train_set test ok
@@ -110,9 +108,9 @@ from datasets import load_dataset
 dset = load_dataset('imagenet-1k', 
                     split='train',
                     trust_remote_code=True,
-                    use_auth_token=True, cache_dir = "/Users/yildirimakbal/Desktop", streaming=True)
-"""
+                    use_auth_token=True, cache_dir = "/media/sahmaran/60E6D899E6D870B0/IMGNET")
 
+"""
 
 def train_val_data_loader(train_data, test_data, **kwargs):
     ### This dude prepares the training and validation data ###
