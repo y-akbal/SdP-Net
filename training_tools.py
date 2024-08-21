@@ -22,7 +22,6 @@ class Trainer:
         snapshot_dir:str = "model",
         total_epochs:int = 300,
         use_ema_model:bool = False, 
-        # tracker ## this dude is for tracking stuff
     ) -> None:
         self.gpu_id = gpu_id
         self.model_config = model.config
@@ -31,6 +30,8 @@ class Trainer:
         #
         if compile_model:
             self.model = torch.compile(self.model)
+        if use_ema_model:
+            self.ema_model = None
         #
         self.snapshot_dir = snapshot_dir
         self.snapshot_name = snapshot_name
