@@ -3,7 +3,6 @@ from torch import nn as nn
 from typing import Union
 from functools import partial
 
-
 class StochasticDepth(torch.nn.Module):
     def __init__(self, 
                  module: torch.nn.Module, 
@@ -26,7 +25,6 @@ class StochasticDepth(torch.nn.Module):
 
         ## Expected value of the output will be 0, but we will change the variance if we divide the things by 1-p!!!
         return x_new, register_new
-
 
 """
 class m(nn.Module):
@@ -95,8 +93,6 @@ class SdPModel(nn.Module):
         @torch.no_grad
         def backward_hook(module, input, output):
             pass
-
-
         
         return {"forward_means": Means_forward, 
                 "Forward_std": Stds_forward, 

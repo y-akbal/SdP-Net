@@ -83,7 +83,7 @@ class main_model(SdPModel):
         return x_classification_head, x_raw_output, registers
 
 """
-model = main_model(num_blocks = 12, embedding_dim = 256 ,conv_first=True, stochastic_depth=True, stochastic_depth_p=[0.9, 0.1])
+model = main_model(num_blocks = 12, embedding_dim = 768 ,conv_first=True, stochastic_depth=True, stochastic_depth_p=[0.9, 0.1])
 with torch.inference_mode():
     print(model(torch.randn(5, 3, 224,224), num_registers = 5)[2].std())
 

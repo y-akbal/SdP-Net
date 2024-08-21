@@ -174,7 +174,6 @@ class embedding_layer(nn.Module):
     
         horizontal_embeddings = self.horizontal_embedding_layer(self.horizontal_embedding[:H]).transpose(-1, -2).unsqueeze(-1)
         vertical_embeddings = self.vertical_embedding_layer(self.vertical_embedding[:W]).transpose(-1,-2).unsqueeze(-2)
-        
         ## We are adding embeddings both vertically and horizontally!!!
         
         x += horizontal_embeddings
