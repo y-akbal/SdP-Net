@@ -17,6 +17,7 @@ from torch.utils.data import default_collate
 
 
 
+
 def get_cache_dir():
     try:
         cache_dir = os.environ["HF_DATASETS_CACHE"]
@@ -52,13 +53,48 @@ def train_trainsforms(crop_size = (224,224),
     ])
     return transforms_train
 
+
+
+"""
+import datasets
+
+from datasets import load_dataset
+dset = load_dataset('imagenet-1k', 
+                    trust_remote_code=True,
+                    use_auth_token=True, cache_dir = "/media/sahmaran/60E6D899E6D870B0/IMGNET")
+
+
+transforms_ = train_trainsforms()
+
+for i in range(1010000000):
+    print(hf_dataset(dset, transforms_)[i])
+
+ds = hf_dataset(dset["train"], transforms_)
+
+
+NUM_CLASSES = 1000
+cutmix = v2.CutMix(num_classes=NUM_CLASSES)
+mixup = v2.MixUp(num_classes=NUM_CLASSES)
+cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
+
+
+def collate_fn(batch):
+    return cutmix_or_mixup(*default_collate(batch))
+
+data_loader = DataLoader(ds, batch_size= 128, pin_memory=True, num_workers=8, collate_fn = collate_fn)
+for  i,(x,y) in enumerate(data_loader):
+    print(y[0,:].max(), 1-y[0,:].max(), i, y.shape)
+
+"""
+
+
 class hf_dataset(Dataset):
     def __init__(self, 
                  huggingface_dataset, 
                  transform=None):
         
         self.dataset = huggingface_dataset
-        self.transform = transform
+        self.transform = transform if transform else lambda x: x
         ### The question is to whether mix the transformations or not!
         ### Or maybe do something like n choose k kinda thing???
 
@@ -75,19 +111,12 @@ class hf_dataset(Dataset):
         image = self.dataset[idx]['image']
         label = self.dataset[idx]['label'] 
 
-        if self.transform:
-            transformed_image = self.transform(image)
-
+        transformed_image = self.transform(image)
         return transformed_image, label
 
 
-def batch_collate_function(batch):
-    ## Under the hood cutup and mixup, 
-    ## we shall be mixing one hot vectors as well, this way we wont be doing 0.1 label smoothing
-    ## 
-    pass
 
-def train_val_data_loader(train_data, test_data, **kwargs):
+def hf_train_val_data_loader(**kwargs):
     ### 
     ### This dude prepares the training and validation data ###
     ### 
@@ -109,8 +138,9 @@ def train_val_data_loader(train_data, test_data, **kwargs):
     ## --- MixUp and CutMix --- ##
     ## 
     NUM_CLASSES = 1000
-    cutmix = v2.CutMix(num_classes=NUM_CLASSES)
-    mixup = v2.MixUp(num_classes=NUM_CLASSES, alpha = 0.8)
+
+    cutmix = v2.CutMix(num_classes = NUM_CLASSES)
+    mixup = v2.MixUp(num_classes = NUM_CLASSES, alpha = 0.8)
 
     cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
 
@@ -120,7 +150,7 @@ def train_val_data_loader(train_data, test_data, **kwargs):
     train_data = DataLoader(
         dataset= dset_train,
         sampler = train_sampler,
-        collate_fn=collate_fn,
+        collate_fn = collate_fn,
         **kwargs_train,
     )
     test_data = DataLoader(

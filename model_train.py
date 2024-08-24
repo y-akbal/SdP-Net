@@ -12,8 +12,8 @@ from torch.distributed import init_process_group, destroy_process_group
 import hydra
 from omegaconf import DictConfig
 from model import main_model
-from training_tools import Trainer, distributed_loss_track, track_accuracy, return_scheduler_optimizer
-from dataset_generator import train_val_data_loader
+from training_tools import Trainer, return_scheduler_optimizer
+from hf_dataset_generator import hf_train_val_data_loader
 #
 torch.set_float32_matmul_precision("medium")
 
@@ -33,7 +33,7 @@ class DDP_setup(object):
 
 
 
-@hydra.main(version_base=None, config_path=".", config_name="model_config_hybrid")
+@hydra.main(version_base=None, config_path=".", config_name="model_config")
 def main(cfg : DictConfig):
     
     ## We will do everything with the following context window
@@ -49,7 +49,7 @@ def main(cfg : DictConfig):
         model = main_model.from_dict(**model_config)
         optimizer, scheduler = return_scheduler_optimizer(model, **optimizer_scheduler_config)
         ## batched train and validation data loader ## 
-        train_images, test_images = train_val_data_loader(train_data, test_data, **data_config)
+        train_images, test_images = hf_train_val_data_loader(**data_config)
     
         gpu_id = int(os.environ["LOCAL_RANK"]) ### this local rank is determined by torch run!!!
     

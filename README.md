@@ -42,7 +42,7 @@ RandAugment + Random erase + Random resize+ CutMix + MixUp + Dropout(0.2) (Only 
 
 1) EMA Model (This is important for future use!!!)
 2) Gradient Accumulation -- larger learning rate (ok!!!)
-3) Register tokens (VITs need registers)
+3) Register tokens (VITs nee""""""""""d registers)
 4) Stochastic Depth (Further research is needed!!!)
 5) No more batchnorm layers (Layer norm is implemented here!!!)
 55) Wondering if there is something layernorm2d like a thing? We did groupnorm but it does not look good to me!!! Need to apply groupnorm in the form to be used here, in cifar10 (KeLü)
@@ -50,4 +50,4 @@ RandAugment + Random erase + Random resize+ CutMix + MixUp + Dropout(0.2) (Only 
 7) Write kind-of-a unit-test for intermediate activations!!! (ok!!!)
 8) Write trainer class from scratch -- if possible do some subclassing kinda thing!!!
 9) Use KeLü activation instead of GeLu (KeLü implemented but may not be really optimized!)
-10) May want to remove stochastic depth layer??? stil open to debate
+10) May want to remove stochastic depth layer??? stil ope"n to debate
