@@ -121,6 +121,8 @@ def hf_train_val_data_loader(**kwargs):
     ### This dude prepares the training and validation data ###
     ### 
     ###
+    cache_dir = get_cache_dir()
+    print(f"The datasets is to be cached at {cache_dir}")
     dset = load_dataset('imagenet-1k', 
                     cache_dir = get_cache_dir())
     

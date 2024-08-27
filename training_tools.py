@@ -21,6 +21,7 @@ class Trainer:
         snapshot_name:str = "model.pt",
         snapshot_dir:str = "model",
         total_epochs:int = 300,
+        report_every_epoch:int =1, 
         use_ema_model:bool = False, 
     ) -> None:
         self.gpu_id = gpu_id
@@ -46,6 +47,7 @@ class Trainer:
         self.grad_accum_steps = gradient_accumulation_steps
         #
         self.save_every = save_every
+        self.report_in_every = report_every_epoch
         self.epoch = 0
         #
         self.val_loss_logger = val_loss_logger
@@ -119,7 +121,7 @@ class Trainer:
             ## 
             self.model.train() ## Model in train mode!!!
             #init_start.record() ## How much time we spent!!!
-            self._run_epoch(epoch)
+            self._run_epoch()
             #init_end.record() 
             # ## let's log the loss now!!!
             self.train_loss_logger.log_loss()

@@ -14,6 +14,7 @@ from omegaconf import DictConfig
 from model import main_model
 from training_tools import Trainer, return_scheduler_optimizer
 from hf_dataset_generator import hf_train_val_data_loader
+from training_utilities import track_accuracy, distributed_loss_track
 #
 torch.set_float32_matmul_precision("medium")
 
@@ -30,12 +31,11 @@ class DDP_setup(object):
         destroy_process_group()
 
 
+import sys
 
 
-
-@hydra.main(version_base=None, config_path=".", config_name="model_config")
+@hydra.main(version_base=None, config_path=".", config_name="model_config_vit")
 def main(cfg : DictConfig):
-    
     ## We will do everything with the following context window
     with DDP_setup():
         ## model configuration ##

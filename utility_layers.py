@@ -6,12 +6,13 @@ from functools import partial
 class StochasticDepth(torch.nn.Module):
     def __init__(self, 
                  module: torch.nn.Module, 
-                 p: float = 0.2):
-        super().__init__()
+                 p: float = 0.2,
+                 ):
+        super().__init__(),
+        "Thank you timm!!!"
         assert 0<p<1, "p must be a positive number or <1"
         self.p = p
         self.module: torch.nn.Module = module
-        self.transform = lambda x: (x <= p).long()
 
     def forward(self, 
                 x:torch.tensor, 
@@ -20,11 +21,23 @@ class StochasticDepth(torch.nn.Module):
         x_new, register_new = self.module(x, register)
 
         if self.training:
-            u_x, u_register = self.transform(x.uniform_()), self.transform(register.uniform_())
-            return u_x*x + (1-u_x)*x_new, u_register*register + (1-u_register)*register_new
-
-        ## Expected value of the output will be 0, but we will change the variance if we divide the things by 1-p!!!
+            size = [1]*x.ndim
+            noise_x = torch.empty(size, dtype=input.dtype, device=input.device, requires_grad = False).noise.bernoulli_(1 - self.p).div_(1-self.p)
+            noise_register = noise_x.squeeze([-1, -2])
+            
+            return noise_x*x + (1-noise_x)*x_new, noise_register*register + (1-noise_register)*register_new
+        
         return x_new, register_new
+
+            
+x = torch.randn(5, 4)
+y = torch.randn(5, 4,4)
+
+torch.empty([1]*3).bernoulli_(0.1)
+
+torch.randn(10,10).bernoulli_(0.5).sum()
+
+size = [x.shape[0]] + [1] * (x.ndim - 1)
 
 """
 class m(nn.Module):
@@ -34,10 +47,12 @@ class m(nn.Module):
     def forward(self, x, register):
         return self.layer(x), register
         
-x,y = torch.randn(20).split(10)
-model = StochasticDepth(m())
-model(x,y)
+x,y = torch.randn(5, 2,10), torch.randn(5, 5)
+model = StochasticDepth(m(), p = 0.1)
+model.train()
+model(x,y)[0]
 """
+
 class SdPModel(nn.Module):
     ## Though not abstract this class contains some utility functions to inherited 
     def __init__(self, **kwargs):

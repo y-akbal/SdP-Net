@@ -1,0 +1,60 @@
+model_config:
+  num_blocks: 15
+  embedding_dim: 128
+  n_head: 8
+  conv_kernel_size: 7
+  patch_size: 16
+  ffn_dropout: 0.2
+  attn_dropout: 0.2
+  stochastic_depth: 0.2
+  stochastic_depth_p: [0.1, 0.01]
+  output_classes: 1000
+  max_image_size: [14,14]
+  max_num_registers: 5
+  conv_first: True
+  head_output_from_register: True
+  simple_mlp_output: False
+  output_head_bias: False
+
+trainer_config:
+  compile_model: False
+  snapshot_dir: "model"
+  snapshot_name: "model_1.pt"
+  save_every: 1
+  total_epochs: 300
+  gradient_accumulation_steps: 8
+  report_every_epoch: 1
+  
+  
+optimizer_scheduler_config:
+  optimizer_config:
+    lr: 0.0001875  #0.0005*batch_size*gradient_accumulation_steps*GPU/512
+    weight_decay: 0.05
+
+  scheduler_config:
+    cosine:
+      T_0: 300
+      eta_min: 0.0000088
+    constant_scheduler:
+      factor: 0.0001
+      total_iters: 2
+    linear_scheduler:
+      total_iters: 5
+      start_factor: 0.0002
+  
+data:
+  train_data_details:
+   batch_size: 64
+   num_workers: 8
+   pin_memory: True
+   persistent_workers: True
+   prefetch_factor: 2
+   
+   
+  val_data_details:
+   batch_size: 32
+   num_workers: 4
+   pin_memory: True
+   drop_last: True
+  
+  
