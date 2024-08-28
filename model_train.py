@@ -1,4 +1,5 @@
 import os
+import sys
 os.environ["OMP_NUM_THREADS"] = "3"
 import torch
 from torch import nn as nn
@@ -31,7 +32,6 @@ class DDP_setup(object):
         destroy_process_group()
 
 
-import sys
 
 
 @hydra.main(version_base=None, config_path=".", config_name="model_config_vit")

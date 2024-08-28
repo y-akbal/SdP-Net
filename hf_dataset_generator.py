@@ -54,40 +54,6 @@ def train_trainsforms(crop_size = (224,224),
     return transforms_train
 
 
-
-"""
-import datasets
-
-from datasets import load_dataset
-dset = load_dataset('imagenet-1k', 
-                    trust_remote_code=True,
-                    use_auth_token=True, cache_dir = "/media/sahmaran/60E6D899E6D870B0/IMGNET")
-
-
-transforms_ = train_trainsforms()
-
-for i in range(1010000000):
-    print(hf_dataset(dset, transforms_)[i])
-
-ds = hf_dataset(dset["train"], transforms_)
-
-
-NUM_CLASSES = 1000
-cutmix = v2.CutMix(num_classes=NUM_CLASSES)
-mixup = v2.MixUp(num_classes=NUM_CLASSES)
-cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
-
-
-def collate_fn(batch):
-    return cutmix_or_mixup(*default_collate(batch))
-
-data_loader = DataLoader(ds, batch_size= 128, pin_memory=True, num_workers=8, collate_fn = collate_fn)
-for  i,(x,y) in enumerate(data_loader):
-    print(y[0,:].max(), 1-y[0,:].max(), i, y.shape)
-
-"""
-
-
 class hf_dataset(Dataset):
     def __init__(self, 
                  huggingface_dataset, 
@@ -113,6 +79,72 @@ class hf_dataset(Dataset):
 
         transformed_image = self.transform(image)
         return transformed_image, label
+
+
+import datasets
+
+from datasets import load_dataset
+dset = load_dataset('imagenet-1k', 
+                    trust_remote_code=True, 
+                                        use_auth_token=True, cache_dir = "/media/sahmaran/60E6D899E6D870B0/IMGNET")
+
+transforms_val = transforms.Compose([
+        transforms.Resize((64,64)),
+        transforms.ToImage(), 
+    ])
+
+
+a = set()
+for x in dset["validation"]:
+    a.add(x["cls"])
+    print(x)
+
+ds = hf_dataset(dset["test"], transforms_val)    
+
+
+import numpy as np
+
+train_x = np.memmap("test_x.dat", dtype = np.uint8, shape = (len(ds), 3, 64, 64), mode = "w+")
+train_y = np.memmap("test_y.dat", dtype = np.int64, shape = (len(ds), ), mode = "w+")
+
+import tqdm
+
+q = 0
+for i, image_dat in enumerate(tqdm.tqdm(ds)):
+    x,y = image_dat
+    if x.ndim < 3:
+      q+= 1
+    train_x[i], train_y[i] = x[0].numpy(), y
+    if i % 500 == 0:
+        train_x.flush()
+        train_y.flush()
+    
+
+
+
+"""
+
+for i in range(1010000000):
+    print(hf_dataset(dset, transforms_)[i])
+
+ds = hf_dataset(dset["train"], transforms_)
+
+
+NUM_CLASSES = 1000
+cutmix = v2.CutMix(num_classes=NUM_CLASSES)
+mixup = v2.MixUp(num_classes=NUM_CLASSES)
+cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
+
+
+def collate_fn(batch):
+    return cutmix_or_mixup(*default_collate(batch))
+
+data_loader = DataLoader(ds, batch_size= 128, pin_memory=True, num_workers=8, collate_fn = collate_fn)
+for  i,(x,y) in enumerate(data_loader):
+    print(y[0,:].max(), 1-y[0,:].max(), i, y.shape)
+
+"""
+
 
 
 

@@ -21,36 +21,29 @@ class StochasticDepth(torch.nn.Module):
         x_new, register_new = self.module(x, register)
 
         if self.training:
+
             size = [1]*x.ndim
-            noise_x = torch.empty(size, dtype=input.dtype, device=input.device, requires_grad = False).noise.bernoulli_(1 - self.p).div_(1-self.p)
+
+            noise_x = torch.empty(size, dtype = x_new.dtype, device= x_new.device, requires_grad = False).bernoulli_(1 - self.p).div_(1-self.p)
             noise_register = noise_x.squeeze([-1, -2])
-            
-            return noise_x*x + (1-noise_x)*x_new, noise_register*register + (1-noise_register)*register_new
+
+            return (1- noise_x)*x + noise_x*x_new, (1- noise_register)*register + noise_register*register_new
         
         return x_new, register_new
 
             
-x = torch.randn(5, 4)
-y = torch.randn(5, 4,4)
-
-torch.empty([1]*3).bernoulli_(0.1)
-
-torch.randn(10,10).bernoulli_(0.5).sum()
-
-size = [x.shape[0]] + [1] * (x.ndim - 1)
-
 """
 class m(nn.Module):
     def __init__(self):
         super().__init__()
-        self.layer = nn.Linear(10,10)
+        self.layer = nn.Linear(2,2)
     def forward(self, x, register):
-        return self.layer(x), register
+        return self.layer(x), self.layer(register)
         
-x,y = torch.randn(5, 2,10), torch.randn(5, 5)
+x,y = torch.randn(5, 2,2,2), torch.randn(5, 2)
 model = StochasticDepth(m(), p = 0.1)
 model.train()
-model(x,y)[0]
+model(x,y)[0].mean()
 """
 
 class SdPModel(nn.Module):

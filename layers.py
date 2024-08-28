@@ -41,31 +41,33 @@ class classification_head(nn.Module):
                  dropout:float = 0.2,
                  from_register:bool = True,
                  simple_output:bool = False, 
-                 ### Active only when from_register is True, 
-                 #in which case we do not use MLP, 
-                 # just linear layer as pointed out by a recent VIT paper
                  bias:bool = False,
                  ):
         
         super().__init__()
-        self.from_register = True
+        self.from_register = from_register
         if from_register:
-            self.output_head = nn.Sequential(*[nn.LayerNorm(embedding_dim),
+            if simple_output:
+                self.output_head = nn.Sequential(*[nn.LayerNorm(embedding_dim),
+                                        nn.Linear(embedding_dim, output_classes, bias = bias),
+                                        ])
+            else:
+                self.output_head = nn.Sequential(*[nn.LayerNorm(embedding_dim),
                                         nn.Linear(embedding_dim, output_classes, bias = bias),
                                         nn.Tanh(),
                                         nn.Dropout(dropout),
                                         nn.Linear(output_classes, output_classes, bias = bias)
-                                        ]) if not simple_output else nn.Sequential(*[nn.LayerNorm(embedding_dim),
-                                        nn.Linear(embedding_dim, output_classes, bias = bias),
                                         ])
         else:
             self.output_head = nn.Sequential(*[
                 nn.AdaptiveAvgPool2d((1,1)), 
                 nn.Flatten(),
-                nn.Linear(embedding_dim, output_classes)
+                nn.Linear(embedding_dim, output_classes, bias = bias)
             ])
 
-    def forward(self, x):
+    def forward(self, x:torch.tensor, registers:torch.tensor)-> torch.tensor:
+        if self.from_register:
+            return self.output_head(registers)
         return self.output_head(x)
 
 """

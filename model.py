@@ -28,7 +28,9 @@ class main_model(SdPModel):
                  output_head_bias:bool = False,
                  ):
         super().__init__()
-        ## Here we go again ##
+        ## oh s***  here we go again ##
+        ## RIP CJ!##
+        ### -- ##
         self.conv_init = conv_patcher(
                 embedding_dim= embedding_dim,
                 patch_size= patch_size,
@@ -39,11 +41,10 @@ class main_model(SdPModel):
             max_num_registers=max_num_registers,
             max_image_size= max_image_size,
             activation = embedding_activation,
-
         )
         ### Helper functions -- Below we apply stochastic depth only when asked!!!
         ST = lambda x, p: StochasticDepth(x, p) if stochastic_depth else x
-        ## The following function will adjust stochastic depth p value according to cosine schedule!!!
+        ## The following function will adjust stochastic depth p value according to cosine schedule!!! storchastic_dept_0 -> stochastic_depth_1
         ST_p = lambda i: cos(arccos(stochastic_depth_p[0])*(1 - i/num_blocks) + arccos(stochastic_depth_p[1])*(i/num_blocks))
 
         self.blocks = nn.ModuleList([
@@ -65,7 +66,6 @@ class main_model(SdPModel):
                                        bias = output_head_bias,
                                        )
 
-
     def forward(self, 
                 x:torch.tensor, 
                 num_registers:int = 3) -> tuple[torch.tensor, torch.tensor]:
@@ -75,23 +75,30 @@ class main_model(SdPModel):
         x_raw_output, registers = self.embedding_layer(x, num_registers)
         ## Mixing with convs
         for block in self.blocks:
-            x_raw_output, registers = block(x, registers)
-        
+            x_raw_output, registers = block(x_raw_output, registers)
         ## Here depending on your needs we may further put a head, because the last conv layer in which case will not be used!
-        x_classification_head = self.output_head(registers[:, 0, :])
+        x_classification_head = self.output_head(x_raw_output, registers)
 
         return x_classification_head, x_raw_output, registers
 
 """
-model = main_model(num_blocks = 12, embedding_dim = 768 ,conv_first=True, stochastic_depth=True, stochastic_depth_p=[0.9, 0.1])
+model = main_model(num_blocks = 12, 
+                   embedding_dim = 128, 
+                   patch_size=32,
+                   conv_first=True, 
+                   stochastic_depth=True,  
+                   stochastic_depth_p=[0.9, 0.1],
+                   head_output_from_register=False,
+                   simple_mlp_output=True)
+
 with torch.inference_mode():
-    print(model(torch.randn(5, 3, 224,224), num_registers = 5)[2].std())
+    x,y,z = model(torch.randn(5, 3, 224,224), num_registers = 2)
 
+model.output_head
+x.shape
 model.return_num_params()
-
 a = model.layer_test()
-
 """
-
 if __name__ == "__main__":
     print("Ok boomer!!!")
+
