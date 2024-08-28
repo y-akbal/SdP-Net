@@ -80,7 +80,7 @@ class hf_dataset(Dataset):
         transformed_image = self.transform(image)
         return transformed_image, label
 
-
+"""
 import datasets
 
 from datasets import load_dataset
@@ -118,10 +118,7 @@ for i, image_dat in enumerate(tqdm.tqdm(ds)):
     if i % 500 == 0:
         train_x.flush()
         train_y.flush()
-    
-
-
-
+    """
 """
 
 for i in range(1010000000):
@@ -144,8 +141,6 @@ for  i,(x,y) in enumerate(data_loader):
     print(y[0,:].max(), 1-y[0,:].max(), i, y.shape)
 
 """
-
-
 
 
 def hf_train_val_data_loader(**kwargs):

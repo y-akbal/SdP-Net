@@ -85,34 +85,6 @@ class test_data(Dataset):
     def __split__(self, n):
         return n.split()[0]
 
-"""
-#train_set test ok
-loc = "~/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/train"
-I, dict_= train_data(root_dir = loc)
-I[0][0].shape == 3,224,224  
-
-
-col = test_data(classes_dict = dict_,
-          csv_file="~/Desktop/ImageNet/LOC_val_solution.csv",
-          root_dir="/home/sahmaran/Desktop/ImageNet/ILSVRC/Data/CLS-LOC/val"
-          )
-"""
-
-"""
-import datasets
-
-from datasets import load_dataset
-dset = load_dataset('Shubbair/oxford_flowers_102', use_auth_token=True, cache_dir = "/Users/yildirimakbal/Desktop")
-""""""
-import datasets
-
-from datasets import load_dataset
-dset = load_dataset('imagenet-1k', 
-                    split='train',
-                    trust_remote_code=True,
-                    use_auth_token=True, cache_dir = "/media/sahmaran/60E6D899E6D870B0/IMGNET")
-
-"""
 
 def train_val_data_loader(train_data, test_data, **kwargs):
     ### This dude prepares the training and validation data ###
