@@ -2,6 +2,7 @@ import torch
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.nn.functional as F
 import os
+from torch import nn as nn
 
 class Trainer:
     def __init__(
@@ -72,9 +73,8 @@ class Trainer:
         with self.autocast(device_type="cuda", dtype=torch.bfloat16):
             output = self.model(source)
             ## Use here binary-cross entropy loss instead of cross entropy loss
-            loss = F.cross_entropy(output, 
-                                   targets,
-                                   label_smoothing=0.1)
+            loss = nn.CrossEntropyLoss(label_smoothing = 0.1)(output, 
+                                   targets)
 
         self.scaler.scale(loss).backward()
         self.scaler.unscale_(self.optimizer)
@@ -98,7 +98,7 @@ class Trainer:
             batch_loss = self._run_batch(source, targets, batch_enum = i)
             # log the batch loss onto local logger!!!
             self.train_loss_logger.update(batch_loss)
-            ## prtint the loss
+            ## print the loss
             if (self.gpu_id == 0) and i % 500 == 0:
                 batch_loss = self.train_loss_logger.get_avg_loss()
                 print(f"{i} Batch passed the average loss is {batch_loss}, lr is {self.scheduler.get_last_lr()}")
@@ -112,7 +112,6 @@ class Trainer:
             init_start = torch.cuda.Event(enable_timing=True)
             init_end = torch.cuda.Event(enable_timing=True)
             """
-
             self.epoch = epoch
             if epoch % self.report_in_every == 0:
                 print(f"[GPU{self.gpu_id}] Epoch {self.epoch}\n")
@@ -140,13 +139,12 @@ class Trainer:
             print("Validation is started!!!")
         with torch.no_grad():  ## block tracking gradients
     
-            for source, targets, _ in self.val_data:
+            for source, targets in self.val_data:
                 source, targets = source.to(self.gpu_id), targets.to(self.gpu_id)
                 output = self.model(source)  
-
-                loss = F.cross_entropy(output, targets)
-                accuracy = (output.argmax(-1) == targets).float().mean()
                 
+                loss = nn.CrossEntropyLoss()(output, targets)
+                accuracy = (output.argmax(-1) == targets).float().mean()
                 self.val_loss_logger.update(loss.item())
                 self.val_accuracy_logger.update(batch_accuracy = accuracy.item(), batch_size = targets.shape[0])
                             

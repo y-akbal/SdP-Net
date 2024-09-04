@@ -26,9 +26,8 @@ class distributed_loss_track:
         self.temp_loss, self.counter = 0.0, 0
         self.epoch += 1
         
-    def get_loss(self, 
-                 additional_log = None):
-        avg_loss = self.__get_avg_loss__()
+    def get_loss(self):
+        avg_loss = self.get_avg_loss()
         if self.log:
             wandb.log({f"Epoch_{self.epoch}_{self.task}_loss": avg_loss})
         return avg_loss
@@ -37,11 +36,11 @@ class distributed_loss_track:
         self.get_loss(additional_log)
         self.reset()
 
-    def __get_avg_loss__(self):
+    def get_avg_loss(self):
         ## we have very little number in the denominator
         ## to avoid overflow!!!
         try:
-            self.all_reduce()
+            self.__all_reduce__()
         except Exception:
             Warning("Buddy something wrong with you GPU!!!! We can not sync the values!!!!")
         return self.temp_loss / (self.counter+1e-5)

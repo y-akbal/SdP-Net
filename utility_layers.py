@@ -24,7 +24,8 @@ class StochasticDepth(torch.nn.Module):
 
             size = [1]*x.ndim
 
-            noise_x = torch.empty(size, dtype = x_new.dtype, device= x_new.device, requires_grad = False).bernoulli_(1 - self.p).div_(1-self.p)
+            noise_x = torch.empty(size, dtype = x_new.dtype, device= x_new.device, requires_grad = False).bernoulli(1-self.p)/(1-self.p)
+            
             noise_register = noise_x.squeeze([-1, -2])
 
             return (1- noise_x)*x + noise_x*x_new, (1- noise_register)*register + noise_register*register_new
@@ -40,10 +41,11 @@ class m(nn.Module):
     def forward(self, x, register):
         return self.layer(x), self.layer(register)
         
-x,y = torch.randn(5, 2,2,2), torch.randn(5, 2)
-model = StochasticDepth(m(), p = 0.1)
+x,y = torch.randn(512, 2,2,2).cuda(), torch.randn(5, 2).cuda()
+model = StochasticDepth(m(), p = 0.9).cuda()
+model = torch.compile(model, mode ="max-autotune")
 model.train()
-model(x,y)[0].mean()
+model(x,y)
 """
 
 class SdPModel(nn.Module):
@@ -156,5 +158,6 @@ class SdPModel(nn.Module):
 
 @torch.compile
 def KeLu(x:torch.Tensor, a:float = 3.5)->torch.tensor:
-    return torch.where(x < -a, torch.zeros(x.shape), torch.where(x > a, x, 0.5*x*(1+x/a+(1/torch.pi)*torch.sin(x*torch.pi/a))))
+    return torch.where(x < -a, 0, torch.where(x > a, x, 0.5*x*(1+x/a+(1/torch.pi)*torch.sin(x*torch.pi/a))))
+
 

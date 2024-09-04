@@ -53,23 +53,34 @@ testloader = DataLoader(testset, batch_size=100, shuffle=False, num_workers=8)
 from model import main_model
 import torch
 from torch import nn
+
 model = main_model(
     n_head= 4, 
-    activation= nn.GELU("tanh"),
-    patch_size= 4, 
+    activation= nn.GELU(),
+    patch_size= 16, 
     conv_kernel_size=5, 
     output_classes=100, 
     embedding_dim=128, 
     num_blocks=5,
     max_image_size=(16,16),
-    head_output_from_register=False,
-    stochastic_depth=True,
-    stochastic_depth_p=[0.3, 0.001]
+    head_output_from_register=True,
+    simple_mlp_output=True,
+    stochastic_depth=False,
+    stochastic_depth_p=[0.9, 0.001]
 )
 
-
+torch.set_float32_matmul_precision('high')
 # Initialize the model, loss function, and optimizer
 model = model.to(device)
+model(torch.randn(1, 3, 224,224).cuda())
+model
+model = torch.compile(model, dynamic = True)
+model.train()
+torch.manual_seed(0)
+x = torch.randn(1, 3, 224,224).cuda()
+model(x)
+
+
 criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
@@ -84,7 +95,9 @@ def train(epochs):
             inputs, labels = inputs.to(device), labels.to(device)
 
             outputs = model(inputs)
-            loss = criterion(outputs[0], labels)
+            
+            
+            loss = criterion(outputs[0][:, 0, :], labels)
             
 
             optimizer.zero_grad()
@@ -93,7 +106,7 @@ def train(epochs):
 
             running_loss += loss.item()
 
-            _, predicted = torch.max(outputs[0].data, 1)
+            _, predicted = torch.max(outputs[0][:, 0, :].data, 1)
             total += inputs.size(0)
 
         epoch_loss = running_loss / len(trainloader)
@@ -112,7 +125,7 @@ def evaluate():
         for data in testloader:
             images, labels = data[0].to(device), data[1].to(device)
             outputs = model(images)
-            _, predicted = torch.max(outputs[0].data, 1)
+            _, predicted = torch.max(outputs[0][:, 0, :].data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 

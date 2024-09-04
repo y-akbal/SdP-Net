@@ -1,6 +1,6 @@
 import os
 import sys
-os.environ["OMP_NUM_THREADS"] = "3"
+os.environ["OMP_NUM_THREADS"] = "5"
 import torch
 from torch import nn as nn
 import torch.nn as nn

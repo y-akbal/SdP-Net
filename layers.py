@@ -67,7 +67,7 @@ class classification_head(nn.Module):
 
     def forward(self, x:torch.tensor, registers:torch.tensor)-> torch.tensor:
         if self.from_register:
-            return self.output_head(registers)
+            return self.output_head(registers)[:, 0, :]
         return self.output_head(x)
 
 """
@@ -327,14 +327,13 @@ class block(nn.Module):
             activation=conv_activation
         )
         self.conv_first = conv_first
-        self.register_norm = nn.LayerNorm(embedding_dim)
     def forward(self, x:torch.tensor, 
                 register:torch.tensor, 
                 mask:torch.tensor = None)->tuple[torch.tensor, torch.tensor]:
         
         if not self.conv_first:
             x, register = self.t_block(x, register, mask)
-            x, register = self.conv_block(x), self.register_norm(register)
+            x = self.conv_block(x)
             return x, register
         x = self.conv_block(x)
         return self.t_block(x, register, mask)
@@ -347,6 +346,30 @@ x, register = bl(x, register)
 x.shape
 register.shape
 """
+
+class final_block(nn.Module):
+    def __init__(
+            self, 
+            embedding_dim: int = 768,
+            n_head: int = 8,
+            activation_func: Callable = F.gelu,
+            multiplication_factor: int = 2,
+            ff_dropout: float = 0.2,
+            att_dropout: float = 0.2):
+        super().__init__()
+        self.t_block = EncoderLayer(
+            embedding_dim= embedding_dim,
+            n_head = n_head,
+            activation_func=activation_func,
+            multiplication_factor= multiplication_factor,
+            ff_dropout=ff_dropout,
+            att_dropout=att_dropout,
+        )
+    def forward(self, x:torch.tensor, 
+                register:torch.tensor, 
+                mask:torch.tensor = None)->tuple[torch.tensor, torch.tensor]:
+        return self.t_block(x, register, mask)
+
 
 if __name__ == "__main__":
     print("Okkayy!!")

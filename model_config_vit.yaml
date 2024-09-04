@@ -6,13 +6,13 @@ model_config:
   patch_size: 16
   ffn_dropout: 0.2
   attn_dropout: 0.2
-  stochastic_depth: 0.2
+  stochastic_depth: False
   stochastic_depth_p: [0.1, 0.01]
   output_classes: 1000
   max_image_size: [14,14]
   max_num_registers: 5
   conv_first: True
-  head_output_from_register: True
+  head_output_from_register: False
   simple_mlp_output: False
   output_head_bias: False
 
@@ -44,7 +44,7 @@ optimizer_scheduler_config:
   
 data:
   train_data_details:
-   batch_size: 64
+   batch_size: 2
    num_workers: 8
    pin_memory: True
    persistent_workers: True

@@ -87,44 +87,12 @@ from datasets import load_dataset
 dset = load_dataset('imagenet-1k', 
                     trust_remote_code=True, 
                                         use_auth_token=True, cache_dir = "/media/sahmaran/60E6D899E6D870B0/IMGNET")
-
-transforms_val = transforms.Compose([
-        transforms.Resize((64,64)),
-        transforms.ToImage(), 
-    ])
+dset["test"][1]
+transforms_ = train_trainsforms()
 
 
-a = set()
-for x in dset["validation"]:
-    a.add(x["cls"])
-    print(x)
+ds = hf_dataset(dset["validation"], transforms_)
 
-ds = hf_dataset(dset["test"], transforms_val)    
-
-
-import numpy as np
-
-train_x = np.memmap("test_x.dat", dtype = np.uint8, shape = (len(ds), 3, 64, 64), mode = "w+")
-train_y = np.memmap("test_y.dat", dtype = np.int64, shape = (len(ds), ), mode = "w+")
-
-import tqdm
-
-q = 0
-for i, image_dat in enumerate(tqdm.tqdm(ds)):
-    x,y = image_dat
-    if x.ndim < 3:
-      q+= 1
-    train_x[i], train_y[i] = x[0].numpy(), y
-    if i % 500 == 0:
-        train_x.flush()
-        train_y.flush()
-    """
-"""
-
-for i in range(1010000000):
-    print(hf_dataset(dset, transforms_)[i])
-
-ds = hf_dataset(dset["train"], transforms_)
 
 
 NUM_CLASSES = 1000
@@ -136,9 +104,16 @@ cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
 def collate_fn(batch):
     return cutmix_or_mixup(*default_collate(batch))
 
-data_loader = DataLoader(ds, batch_size= 128, pin_memory=True, num_workers=8, collate_fn = collate_fn)
-for  i,(x,y) in enumerate(data_loader):
-    print(y[0,:].max(), 1-y[0,:].max(), i, y.shape)
+data_loader = DataLoader(ds, batch_size= 64, pin_memory=True, num_workers=8, collate_fn = collate_fn)
+
+
+from model import main_model
+from torch import nn as nn
+model_ = main_model(stochastic_depth = True, stochastic_depth_p = [0.2, 0.01]).to("cuda:0")
+
+for x, y in data_loader:
+    x, y = x.to("cuda:0"), y.to("cuda:0")
+    print(x.shape, y.shape, nn.CrossEntropyLoss()(model_(x),y))
 
 """
 
@@ -155,7 +130,7 @@ def hf_train_val_data_loader(**kwargs):
     
     train_trainsforms_, val_transforms_ = train_trainsforms(), val_transforms()
 
-    dset_train, dset_test = dset["train"], dset["test"]    
+    dset_train, dset_test = dset["train"], dset["validation"]    
     dset_train, dset_test = hf_dataset(dset_train, train_trainsforms_), hf_dataset(dset_test, val_transforms_)
 
     kwargs_train = kwargs["train_data_details"]
