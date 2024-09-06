@@ -62,39 +62,42 @@ class Trainer:
             self._load_checkpoint(self.PATH)
         except Exception as e:
             print(f"There is a problem with loading the model weights and the problem is: {e}")
+        ## loss_fn
+        self.loss_fn = nn.CrossEntropyLoss(label_smoothing = 0.1).to(gpu_id)
         
     def _run_batch(self, 
                    source: torch.tensor, 
                    targets: torch.tensor, 
                    batch_enum = None)-> float:
         # -- Zero the grads on the graph -- #
-        self.optimizer.zero_grad()
+        self.optimizer.zero_grad(set_to_none=True)
+        
 
         with self.autocast(device_type="cuda", dtype=torch.bfloat16):
             output = self.model(source)
             ## Use here binary-cross entropy loss instead of cross entropy loss
-            loss = nn.CrossEntropyLoss(label_smoothing = 0.1)(output, 
+            loss = self.loss_fn(output, 
                                    targets)
 
         self.scaler.scale(loss).backward()
-        self.scaler.unscale_(self.optimizer)
 
-        torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1)
         
         if (batch_enum+1)%self.grad_accum_steps == 0:
             # every 2 iterations we update the grads!!!
+            self.scaler.unscale_(self.optimizer)
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1)
             self.scaler.step(self.optimizer)
             self.scaler.update()
 
+        
         ### We return the batch loss for logging purposses ###
         return loss.item()
         
 
     def _run_epoch(self):
-        
+
         for i, (source, targets) in enumerate(self.train_data):
-            source, targets = source.to(self.gpu_id, non_blocking=False), targets.to(self.gpu_id, non_blocking=False)
-            
+            source, targets = source.to(self.gpu_id, non_blocking=True), targets.to(self.gpu_id, non_blocking=True)
             batch_loss = self._run_batch(source, targets, batch_enum = i)
             # log the batch loss onto local logger!!!
             self.train_loss_logger.update(batch_loss)
@@ -111,6 +114,8 @@ class Trainer:
             """
             init_start = torch.cuda.Event(enable_timing=True)
             init_end = torch.cuda.Event(enable_timing=True)
+            torch.cuda.synchronize() 
+            print(f"elapsed time: {init_start.elapsed_time(init_end) / 1000}secs")
             """
             self.epoch = epoch
             if epoch % self.report_in_every == 0:
@@ -118,20 +123,24 @@ class Trainer:
             ##
             self.train_data.sampler.set_epoch(self.epoch)
             ## 
+
+
             self.model.train() ## Model in train mode!!!
             #init_start.record() ## How much time we spent!!!
             self._run_epoch()
-            #init_end.record() 
             # ## let's log the loss now!!!
             self.train_loss_logger.log_loss()
+            #init_end.record() 
             ##  Epoch is done take one step scheduler, 
             self.scheduler.step()
             #torch.cuda.synchronize() 
             #print(f"elapsed time: {init_start.elapsed_time(init_end) / 1000}secs")
             if self.gpu_id == 0 and epoch % self.save_every == 0:
-               self._save_checkpoint()
+                self._save_checkpoint()
+                ## Let's validate
+                self.validate()
+            
             ## You gottta update the EMA model here!!!!
-            self.validate()
 
     def validate(self):
         self.model.eval()
@@ -140,16 +149,20 @@ class Trainer:
         with torch.no_grad():  ## block tracking gradients
     
             for source, targets in self.val_data:
-                source, targets = source.to(self.gpu_id), targets.to(self.gpu_id)
+                source, targets = source.to(self.gpu_id, non_blocking=True), targets.to(self.gpu_id, non_blocking=True)
                 output = self.model(source)  
                 
                 loss = nn.CrossEntropyLoss()(output, targets)
-                accuracy = (output.argmax(-1) == targets).float().mean()
+                accuracy = (output.argmax(-1) == targets).sum()
+
+                
                 self.val_loss_logger.update(loss.item())
                 self.val_accuracy_logger.update(batch_accuracy = accuracy.item(), batch_size = targets.shape[0])
+                #print(loss.item(), accuracy.item(), output.shape, self.val_accuracy_logger.accuracy, self.val_accuracy_logger.epoch)
+
                             
-            self.val_loss_logger.log()
-            self.val_accuracy_logger.log()   
+            self.val_loss_logger.log_loss()
+            self.val_accuracy_logger.log_acc()   
     
     ## Some tools ## 
     def _load_checkpoint(self, checkpoint_file):

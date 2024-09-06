@@ -102,7 +102,7 @@ model = main_model(num_blocks = 10,
                    conv_first=True, 
                    stochastic_depth=False,  
                    stochastic_depth_p=[0.9, 0.01],
-                   head_output_from_register=True,
+                   head_output_from_register=False,
                    simple_mlp_output=False)
 
 inputs = torch.randn(30, 3, 224, 224)
@@ -123,7 +123,7 @@ batch_size = 2
 
 init_start = torch.cuda.Event(enable_timing=True)
 
-for epoch in range(1000):
+for epoch in range(10):
     optimizer.zero_grad()
         
     # Forward pass

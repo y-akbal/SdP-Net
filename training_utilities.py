@@ -29,11 +29,11 @@ class distributed_loss_track:
     def get_loss(self):
         avg_loss = self.get_avg_loss()
         if self.log:
-            wandb.log({f"Epoch_{self.epoch}_{self.task}_loss": avg_loss})
+            wandb.log({f"{self.task}_loss": avg_loss})
         return avg_loss
 
-    def log_loss(self, additional_log = None)->None:
-        self.get_loss(additional_log)
+    def log_loss(self)->None:
+        self.get_loss()
         self.reset()
 
     def get_avg_loss(self):
@@ -64,8 +64,8 @@ class track_accuracy:
                  wandb_log = True):
         self.temp_acc:int = 0
         self.total_size:int = 0
-        self.epoch:int = 0,
-        self.task = task,
+        self.epoch:int = 0
+        self.task = task
         self.wandb_log = wandb_log
 
     def update(self, 
@@ -75,11 +75,11 @@ class track_accuracy:
         self.total_size += batch_size
 
     def reset(self):
-        self.temp_acc = 0
+        self.temp_acc = 0.0
         self.total_size = 0
         self.epoch += 1
     
-    def log(self):
+    def log_acc(self):
         self.get_accuracy()
         self.reset()
     
@@ -90,7 +90,7 @@ class track_accuracy:
     def get_accuracy(self):
         acc = self.__get_accuracy__()
         if self.wandb_log:
-            wandb.log({f"Epoch_{self.epoch}_{self.task}_acc:{acc}"})
+            wandb.log({f"{self.task}_acc":acc})
         return acc
 
     def __get_accuracy__(self):
@@ -100,4 +100,5 @@ class track_accuracy:
     def __all_reduce__(self):
         loss_tensor = torch.tensor([self.temp_acc, self.total_size], dtype=torch.float32).cuda()
         all_reduce(loss_tensor, ReduceOp.SUM, async_op=False)
-        self.temp_acc, self.total_size = loss_tensor.item()
+        self.temp_acc, self.total_size = loss_tensor.tolist()
+

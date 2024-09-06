@@ -257,7 +257,7 @@ class EncoderLayer(nn.Module):
         with sdpa_kernel([SDPBackend.MATH, SDPBackend.EFFICIENT_ATTENTION]):
             attn_output = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, dropout_p = self.att_dropout if self.training else 0.0)
         
-        attn_output = attn_output.transpose(1, 2).contiguous().view(B, R+H*W, C)
+        attn_output = attn_output.transpose(1, 2).view(B, R+H*W, C).contiguous()
         attn_output = self.o_proj(attn_output)
         
         x_flat = residual + self.dropout(attn_output)
@@ -272,7 +272,7 @@ class EncoderLayer(nn.Module):
         # we split the register token from x_flat!!!
         register, x_flat = x_flat.split([R, H*W], dim = -2)
         # Reshape back to (B, C, H, W) !!!
-        x = x_flat.transpose(1, 2).view(B, C, H, W)
+        x = x_flat.transpose(1, 2).view(B, C, H, W).contiguous()
         
         return x, register  # Output shape: (B, C, H, W), (B, R, C)
 

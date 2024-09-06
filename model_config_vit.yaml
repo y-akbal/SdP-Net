@@ -1,6 +1,9 @@
+wandb_config:
+  project: "Tiny-SdPNet"
+
 model_config:
-  num_blocks: 15
-  embedding_dim: 128
+  num_blocks: 8
+  embedding_dim: 512
   n_head: 8
   conv_kernel_size: 7
   patch_size: 16
@@ -17,18 +20,18 @@ model_config:
   output_head_bias: False
 
 trainer_config:
-  compile_model: False
+  compile_model: True
   snapshot_dir: "model"
   snapshot_name: "model_1.pt"
   save_every: 1
   total_epochs: 300
-  gradient_accumulation_steps: 8
+  gradient_accumulation_steps: 15
   report_every_epoch: 1
   
   
 optimizer_scheduler_config:
   optimizer_config:
-    lr: 0.0001875  #0.0005*batch_size*gradient_accumulation_steps*GPU/512
+    lr: 0.0009375  #0.0005*batch_size*gradient_accumulation_steps*GPU/512
     weight_decay: 0.05
 
   scheduler_config:
@@ -44,11 +47,12 @@ optimizer_scheduler_config:
   
 data:
   train_data_details:
-   batch_size: 2
-   num_workers: 8
+   batch_size: 128
+   num_workers: 12
    pin_memory: True
    persistent_workers: True
-   prefetch_factor: 2
+   prefetch_factor: 4
+   drop_last: True
    
    
   val_data_details:

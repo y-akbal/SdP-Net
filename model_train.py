@@ -1,6 +1,11 @@
 import os
 import sys
 os.environ["OMP_NUM_THREADS"] = "5"
+
+
+
+
+
 import torch
 from torch import nn as nn
 import torch.nn as nn
@@ -16,6 +21,7 @@ from model import main_model
 from training_tools import Trainer, return_scheduler_optimizer
 from hf_dataset_generator import hf_train_val_data_loader
 from training_utilities import track_accuracy, distributed_loss_track
+import wandb
 #
 torch.set_float32_matmul_precision("medium")
 
@@ -45,7 +51,7 @@ def main(cfg : DictConfig):
         ## --- ### 
 
         ## model_config -- optimizer config -- scheduler config ##
-        torch.manual_seed(10)
+        torch.manual_seed(231424314)
         model = main_model.from_dict(**model_config)
         optimizer, scheduler = return_scheduler_optimizer(model, **optimizer_scheduler_config)
         ## batched train and validation data loader ## 
@@ -58,8 +64,9 @@ def main(cfg : DictConfig):
             print(f"Model has {model.return_num_params()} params. There are {torch.cuda.device_count()} GPUs available on this machine!!!")
             print(f"Current setup is {model_config}")
     
-        train_loss_tracker = distributed_loss_track()
-        val_loss_tracker = distributed_loss_track()
+        train_loss_tracker = distributed_loss_track(task="Train")
+
+        val_loss_tracker = distributed_loss_track(task="Validation")
         val_acc_tracker = track_accuracy()
     
         trainer = Trainer(
@@ -74,6 +81,8 @@ def main(cfg : DictConfig):
             val_accuracy_logger=val_acc_tracker,
             **trainer_config
         )
+        wandb.init(project = "Tiny-SdpNet", config = dict(cfg))
+        
         trainer.train()
 
 
