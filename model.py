@@ -96,17 +96,19 @@ class main_model(SdPModel):
         return x_classification_head, x_raw_output, registers
 
 """
-model = main_model(num_blocks = 10, 
-                   embedding_dim = 128, 
+model = main_model(num_blocks = 25, 
+                   embedding_dim = 512, 
                    patch_size=16,
-                   conv_first=True, 
-                   stochastic_depth=False,  
-                   stochastic_depth_p=[0.9, 0.01],
-                   head_output_from_register=False,
-                   simple_mlp_output=False)
+                   conv_first=False, 
+                   stochastic_depth=False, 
+                   conv_kernel_size = 7, 
+                   stochastic_depth_p=[0.5, 0.01],
+                   head_output_from_register=True,
+                   simple_mlp_output=True).cuda()
 
-inputs = torch.randn(30, 3, 224, 224)
-targets = torch.randint(0, 1000, (30,))
+model = torch.compile(model)                   
+inputs = torch.randn(32, 3, 224, 224).cuda()
+targets = torch.randint(0, 1000, (32,)).cuda()
 
 model(inputs, return_raw_outputs = False, num_registers = 10).std()
 model.return_num_params()
@@ -121,26 +123,18 @@ num_epochs = 10
 batch_size = 2
 
 
-init_start = torch.cuda.Event(enable_timing=True)
 
-for epoch in range(10):
+for epoch in range(1000):
+
     optimizer.zero_grad()
-        
     # Forward pass
     outputs = model(inputs)
     loss = criterion(outputs, targets)
-        
     loss.backward()
     optimizer.step()
-        
     print(loss.item(), epoch)
 
-torch.cuda.synchronize() 
-init_end = torch.cuda.Event(enable_timing=True)
 
-
-
-print(f"elapsed time: {init_start.elapsed_time(init_end) / 1000}secs")
     
 for name, lay in model.named_parameters(): 
     if lay.grad == None:

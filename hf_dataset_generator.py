@@ -5,7 +5,8 @@
 ### I would like to use collate_fn in the dataloader because of the mixup and cutmix---
 import torch
 from torch.utils.data import DataLoader, Dataset
-from datasets import load_dataset
+from datasets import load_dataset, disable_progress_bars
+import datasets
 import os
 import torchvision.transforms.v2 as transforms
 from torchvision.transforms import v2
@@ -13,6 +14,9 @@ from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 from torchvision.transforms import v2
 from torch.utils.data import default_collate
+
+#disable_progress_bars()
+datasets.logging.set_verbosity(datasets.logging.INFO)
 
 def get_cache_dir():
     try:

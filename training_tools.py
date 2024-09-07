@@ -96,15 +96,20 @@ class Trainer:
 
     def _run_epoch(self):
 
+        init_start = torch.cuda.Event(enable_timing=True)
+        init_end = torch.cuda.Event(enable_timing=True)
         for i, (source, targets) in enumerate(self.train_data):
             source, targets = source.to(self.gpu_id, non_blocking=True), targets.to(self.gpu_id, non_blocking=True)
+            init_start.record()
             batch_loss = self._run_batch(source, targets, batch_enum = i)
+            init_end.record()
+            torch.cuda.synchronize()
             # log the batch loss onto local logger!!!
             self.train_loss_logger.update(batch_loss)
             ## print the loss
             if (self.gpu_id == 0) and i % 500 == 0:
                 batch_loss = self.train_loss_logger.get_avg_loss()
-                print(f"{i} Batch passed the average loss is {batch_loss}, lr is {self.scheduler.get_last_lr()}")
+                print(f"{i} Batch passed the average loss is {batch_loss}, lr is {self.scheduler.get_last_lr()} -- {init_start.elapsed_time(init_end) / 1000}secs to pass a batch!")
             ### -- ###
 
     def train(self):
