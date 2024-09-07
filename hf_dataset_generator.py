@@ -31,10 +31,9 @@ def val_transforms(crop_size = (224,224),
         std = [0.229, 0.224, 0.225]):
 
     transforms_val = transforms.Compose([
-        transforms.RGB(),
-        transforms.Resize(crop_size),
-        transforms.ToImage(), 
-        transforms.ToDtype(torch.float32, scale=True),
+        transforms.Resize(256),
+        transforms.CenterCrop(crop_size),
+        transforms.ToTensor(),
         transforms.Normalize(mean, std)
     ])
     return transforms_val
@@ -46,12 +45,11 @@ def train_trainsforms(crop_size = (224,224),
     transforms_train = transforms.Compose([
         transforms.RGB(),
         transforms.RandomResizedCrop(crop_size),
-        transforms.RandAugment(), ## RandAugment ---
         transforms.RandomHorizontalFlip(),
-        transforms.RandomErasing(),
-        transforms.ToImage(), 
-        transforms.ToDtype(torch.float32, scale=True),
-        transforms.Normalize(mean, std)
+        transforms.RandAugment(),
+        transforms.ToTensor(),
+        transforms.Normalize(mean, std),
+        transforms.RandomErasing(p=0.1)
     ])
     return transforms_train
 
