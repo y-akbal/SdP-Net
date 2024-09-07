@@ -8,7 +8,7 @@ from numpy import arccos, cos
 
 class main_model(SdPModel):
     def __init__(self, 
-                 embedding_dim:int = 768,
+                 embedding_dim:int = 128,
                  num_blocks:int = 10,
                  n_head:int = 4,                 
                  activation:Callable = nn.GELU("tanh"),

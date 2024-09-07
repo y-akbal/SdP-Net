@@ -3,7 +3,7 @@ wandb_config:
 
 model_config:
   num_blocks: 12
-  embedding_dim: 768
+  embedding_dim: 128
   n_head: 8
   conv_kernel_size: 7
   patch_size: 16
@@ -32,7 +32,7 @@ trainer_config:
 optimizer_scheduler_config:
   optimizer_config:
     lr: 0.0009375  #0.0005*batch_size*gradient_accumulation_steps*GPU/512
-    weight_decay: 0.05
+    weight_decay: 0.1
 
   scheduler_config:
     cosine:
@@ -47,7 +47,7 @@ optimizer_scheduler_config:
   
 data:
   train_data_details:
-   batch_size: 192
+   batch_size: 256
    num_workers: 12
    pin_memory: True
    persistent_workers: True
