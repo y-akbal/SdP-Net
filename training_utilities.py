@@ -102,3 +102,20 @@ class track_accuracy:
         all_reduce(loss_tensor, ReduceOp.SUM, async_op=False)
         self.temp_acc, self.total_size = loss_tensor.tolist()
 
+
+class MeasureTime:
+    def __init__(self):
+        self.start = torch.cuda.Event(enable_timing=True)
+        self.stop = torch.cuda.Event(enable_timing=True)
+        
+
+    def __enter__(self):
+        self.start.record()
+
+    def __exit__(self, *args):
+        # Record the stop time
+        self.stop.record()
+        torch.cuda.synchronize()  
+        elapsed_time = self.start.elapsed_time(self.stop)
+        print(f"Elapsed time: {elapsed_time/1000:.2f} seconds")
+

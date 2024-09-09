@@ -6,16 +6,12 @@ import torch.nn.functional as F
 from typing import Callable
 from torch.nn.attention import SDPBackend, sdpa_kernel
 
-## Here we will have layers to be used 
-## We shall mostly use the optimized torch layers
-## rather than coming up with our own implementations
-class conv_patcher(nn.Module):
+class ConvPatcher(nn.Module):
     def __init__(self, 
                  embedding_dim = 128, 
                  patch_size = 4):
         super().__init__()
 
-        self.embedding_dim = embedding_dim
         self.conv = nn.Conv2d(in_channels = 3, 
                               out_channels = embedding_dim,
                               kernel_size = patch_size,
@@ -24,60 +20,13 @@ class conv_patcher(nn.Module):
                               )
         self.patch_size = patch_size
     def forward(self, x:torch.Tensor)->torch.Tensor:
-        ## B, 3, H, W --> B, 3, H*W ### 
-        B, C, _, _ = x.shape
-        x = self.conv(x) 
-        return x
+        ## B, 3, H, W --> B, out_channels, H//PATCH_SIZE, W//PATCH_SIZE ### 
+        return self.conv(x) 
 """
-conv_patcher(patch_size=16)(torch.randn(5, 3, 224,224)).is_contiguous()
+conv_patcher(patch_size=16)(torch.randn(5, 3, 224,224)).mean()
 """
 
-class classification_head(nn.Module):
-    ## Here we embed C instead of the batch H*W
-    ## this may sound a bit weirdo!!! 
-    def __init__(self, 
-                 embedding_dim:int = 768, 
-                 output_classes:int=1000,
-                 dropout:float = 0.2,
-                 from_register:bool = True,
-                 simple_output:bool = False, 
-                 bias:bool = False,
-                 ):
-        
-        super().__init__()
-        self.from_register = from_register
-        if from_register:
-            if simple_output:
-                self.output_head = nn.Sequential(*[nn.LayerNorm(embedding_dim),
-                                        nn.Linear(embedding_dim, output_classes, bias = bias),
-                                        ])
-            else:
-                self.output_head = nn.Sequential(*[nn.LayerNorm(embedding_dim),
-                                        nn.Linear(embedding_dim, output_classes, bias = bias),
-                                        nn.Tanh(),
-                                        nn.Dropout(dropout),
-                                        nn.Linear(output_classes, output_classes, bias = bias)
-                                        ])
-        else:
-            self.output_head = nn.Sequential(*[
-                nn.AdaptiveAvgPool2d((1,1)), 
-                nn.Flatten(),
-                nn.Linear(embedding_dim, output_classes, bias = bias)
-            ])
-
-    def forward(self, x:torch.tensor, registers:torch.tensor)-> torch.tensor:
-        if self.from_register:
-            return self.output_head(registers)[:, 0, :]
-        return self.output_head(x)
-
-"""
-torch.manual_seed(0)
-head = classification_head(768, 1000, from_register= True, simple_output= False)
-head(torch.randn(10, 14*14, 768)).std()
-"""
-
-
-class conv_mixer(nn.Module):
+class ConvMixer(nn.Module):
     def __init__(self, 
                  embedding_dim:int = 768, 
                  kernel_size:int = 5, 
@@ -98,20 +47,22 @@ class conv_mixer(nn.Module):
         self.layer_norm_2 = nn.GroupNorm(1, embedding_dim)
         self.activation = activation
 
-    def forward(self, x_:torch.Tensor)->torch.Tensor:
-        """
-        Shape here is to be of the form: B, C, H, W --> B, C, H, W
-        where we normalize the channel!!!
-        """
-        #TODO the layer to be deleted below may be included here, in this case watchout the bias!!!
-        x = self.conv2d(self.layer_norm_1(x_))
+    def forward(self, x_:torch.Tensor):
+        x = self.conv2d(x_)
         x = self.activation(x)
-        x = self.conv1d(x_+self.layer_norm_2(x))
+        x = self.layer_norm_1(x)+x_
+        x = self.conv1d(x)
         x = self.activation(x)
-        #TODO may remove the last layer norm since this dude will be going into to the transformer layer!!!
+        x = self.layer_norm_2(x)
         return x
 
-class embedding_layer(nn.Module):
+"""
+layer = conv_mixer().cuda()
+x = torch.randn(100, 768, 14, 14).cuda()
+layer(x)
+"""
+
+class EmbeddingLayer(nn.Module):
     ## We isolated this layer in the case that you want to 
     ## do something like enumerating the pixels...
     def __init__(self, 
@@ -123,8 +74,6 @@ class embedding_layer(nn.Module):
         super().__init__()
         ### -- ###
         self.max_num_registers = max_num_registers
-        self.vertical_im_size = max_image_size[0]
-        self.horizontal_im_size = max_image_size[1]
         self.activation = activation if activation != None else lambda x: x
         ###
         self.register_embedding_layer = nn.Embedding(max_num_registers, embedding_dim)
@@ -160,25 +109,18 @@ class embedding_layer(nn.Module):
                 requires_grad=False,
             ),
         )
-
-
+    
     def forward(self, 
                 x:torch.Tensor, 
                 num_registers:int = 0)->tuple[torch.Tensor, torch.Tensor]:
-        """
-        
-        """
         B, C, H, W = x.shape
-
         ## NO NEED TO COMPUTE THESE DUDES FOR EACH FORWARD PASS!!!!! Do we have kind a caching mechanism?
-
         register_embeddings = self.register_embedding_layer(self.register_embeddings[:num_registers+1])
-    
         horizontal_embeddings = self.horizontal_embedding_layer(self.horizontal_embedding[:H]).transpose(-1, -2).unsqueeze(-1)
         vertical_embeddings = self.vertical_embedding_layer(self.vertical_embedding[:W]).transpose(-1,-2).unsqueeze(-2)
         ## We are adding embeddings both vertically and horizontally!!!
         
-        x += horizontal_embeddings
+        x += horizontal_embeddings 
         x += vertical_embeddings
         
         #Expand the embeddings though not the best memory efficient way!!!
@@ -187,9 +129,7 @@ class embedding_layer(nn.Module):
         return  self.activation(x), expanded_register_embeddings
 
 """
-x, register = embedding_layer(max_image_size=[15,15])(torch.randn(2, 768, 15, 15), 15)
-x.shape
-
+x = embedding_layer(max_image_size=[15,15])(torch.randn(2, 768, 15, 15), 0)
 """
 class EncoderLayer(nn.Module):
     def __init__(
@@ -199,7 +139,8 @@ class EncoderLayer(nn.Module):
         activation_func: Callable = F.gelu,
         multiplication_factor: int = 2,
         ff_dropout: float = 0.2,
-        att_dropout: float = 0.2
+        att_dropout: float = 0.2,
+        fast_att:bool = True,
     ):
         super().__init__()
         assert embedding_dim % n_head == 0, "Number of embedding_dim must be divisible by n_head"
@@ -208,6 +149,7 @@ class EncoderLayer(nn.Module):
         self.n_head = n_head
         self.head_dim = embedding_dim // n_head
         self.att_dropout = att_dropout
+        self.fast_att = fast_att
 
         # Multi-head self-attention
         self.q_proj = nn.Linear(embedding_dim, embedding_dim)
@@ -252,55 +194,44 @@ class EncoderLayer(nn.Module):
         q = self.q_proj(x_norm).view(B, R+H*W, self.n_head, self.head_dim).transpose(1, 2)
         k = self.k_proj(x_norm).view(B, R+H*W, self.n_head, self.head_dim).transpose(1, 2)
         v = self.v_proj(x_norm).view(B, R+H*W, self.n_head, self.head_dim).transpose(1, 2)
-        
+        ## Shall we normalize the q v here ? ? ? ? ? 
         ## Glad to use flash attention here!!!
-        with sdpa_kernel([SDPBackend.MATH, SDPBackend.EFFICIENT_ATTENTION]):
-            attn_output = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, dropout_p = self.att_dropout if self.training else 0.0)
+        if self.fast_att:
+            with sdpa_kernel([SDPBackend.MATH, SDPBackend.FLASH_ATTENTION]):
+                attn_output = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, dropout_p = self.att_dropout if self.training else 0.0)
+        else:
+            attn_output = (self.dropout(q @ k.transpose(-1, -2)/self.head_dim**0.5).softmax(-1))@v
         
-        attn_output = attn_output.transpose(1, 2).view(B, R+H*W, C).contiguous()
+        attn_output = attn_output.transpose(1, 2).contiguous().view(B, R+H*W, C)
         attn_output = self.o_proj(attn_output)
         
-        x_flat = residual + self.dropout(attn_output)
         
+        x_flat = residual + self.dropout(attn_output)
         # Feed-forward network !!!
         residual = x_flat
         x_norm = self.norm2(x_flat)
         x_ff = self.ff_linear2(self.dropout(self.activation(self.ff_linear1(x_norm))))
         x_flat = residual + self.dropout(x_ff)
         
-        
         # we split the register token from x_flat!!!
         register, x_flat = x_flat.split([R, H*W], dim = -2)
+        
         # Reshape back to (B, C, H, W) !!!
         x = x_flat.transpose(1, 2).view(B, C, H, W).contiguous()
         
         return x, register  # Output shape: (B, C, H, W), (B, R, C)
 
+
+"""from training_utilities import MeasureTime
+torch.manual_seed(0)
+layer = EncoderLayer(fast_att=False)    
+x = torch.randn(10, 768, 55, 55)
+reg = torch.randn(10, 5, 768)
+with MeasureTime():
+    layer.eval()
+    layer(x, reg)
 """
-import time
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-x, register = embedding_layer(max_image_size=[15,15])(torch.randn(2, 768, 15, 15), 15)
-
-layer = EncoderLayer(ff_dropout=0.1, att_dropout=0.1)
-
-layer = torch.compile(layer)
-layer.train()
-layer(x, register)
-
-import time    
-    # Measure transpose
-start = time.time()
-for _ in range(1000):
-    with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
-        y = layer(x, register)
-        torch.cuda.synchronize()
-transpose_time = (time.time() - start) / 1000
-
-print(f"Transpose time: {transpose_time*1e6:.2f} microseconds")
-"""
-
-class block(nn.Module):
+class Block(nn.Module):
     def __init__(
             self, 
             embedding_dim: int = 768,
@@ -321,7 +252,7 @@ class block(nn.Module):
             ff_dropout=ff_dropout,
             att_dropout=att_dropout,
         )
-        self.conv_block = conv_mixer(
+        self.conv_block = ConvMixer(
             embedding_dim= embedding_dim,
             kernel_size=conv_kernel_size,
             activation=conv_activation
@@ -347,7 +278,7 @@ x.shape
 register.shape
 """
 
-class final_block(nn.Module):
+class FinalBlock(nn.Module):
     def __init__(
             self, 
             embedding_dim: int = 768,
@@ -369,6 +300,53 @@ class final_block(nn.Module):
                 register:torch.tensor, 
                 mask:torch.tensor = None)->tuple[torch.tensor, torch.tensor]:
         return self.t_block(x, register, mask)
+
+
+class ClassificationHead(nn.Module):
+    ## Here we embed C instead of the batch H*W
+    ## this may sound a bit weirdo!!! 
+    def __init__(self, 
+                 embedding_dim:int = 768, 
+                 output_classes:int=1000,
+                 dropout:float = 0.2,
+                 from_register:bool = True,
+                 simple_output:bool = False, 
+                 bias:bool = False,
+                 ):
+        
+        super().__init__()
+        self.from_register = from_register
+        if from_register:
+            if simple_output:
+                self.output_head = nn.Sequential(*[nn.LayerNorm(embedding_dim),
+                                        nn.Linear(embedding_dim, output_classes, bias = bias),
+                                        ])
+            else:
+                self.output_head = nn.Sequential(*[nn.LayerNorm(embedding_dim),
+                                        nn.Linear(embedding_dim, output_classes, bias = bias),
+                                        nn.Tanh(),
+                                        nn.Dropout(dropout),
+                                        nn.Linear(output_classes, output_classes, bias = bias)
+                                        ])
+        else:
+            self.output_head = nn.Sequential(*[
+                nn.AdaptiveAvgPool2d((1,1)), 
+                nn.Flatten(),
+                nn.Linear(embedding_dim, output_classes, bias = bias)
+            ])
+
+    def forward(self, x:torch.tensor, registers:torch.tensor)-> torch.tensor:
+        if self.from_register:
+            return self.output_head(registers)[:, 0, :]
+        return self.output_head(x)
+
+"""
+torch.manual_seed(0)
+head = classification_head(768, 1000, from_register= True, simple_output= False)
+head(torch.randn(10, 14*14, 768)).std()
+"""
+
+
 
 
 if __name__ == "__main__":

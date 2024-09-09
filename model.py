@@ -1,10 +1,11 @@
 import torch
 from torch import nn as nn
 from torch.nn import functional as F
-from layers import conv_patcher, embedding_layer, classification_head, block, final_block
+from layers import ConvMixer, ConvPatcher, EmbeddingLayer, ConvPatcher, Block, FinalBlock, ClassificationHead
 from utility_layers import SdPModel, StochasticDepth
 from typing import Callable, Optional, Any, Union
 from numpy import arccos, cos
+torch.set_float32_matmul_precision('high')
 
 class main_model(SdPModel):
     def __init__(self, 
@@ -31,12 +32,12 @@ class main_model(SdPModel):
         ## oh s***  here we go again ##
         ## RIP CJ!##
         ### -- ##
-        self.conv_init = conv_patcher(
+        self.conv_init = ConvPatcher(
                 embedding_dim= embedding_dim,
                 patch_size= patch_size,
         )
         
-        self.embedding_layer = embedding_layer(
+        self.embedding_layer = EmbeddingLayer(
             embedding_dim= embedding_dim,
             max_num_registers=max_num_registers,
             max_image_size= max_image_size,
@@ -48,7 +49,7 @@ class main_model(SdPModel):
         ST_p = lambda i: cos(arccos(stochastic_depth_p[0])*(1 - i/num_blocks) + arccos(stochastic_depth_p[1])*(i/num_blocks))
 
         self.blocks = nn.ModuleList([
-                        ST(block(embedding_dim  = embedding_dim,
+                        ST(Block(embedding_dim  = embedding_dim,
                         n_head = n_head,
                         activation_func = activation,
                         ff_dropout = ffn_dropout,
@@ -58,7 +59,7 @@ class main_model(SdPModel):
                         conv_first = conv_first), p = ST_p(i))
                         for i in range(num_blocks)])
         
-        self.final_block = final_block(embedding_dim  = embedding_dim,
+        self.final_block = FinalBlock(embedding_dim  = embedding_dim,
                         n_head = n_head,
                         activation_func = activation,
                         ff_dropout = ffn_dropout,
@@ -66,7 +67,7 @@ class main_model(SdPModel):
         )
 
 
-        self.output_head = classification_head(embedding_dim, 
+        self.output_head = ClassificationHead(embedding_dim, 
                                        output_classes,
                                        ffn_dropout,
                                        from_register = head_output_from_register,
@@ -96,27 +97,35 @@ class main_model(SdPModel):
         return x_classification_head, x_raw_output, registers
 
 """
-model = main_model(num_blocks = 25, 
-                   embedding_dim = 512, 
+
+
+from training_utilities import MeasureTime
+model = main_model(num_blocks = 12, 
+                   embedding_dim = 128, 
                    patch_size=16,
                    conv_first=False, 
                    stochastic_depth=False, 
-                   conv_kernel_size = 7, 
-                   stochastic_depth_p=[0.5, 0.01],
+                   conv_kernel_size = 9, 
+                   stochastic_depth_p=[0.2, 0.01],
                    head_output_from_register=True,
-                   simple_mlp_output=True).cuda()
+                   simple_mlp_output=True,
+                   max_image_size = [32,32],
+                   ).cuda()
 
-model = torch.compile(model)                   
-inputs = torch.randn(32, 3, 224, 224).cuda()
-targets = torch.randint(0, 1000, (32,)).cuda()
+inputs = torch.randn(4, 3, 448, 448).cuda()
+targets = torch.randint(0, 1000, (4,)).cuda()
 
-model(inputs, return_raw_outputs = False, num_registers = 10).std()
+with MeasureTime():
+    for i in range(100):
+        x = model(inputs, return_raw_outputs = False, num_registers = 15)
+
+
 model.return_num_params()
-                   
+                  
 
 from torch import optim                   
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
 # Training loop
 num_epochs = 10
@@ -124,7 +133,7 @@ batch_size = 2
 
 
 
-for epoch in range(1000):
+for epoch in range(10):
 
     optimizer.zero_grad()
     # Forward pass
@@ -141,13 +150,8 @@ for name, lay in model.named_parameters():
         print(name, lay.grad)
 
 
-with torch.inference_mode():
-    x,y,z = model(torch.randn(5, 3, 224,224), num_registers = 1, return_raw_outputs = True)odel.output_head
-x.shape
-model.return_num_params()
-a = model.layer_test()
-
 """
+
 if __name__ == "__main__":
     print("Ok boomer!!!")
 

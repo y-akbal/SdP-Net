@@ -85,14 +85,14 @@ class Trainer:
         if (batch_enum+1)%self.grad_accum_steps == 0:
             # every 2 iterations we update the grads!!!
             self.scaler.unscale_(self.optimizer)
-            torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1)
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), 3)
             self.scaler.step(self.optimizer)
             self.scaler.update()
 
         
         ### We return the batch loss for logging purposses ###
         return loss.item()
-        
+
 
     def _run_epoch(self):
 
@@ -107,7 +107,7 @@ class Trainer:
             # log the batch loss onto local logger!!!
             self.train_loss_logger.update(batch_loss)
             ## print the loss
-            if (self.gpu_id == 0) and i % 500 == 0:
+            if (self.gpu_id == 0) and i % 5 == 0:
                 batch_loss = self.train_loss_logger.get_avg_loss()
                 print(f"{i} Batch passed the average loss is {batch_loss}, lr is {self.scheduler.get_last_lr()} -- {init_start.elapsed_time(init_end) / 1000}secs to pass a batch!")
             ### -- ###
