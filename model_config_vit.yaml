@@ -1,10 +1,11 @@
 wandb_config:
-  project: "Tiny-SdPNet"
+  project: "SdPNet"
+  group: "XL"
 
 model_config:
-  num_blocks: 25
-  embedding_dim: 128
-  n_head: 8
+  num_blocks: 15
+  embedding_dim: 768
+  n_head: 16
   conv_kernel_size: 7
   patch_size: 16
   ffn_dropout: 0.2
@@ -47,8 +48,8 @@ optimizer_scheduler_config:
   
 data:
   train_image_size: [224, 224]
-  val_image_size: [224, 224]
-  val_crop_size: [215, 215]
+  val_image_size: [320, 320]
+  val_crop_size: [224, 224]
 
 
   train_data_details:

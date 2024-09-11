@@ -49,7 +49,6 @@ def main(cfg : DictConfig):
         trainer_config = cfg["trainer_config"]
         data_config = cfg["data"]
         ## --- ### 
-
         ## model_config -- optimizer config -- scheduler config ##
         torch.manual_seed(231424314)
         model = main_model.from_dict(**model_config)
@@ -65,7 +64,6 @@ def main(cfg : DictConfig):
             print(f"Current setup is {model_config}")
     
         train_loss_tracker = distributed_loss_track(task="Train")
-
         val_loss_tracker = distributed_loss_track(task="Validation")
         val_acc_tracker = track_accuracy()
     
@@ -82,7 +80,6 @@ def main(cfg : DictConfig):
             **trainer_config
         )
         wandb.init(project = "Tiny-SdpNet", config = dict(cfg))
-        
         trainer.train()
 
 

@@ -26,13 +26,14 @@ def get_cache_dir():
     return cache_dir
 
 
-def val_transforms(crop_size = (528,528),
+def val_transforms(image_size = (320,320),
+                   crop_size = (224,224),
         mean = [0.485, 0.456, 0.406], 
         std = [0.229, 0.224, 0.225]):
 
     transforms_val = transforms.Compose([
         transforms.RGB(),
-        transforms.Resize(224, interpolation=transforms.InterpolationMode.BICUBIC),
+        transforms.Resize(image_size, interpolation=transforms.InterpolationMode.BICUBIC),
         transforms.CenterCrop(crop_size),
         transforms.ToImage(), 
         transforms.ToDtype(torch.float32, scale=True),
@@ -40,13 +41,13 @@ def val_transforms(crop_size = (528,528),
     ])
     return transforms_val
 
-def train_trainsforms(crop_size = (224,224),
+def train_trainsforms(image_size = (224,224),
                     mean = [0.485, 0.456, 0.406], 
                     std = [0.229, 0.224, 0.225]):
         ### Here we define the transformation functions for training and testing
     transforms_train = transforms.Compose([
         transforms.RGB(),
-        transforms.RandomResizedCrop(crop_size, interpolation=transforms.InterpolationMode.BICUBIC),
+        transforms.RandomResizedCrop(image_size, interpolation=transforms.InterpolationMode.BICUBIC),
         transforms.RandomHorizontalFlip(),
         transforms.RandAugment(),
         transforms.ToImage(), 
@@ -210,8 +211,8 @@ def hf_train_val_data_loader(**kwargs):
     
 
     dset_train, dset_test = dset["train"], dset["validation"]    
-    train_crop_size, val_crop_size = kwargs["train_image_size"], kwargs["val_image_size"]
-    train_trainsforms_, val_transforms_ = train_trainsforms(crop_size = train_crop_size), val_transforms(crop_size = val_crop_size)
+    train_crop_size, val_image_size, val_crop_size = kwargs["train_image_size"], kwargs["val_image_size"], kwargs["val_crop_size"]
+    train_trainsforms_, val_transforms_ = train_trainsforms(crop_size = train_crop_size), val_transforms(image_size = val_image_size, crop_size = val_crop_size)
 
     dset_train, dset_test = hf_dataset(dset_train, train_trainsforms_), hf_dataset(dset_test, val_transforms_)
 
