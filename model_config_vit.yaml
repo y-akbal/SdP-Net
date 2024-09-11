@@ -6,10 +6,11 @@ model_config:
   num_blocks: 15
   embedding_dim: 768
   n_head: 16
+  ff_multiplication_factor: 4
   conv_kernel_size: 7
   patch_size: 16
-  ffn_dropout: 0.2
-  attn_dropout: 0.2
+  ffn_dropout: 0.3
+  attn_dropout: 0.3
   stochastic_depth: True
   stochastic_depth_p: [0.2, 0.1]
   output_classes: 1000

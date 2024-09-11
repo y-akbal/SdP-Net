@@ -137,7 +137,7 @@ class EncoderLayer(nn.Module):
         embedding_dim: int = 768,
         n_head: int = 8,
         activation_func: Callable = F.gelu,
-        multiplication_factor: int = 2,
+        multiplication_factor: int = 4,
         ff_dropout: float = 0.2,
         att_dropout: float = 0.2,
         fast_att:bool = True,
