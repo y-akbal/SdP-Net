@@ -20,7 +20,7 @@ class main_model(SdPModel):
                  stochastic_depth:bool = True,
                  stochastic_depth_p:list[float] = [0.1, 0.01],
                  output_classes:int = 1000,
-                 ff_multiplicaton_factor:int = 4,
+                 ff_multiplication_factor:int = 4,
                  max_image_size:list[int, int] = [14,14],
                  max_num_registers:int = 5,
                  embedding_activation:Callable = None,
@@ -55,7 +55,7 @@ class main_model(SdPModel):
                         activation_func = activation,
                         ff_dropout = ffn_dropout,
                         att_dropout = attn_dropout,
-                        multiplication_factor = ff_multiplicaton_factor,
+                        multiplication_factor = ff_multiplication_factor,
                         conv_kernel_size = conv_kernel_size,
                         conv_activation = activation,
                         conv_first = conv_first), p = ST_p(i))
@@ -101,8 +101,8 @@ class main_model(SdPModel):
 """
 from training_utilities import MeasureTime
 
-model = main_model(num_blocks = 12, 
-                   embedding_dim = 128, 
+model = main_model(num_blocks = 15, 
+                   embedding_dim = 768, 
                    patch_size=16,
                    conv_first=False, 
                    stochastic_depth=False, 
@@ -111,7 +111,7 @@ model = main_model(num_blocks = 12,
                    head_output_from_register=True,
                    simple_mlp_output=True,
                    max_image_size = [32,32],
-                   ff_multiplicaton_factor=4,
+                   ff_multiplicaton_factor=2,
                    ).to("mps")
 
 inputs = torch.randn(4, 3, 448, 448).to("mps")

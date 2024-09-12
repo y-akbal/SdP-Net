@@ -40,7 +40,7 @@ RandAugment + Random erase + Random resize+ CutMix + MixUp + Dropout(0.2) (Only 
 
 # Augmentation and Regularization
 
-#TODOS
+#TODO
 
 0) Gating mechanism in FFN?
 1) EMA Model (This is important for future use!!!)

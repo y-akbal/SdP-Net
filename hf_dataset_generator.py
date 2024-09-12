@@ -5,7 +5,7 @@
 ### I would like to use collate_fn in the dataloader because of the mixup and cutmix---
 import torch
 from torch.utils.data import DataLoader, Dataset
-from datasets import load_dataset, disable_progress_bars
+from datasets import load_dataset, disable_progress_bar
 import datasets
 import os
 import torchvision.transforms.v2 as transforms
@@ -15,7 +15,7 @@ from torch.utils.data.distributed import DistributedSampler
 from torchvision.transforms import v2
 from torch.utils.data import default_collate
 
-#disable_progress_bars()
+disable_progress_bar()
 datasets.logging.set_verbosity(datasets.logging.INFO)
 
 def get_cache_dir():
@@ -41,7 +41,7 @@ def val_transforms(image_size = (320,320),
     ])
     return transforms_val
 
-def train_trainsforms(image_size = (224,224),
+def train_transforms(image_size = (224,224),
                     mean = [0.485, 0.456, 0.406], 
                     std = [0.229, 0.224, 0.225]):
         ### Here we define the transformation functions for training and testing
@@ -53,7 +53,7 @@ def train_trainsforms(image_size = (224,224),
         transforms.ToImage(), 
         transforms.ToDtype(torch.float32, scale=True),
         transforms.Normalize(mean, std),
-        transforms.RandomErasing(p=0.1)
+        transforms.RandomErasing(p=0.25)
     ])
     return transforms_train
 
@@ -90,8 +90,7 @@ class hf_dataset(Dataset):
 """
 from datasets import load_dataset
 dset = load_dataset('imagenet-1k', 
-                    trust_remote_code=True,
-                    cache_dir = "/home/sahmaran/Desktop/IMGNET", num_proc = 4)
+                    trust_remote_code=True, num_proc = 4)
 
 
 transforms_ = train_trainsforms()
@@ -212,9 +211,16 @@ def hf_train_val_data_loader(**kwargs):
 
     dset_train, dset_test = dset["train"], dset["validation"]    
     train_crop_size, val_image_size, val_crop_size = kwargs["train_image_size"], kwargs["val_image_size"], kwargs["val_crop_size"]
-    train_trainsforms_, val_transforms_ = train_trainsforms(crop_size = train_crop_size), val_transforms(image_size = val_image_size, crop_size = val_crop_size)
 
-    dset_train, dset_test = hf_dataset(dset_train, train_trainsforms_), hf_dataset(dset_test, val_transforms_)
+    try:
+        NUM_CLASSES = kwargs["Num_Classes"]
+    except Exception:
+        NUM_CLASSES = 1000
+
+
+    train_transforms_, val_transforms_ = train_transforms(image_size = train_crop_size), val_transforms(image_size = val_image_size, crop_size = val_crop_size)
+
+    dset_train, dset_test = hf_dataset(dset_train, train_transforms_), hf_dataset(dset_test, val_transforms_)
 
     kwargs_train = kwargs["train_data_details"]
     kwargs_test = kwargs["val_data_details"]
@@ -224,7 +230,6 @@ def hf_train_val_data_loader(**kwargs):
     ## 
     ## --- MixUp and CutMix --- ##
     ## 
-    NUM_CLASSES = 1000
 
     cutmix = v2.CutMix(num_classes = NUM_CLASSES)
     mixup = v2.MixUp(num_classes = NUM_CLASSES, alpha = 0.8)

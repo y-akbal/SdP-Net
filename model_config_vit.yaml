@@ -14,7 +14,7 @@ model_config:
   stochastic_depth: True
   stochastic_depth_p: [0.2, 0.1]
   output_classes: 1000
-  max_image_size: [14,14]
+  max_image_size: [16,16]
   max_num_registers: 5
   conv_first: False
   head_output_from_register: True
@@ -27,14 +27,14 @@ trainer_config:
   snapshot_name: "model_1.pt"
   save_every: 1
   total_epochs: 300
-  gradient_accumulation_steps: 2
+  gradient_accumulation_steps: 1
   report_every_epoch: 1
   
   
 optimizer_scheduler_config:
   optimizer_config:
-    lr: 0.0009375  #0.0005*batch_size*gradient_accumulation_steps*GPU/512
-    weight_decay: 0.1
+    lr: 0.005  #0.0005*batch_size*gradient_accumulation_steps*GPU/512
+    weight_decay: 0.05
 
   scheduler_config:
     cosine:
@@ -48,13 +48,14 @@ optimizer_scheduler_config:
       start_factor: 0.0002
   
 data:
+  Num_Classes: 1000
   train_image_size: [224, 224]
   val_image_size: [320, 320]
   val_crop_size: [224, 224]
 
 
   train_data_details:
-   batch_size: 512
+   batch_size: 512 #0.005*batch_size*grad_accumulation_step*gpu/512
    num_workers: 12
    pin_memory: True
    persistent_workers: True
@@ -63,7 +64,7 @@ data:
    
    
   val_data_details:
-   batch_size: 32
+   batch_size: 128
    num_workers: 4
    pin_memory: True
    drop_last: True

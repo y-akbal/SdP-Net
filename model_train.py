@@ -24,7 +24,6 @@ from training_utilities import track_accuracy, distributed_loss_track
 import wandb
 #
 torch.set_float32_matmul_precision("medium")
-
 ## We replaced function with DDP setup, (in which case we may use FSDP!!!)
 class DDP_setup(object):
     def __init__(self, backend = "nccl"):

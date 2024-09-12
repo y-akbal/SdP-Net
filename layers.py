@@ -222,7 +222,8 @@ class EncoderLayer(nn.Module):
         return x, register  # Output shape: (B, C, H, W), (B, R, C)
 
 
-"""from training_utilities import MeasureTime
+"""
+from training_utilities import MeasureTime
 torch.manual_seed(0)
 layer = EncoderLayer(fast_att=False)    
 x = torch.randn(10, 768, 55, 55)
