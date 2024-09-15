@@ -28,11 +28,11 @@ class StochasticDepth(torch.nn.Module):
 
             size = [1]*x.ndim
 
-            noise_x = torch.empty(size, dtype = x_new.dtype, device= x_new.device, requires_grad = False).bernoulli(1-self.p)/(1-self.p)
+            noise_x = torch.empty(size, dtype = x_new.dtype, device= x_new.device, requires_grad = False).bernoulli(1-self.p).div(1-self.p)
             
             noise_register = noise_x.squeeze([-1, -2])
 
-            return (1- noise_x)*x + noise_x*x_new, (1- noise_register)*register + noise_register*register_new
+            return x + noise_x*x_new, register + noise_register*register_new
         
         return x_new, register_new
 
@@ -45,8 +45,8 @@ class m(nn.Module):
     def forward(self, x, register):
         return self.layer(x), self.layer(register)
         
-x,y = torch.randn(512, 2,2,2).cuda(), torch.randn(5, 2).cuda()
-model = StochasticDepth(m(), p = 0.9).cuda()
+x,y = torch.randn(512, 2,2,2), torch.randn(5, 2)
+model = StochasticDepth(m(), p = 0.9)
 model = torch.compile(model, mode ="max-autotune")
 model.train()
 model(x,y)

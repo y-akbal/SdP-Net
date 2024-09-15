@@ -41,11 +41,11 @@ optimizer_scheduler_config:
       T_0: 300
       eta_min: 0.0000088
     constant_scheduler:
-      factor: 0.0001
+      factor: 0.001
       total_iters: 2
     linear_scheduler:
       total_iters: 5
-      start_factor: 0.0002
+      start_factor: 0.001
   
 data:
   Num_Classes: 1000

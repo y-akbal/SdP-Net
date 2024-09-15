@@ -107,15 +107,15 @@ model = main_model(num_blocks = 15,
                    conv_first=False, 
                    stochastic_depth=False, 
                    conv_kernel_size = 9, 
-                   stochastic_depth_p=[0.2, 0.01],
+                   stochastic_depth_p=[0.3, 0.01],
                    head_output_from_register=True,
                    simple_mlp_output=True,
                    max_image_size = [32,32],
-                   ff_multiplicaton_factor=2,
+                   ff_multiplication_factor=2,
                    ).to("mps")
 
-inputs = torch.randn(4, 3, 448, 448).to("mps")
-targets = torch.randint(0, 1000, (4,)).to("mps")
+inputs = torch.randn(16, 3, 128, 128).to("mps")
+targets = torch.randint(0, 1000, (16,)).to("mps")
 
 from training_utilities import MeasureTime
 
@@ -131,12 +131,12 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
 # Training loop
-num_epochs = 10
+num_epochs = 100
 batch_size = 2
 
 
 
-for epoch in range(10):
+for epoch in range(1000):
 
     optimizer.zero_grad()
     # Forward pass

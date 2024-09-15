@@ -22,8 +22,17 @@ from training_tools import Trainer, return_scheduler_optimizer
 from hf_dataset_generator import hf_train_val_data_loader
 from training_utilities import track_accuracy, distributed_loss_track
 import wandb
-#
+# 
 torch.set_float32_matmul_precision("medium")
+
+try:
+    torch.set_default_dtype(torch.bfloat16)
+    print("Default dtype is torch.bfloat16")
+except Exception as e:
+    print("Something wrong the default dtype is torch.float16")
+    torch.set_default_dtype(torch.float16)
+
+
 ## We replaced function with DDP setup, (in which case we may use FSDP!!!)
 class DDP_setup(object):
     def __init__(self, backend = "nccl"):
