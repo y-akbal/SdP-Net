@@ -1,8 +1,4 @@
-####  TODO Download the dataset using huggingface api
-### using dataset class wrap it with torch dataloader
-### use dataset_generator
-### do this for both validation and train
-### I would like to use collate_fn in the dataloader because of the mixup and cutmix---
+
 import torch
 from torch.utils.data import DataLoader, Dataset
 from datasets import load_dataset, disable_progress_bar

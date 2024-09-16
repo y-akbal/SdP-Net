@@ -3,6 +3,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.nn.functional as F
 import os
 from torch import nn as nn
+from typing import Any
 
 class Trainer:
     def __init__(
@@ -15,10 +16,10 @@ class Trainer:
         gpu_id: int,
         save_every: int,
         gradient_accumulation_steps:int,
-        val_loss_logger = None,
-        train_loss_logger = None,
-        val_accuracy_logger = None,
-        compile_model:bool =False,
+        val_loss_logger:Any = None,
+        train_loss_logger:Any = None,
+        val_accuracy_logger:Any = None,
+        compile_model:bool = False,
         snapshot_name:str = "model.pt",
         snapshot_dir:str = "model",
         total_epochs:int = 300,
@@ -56,7 +57,7 @@ class Trainer:
         self.val_accuracy_logger = val_accuracy_logger
         #  Mixed precision training
         self.autocast = torch.autocast
-        self.scaler = torch.cuda.amp.GradScaler()
+        self.scaler = torch.cuda.amp.GradScaler("cuda")
         # Recover from a checkpoint!
         try:
             self._load_checkpoint(self.PATH)
@@ -107,7 +108,7 @@ class Trainer:
             # log the batch loss onto local logger!!!
             self.train_loss_logger.update(batch_loss)
             ## print the loss
-            if (self.gpu_id == 0) and i % 5 == 0:
+            if (self.gpu_id == 0) and i % 500 == 0:
                 batch_loss = self.train_loss_logger.get_avg_loss()
                 print(f"{i} Batch passed the average loss is {batch_loss}, lr is {self.scheduler.get_last_lr()} -- {init_start.elapsed_time(init_end) / 1000}secs to pass a batch!")
             ### -- ###
