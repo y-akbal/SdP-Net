@@ -201,7 +201,7 @@ def hf_train_val_data_loader(**kwargs):
     dset = load_dataset('imagenet-1k', 
                         keep_in_memory=False,
                         cache_dir = get_cache_dir(),
-                        num_proc = 4
+                        num_proc = 4, 
                         )
     
 

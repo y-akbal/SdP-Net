@@ -125,6 +125,36 @@ def train_val_data_loader(train_data, test_data, **kwargs):
     
     return train_data, test_data
 
+def fake_data_loader(train_samples:int = 10000, 
+                     val_samples:int = 500, **kwargs):  
+    ## This is a fake dataset generator for debugging purposes
+    train_data = torch.randn(train_samples, 3, 224, 224)
+    train_labels = torch.randint(low = 0, high = 1000, size = (train_samples,))
+    val_data = torch.randn(val_samples, 3, 224, 224)
+    val_labels = torch.randint(low = 0, high = 1000, size = (val_samples,))
+
+    class FakeDataset(Dataset):
+        def __init__(self, data, labels):
+            self.data = data
+            self.labels = labels
+
+        def __len__(self):
+            return len(self.data)
+
+        def __getitem__(self, index):
+            image, label = self.data[index], self.labels[index]
+            return image, label
+
+    train_dataset = FakeDataset(train_data, train_labels)
+    val_dataset = FakeDataset(val_data, val_labels)
+
+    train_sampler = DistributedSampler(train_dataset, shuffle=True)
+    val_sampler = DistributedSampler(val_dataset, shuffle=False)    
+
+    train_data_loader = DataLoader(train_dataset, sampler=train_sampler, **kwargs)
+    val_data_loader = DataLoader(val_dataset, sampler=val_sampler, **kwargs)
+
+    return train_data_loader, val_data_loader
 
 
 if __name__ == '__main__':

@@ -4,61 +4,50 @@ from torch.distributed import (
     ReduceOp,
 )
 import wandb
+import os
 
 class distributed_loss_track:
-    ## This is from one for all repo!!!
+
     def __init__(self, 
                  wandb_log:bool = True,
                  task:str = "Train"):
-
+        
         self.temp_loss:float = 0
         self.counter:int = 0
         self.epoch:int = 0
         self.task = task
-
         self.log = wandb_log
 
-    def update(self, loss):
-        self.temp_loss += loss
+
+    def update(self, batch_loss:float):
+        self.temp_loss += batch_loss
         self.counter += 1
-        
+
     def reset(self):
-        self.temp_loss, self.counter = 0.0, 0
+        self.temp_loss = 0.0
+        self.counter = 0
         self.epoch += 1
-        
-    def get_loss(self):
-        avg_loss = self.get_avg_loss()
-        if self.log:
-            wandb.log({f"{self.task}_loss": avg_loss})
-        return avg_loss
-
-    def log_loss(self)->None:
-        self.get_loss()
-        self.reset()
-
-    def get_avg_loss(self):
-        ## we have very little number in the denominator
-        ## to avoid overflow!!!
+    
+    def __all_reduce__(self):
+        loss_tensor = torch.tensor([self.temp_loss, self.counter], dtype=torch.float32).cuda()
+        all_reduce(loss_tensor, ReduceOp.SUM, async_op=False)
+        self.temp_loss, self.counter = loss_tensor.cpu().tolist()
+    
+    def log(self):
         try:
             self.__all_reduce__()
-        except Exception:
-            Warning("Buddy something wrong with you GPU!!!! We can not sync the values!!!!")
-        return self.temp_loss / (self.counter+1e-5)
+        except:
+            print("Error in all reducing loss")
 
-    def __all_reduce__(self):
-            loss_tensor = torch.tensor(
-            [self.temp_loss, self.counter], dtype=torch.float32
-            ).cuda()
-            ## We send the stuff to GPU and aggreage it !!!!
-            all_reduce(loss_tensor, ReduceOp.SUM, async_op=False)
-            ##  We then get back to cpu 
-            self.temp_loss, self.counter = loss_tensor.tolist()
+        if self.log:
+                ## Only the main worker will log the loss -- else all workers will log the loss!!!
+                wandb.log({f"{self.task}_{self.epoch}_loss":self.temp_loss/self.counter})
+        loss = self.temp_loss/self.counter
+        self.reset()
+        return loss
 
+        
 class track_accuracy:
-    ##  This is class will be updated by its own worker,ß
-    ##  At the end of the one epoch, the accuracies will be averaged!!! 
-    ##  BTW all this stuff will be done on each GPU
-    ##  At the end of the day the main worker will tell the result to W & B
     def __init__(self, 
                  task = "Validation", 
                  wandb_log = True):
@@ -73,34 +62,28 @@ class track_accuracy:
                batch_size:int):
         self.temp_acc += batch_accuracy
         self.total_size += batch_size
+    
+    def __all_reduce__(self):
+        loss_tensor = torch.tensor([self.temp_acc, self.total_size], dtype=torch.float32).cuda()
+        all_reduce(loss_tensor, ReduceOp.SUM, async_op=False)
+        self.temp_acc, self.total_size = loss_tensor.cpu().tolist()
 
     def reset(self):
         self.temp_acc = 0.0
         self.total_size = 0
         self.epoch += 1
     
-    def log_acc(self):
-        self.get_accuracy()
-        self.reset()
-    
-    @property
-    def accuracy(self):
-        return self.temp_acc/self.total_size
+    def log(self):
+        try:
+            self.__all_reduce__()
+        except:
+            print("Error in all reducing accuracy")
 
-    def get_accuracy(self):
-        acc = self.__get_accuracy__()
         if self.wandb_log:
-            wandb.log({f"{self.task}_acc":acc})
+            wandb.log({f"{self.task}_{self.epoch}_acc":self.temp_acc/self.total_size})
+        acc = self.temp_acc/self.total_size
+        self.reset()
         return acc
-
-    def __get_accuracy__(self):
-        self.__all_reduce__()
-        return self.temp_acc/self.total_size
-
-    def __all_reduce__(self):
-        loss_tensor = torch.tensor([self.temp_acc, self.total_size], dtype=torch.float32).cuda()
-        all_reduce(loss_tensor, ReduceOp.SUM, async_op=False)
-        self.temp_acc, self.total_size = loss_tensor.tolist()
 
 
 class MeasureTime:

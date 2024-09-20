@@ -57,7 +57,7 @@ class Trainer:
         self.val_accuracy_logger = val_accuracy_logger
         #  Mixed precision training
         self.autocast = torch.autocast
-        self.scaler = torch.cuda.amp.GradScaler("cuda")
+        self.scaler = torch.amp.GradScaler('cuda')
         # Recover from a checkpoint!
         try:
             self._load_checkpoint(self.PATH)
@@ -109,7 +109,6 @@ class Trainer:
             self.train_loss_logger.update(batch_loss)
             ## print the loss
             if (self.gpu_id == 0) and i % 500 == 0:
-                batch_loss = self.train_loss_logger.get_avg_loss()
                 print(f"{i} Batch passed the average loss is {batch_loss}, lr is {self.scheduler.get_last_lr()} -- {init_start.elapsed_time(init_end) / 1000}secs to pass a batch!")
             ### -- ###
 
@@ -167,8 +166,8 @@ class Trainer:
                 #print(loss.item(), accuracy.item(), output.shape, self.val_accuracy_logger.accuracy, self.val_accuracy_logger.epoch)
 
                             
-            self.val_loss_logger.log_loss()
-            self.val_accuracy_logger.log_acc()   
+            self.val_loss_logger.log()
+            self.val_accuracy_logger.log()   
     
     ## Some tools ## 
     def _load_checkpoint(self, checkpoint_file):
