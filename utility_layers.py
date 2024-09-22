@@ -12,15 +12,15 @@ class StochasticDepth(torch.nn.Module):
                  module: torch.nn.Module, 
                  p: float = 0.2,
                  ):
-        super().__init__(),
-        "Thank you timm!!!"
+        super().__init__()
+        """Thank you timm!!!"""
         assert 0<p<1, "p must be a positive number or <1"
         self.p = p
         self.module: torch.nn.Module = module
 
     def forward(self, 
-                x:torch.tensor, 
-                register:torch.tensor)->tuple[torch.tensor, torch.tensor]:
+                x:torch.Tensor, 
+                register:torch.Tensor)->tuple[torch.Tensor, torch.Tensor]:
 
         x_new, register_new = self.module(x, register)
 
@@ -32,7 +32,7 @@ class StochasticDepth(torch.nn.Module):
             
             noise_register = noise_x.squeeze([-1, -2])
 
-            return x + noise_x*x_new, register + noise_register*register_new
+            return x + noise_x * x_new, register + noise_register * register_new
         
         return x_new, register_new
 
@@ -41,14 +41,14 @@ class TecherModel:
                  model:nn.Module,
                  compile_model:bool = False,
                  ):
-        super().__init__()
         self.model = model if not compile_model else torch.compile(model)
     
+    ## The below class method should not called in DDP setting, because each replica will attempt to download the model!!!
     @classmethod
     def from_torchub(cls,name:str, **kwargs):
         model = torch.hub.load("pytorch/vision", name, **kwargs)
         return cls(model)
-    
+
     def __call__(self, x:torch.tensor)->torch.tensor:
         return self.model(x)
             
