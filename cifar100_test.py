@@ -1,14 +1,12 @@
 import torch
 from torch.utils.data import DataLoader, Dataset
+import torchvision
 import torchvision.transforms.v2 as transforms
 from torchvision.transforms import v2
 from torch.utils.data import DataLoader
-from torchvision.transforms import v2
 from torch.utils.data import default_collate
-import torch
 import torch.nn as nn
 import torch.optim as optim
-import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torchvision.transforms import autoaugment, transforms
@@ -43,29 +41,17 @@ def return_data():
 
     trainset = torchvision.datasets.CIFAR100(root='./data', train=True, download=True, transform=train_transform)
     testset = torchvision.datasets.CIFAR100(root='./data', train=False, download=True, transform=test_transform)
+
     trainloader = DataLoader(trainset, batch_size=256, shuffle=True, num_workers=16, collate_fn=collate_fn)
     testloader = DataLoader(testset, batch_size=100, shuffle=False, num_workers=8)
 
     return trainloader, testloader
 
-model = main_model(
-    n_head= 4, 
-    activation= nn.GELU(),
-    patch_size= 16, 
-    conv_kernel_size=5, 
-    output_classes=100, 
-    embedding_dim=128, 
-    num_blocks=5,
-    max_image_size=(16,16),
-    head_output_from_register=True,
-    simple_mlp_output=True,
-    stochastic_depth=False,
-    stochastic_depth_p=[0.9, 0.001]
-)
-
 def return_model(compiled = True):
     torch.manual_seed(0)
     model = main_model(
+        embedding_dim=128,
+        num_blocks=10,
         n_head= 4, 
         activation= nn.GELU(),
         patch_size= 16, 
@@ -77,21 +63,19 @@ def return_model(compiled = True):
         head_output_from_register=True,
         simple_mlp_output=True,
         stochastic_depth=False,
-        stochastic_depth_p=[0.9, 0.001]
+        stochastic_depth_p=[0.9, 0.001],
+        normalize_qv=True
     )
     if compiled and device !="mps":
         model = torch.compile(model.to(device))
         Warning("Model is can not be compiled when model is on MPS device")
     else:
         model = model.to(device)
-            
+
     loss_fn = nn.CrossEntropyLoss(label_smoothing=0.1)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     
     return model, loss_fn, optimizer
-
-
-
 
 # Training loop
 def train(epochs, 
