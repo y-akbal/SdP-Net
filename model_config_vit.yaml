@@ -20,6 +20,7 @@ model_config:
   head_output_from_register: True
   simple_mlp_output: False
   output_head_bias: False
+  normalize_qv: True
 
 trainer_config:
   compile_model: False
@@ -29,6 +30,7 @@ trainer_config:
   total_epochs: 300
   gradient_accumulation_steps: 1
   report_every_epoch: 1
+  use_cross_entropy: False #True for cross entropy False for BCEloss
   
   
 optimizer_scheduler_config:
@@ -55,7 +57,7 @@ data:
 
 
   train_data_details:
-   batch_size: 512 #0.005*batch_size*grad_accumulation_step*gpu/512
+   batch_size: 384 #0.005*batch_size*grad_accumulation_step*gpu/512
    num_workers: 12
    pin_memory: True
    persistent_workers: True

@@ -88,6 +88,34 @@ class track_accuracy:
         self.reset()
         return result
 
+
+@torch.compile
+def KeLu(x:torch.Tensor, a:float = 3.5)->torch.tensor:
+    return torch.where(x < -a, 0, torch.where(x > a, x, 0.5*x*(1+x/a+(1/torch.pi)*torch.sin(x*torch.pi/a))))
+
+
+@torch.compile
+def BCEWithLogitsLoss(num_classes:int = 1000,
+                      smoothing_fac:float = 0.1)->torch.tensor:
+    ## Target is of shape (B, num_classes), we shall do some label smoothing here!!!
+    
+    def loss(input:torch.Tensor, target:torch.Tensor)->torch.tensor:
+    
+        target_smooted = target*(1-smoothing_fac/num_classes) + smoothing_fac/num_classes
+    
+        return torch.nn.functional.binary_cross_entropy_with_logits(input, target_smooted)
+    
+    return loss
+
+"""
+BCEWithLogitsLoss()(torch.randn(1, 1000), torch.rand(1, 1000))
+
+a = torch.zeros(1000)
+a[0] = 1
+
+a*(1-100/1000) + 100/1000
+"""
+
 class MeasureTime:
     def __init__(self):
         self.start = torch.cuda.Event(enable_timing=True)
@@ -104,3 +132,5 @@ class MeasureTime:
         elapsed_time = self.start.elapsed_time(self.stop)
         print(f"Elapsed time: {elapsed_time/1000:.2f} seconds")
 
+if __name__ == "__main__":
+    pass

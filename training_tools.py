@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import os
 from torch import nn as nn
 from typing import Any
+import training_utilities as t
 
 class Trainer:
     def __init__(
@@ -25,6 +26,7 @@ class Trainer:
         total_epochs:int = 300,
         report_every_epoch:int =1, 
         use_ema_model:bool = False, 
+        use_cross_entropy:bool = True,
         use_teacher_model:bool = False,
         teacher_model:Any = None,
     ) -> None:
@@ -66,7 +68,11 @@ class Trainer:
         except Exception as e:
             print(f"There is a problem with loading the model weights and the problem is: {e}")
         ## loss_fn
-        self.loss_fn = nn.CrossEntropyLoss(label_smoothing = 0.1).to(gpu_id)
+        if use_cross_entropy:
+            self.loss_fn = nn.CrossEntropyLoss(label_smoothing = 0.1).to(gpu_id)
+        else:
+            self.loss_fn = t.BCEWithLogitsLoss(label_smoothing = 0.1, num_classes = 1000)
+
         
     def _run_batch(self, 
                    source: torch.tensor, 
