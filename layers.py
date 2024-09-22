@@ -37,11 +37,12 @@ class ConvMixer(nn.Module):
                               kernel_size = kernel_size,
                               groups = embedding_dim,
                               padding = "same",
-                              bias = False,
+                              bias = True,
                               )
         self.conv1d = nn.Conv2d(in_channels = embedding_dim,
                                 out_channels = embedding_dim,
                                 kernel_size =1,
+                                bias = True,
                                 )
         self.layer_norm_1 = nn.GroupNorm(1, embedding_dim)
         self.layer_norm_2 = nn.GroupNorm(1, embedding_dim)

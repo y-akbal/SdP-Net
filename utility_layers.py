@@ -36,7 +36,8 @@ class StochasticDepth(torch.nn.Module):
         
         return x_new, register_new
 
-class TecherModel:
+
+class TecherModel(object):
     def __init__(self, 
                  model:nn.Module,
                  compile_model:bool = False,
@@ -44,11 +45,11 @@ class TecherModel:
         self.model = model if not compile_model else torch.compile(model)
     
     ## The below class method should not called in DDP setting, because each replica will attempt to download the model!!!
+    ## To avoid this, you need to download the model in the main process and then broadcast it to all the replicas!!!
     @classmethod
     def from_torchub(cls,name:str, **kwargs):
         model = torch.hub.load("pytorch/vision", name, **kwargs)
         return cls(model)
-
     def __call__(self, x:torch.tensor)->torch.tensor:
         return self.model(x)
             
