@@ -1,13 +1,16 @@
 import torch
 from torch import nn as nn
 from torch.nn import functional as F
-from layers import ConvMixer, ConvPatcher, EmbeddingLayer, ConvPatcher, Block, FinalBlock, ClassificationHead
+from layers import ConvMixer, EmbeddingLayer, ConvPatcher, Block, FinalBlock, ClassificationHead
 from utility_layers import SdPModel, StochasticDepth
 from typing import Callable, Optional, Any, Union
 from numpy import arccos, cos
+
 torch.set_float32_matmul_precision('high')
 
-class main_model(SdPModel):
+
+
+class MainModel(SdPModel):
     def __init__(self, 
                  embedding_dim:int = 128,
                  num_blocks:int = 10,
@@ -28,6 +31,7 @@ class main_model(SdPModel):
                  head_output_from_register:bool = False,
                  simple_mlp_output:bool = False,
                  output_head_bias:bool = False,
+                 normalize_qv:bool = True,
                  ):
         super().__init__()
         ## oh s***  here we go again ##
@@ -58,7 +62,8 @@ class main_model(SdPModel):
                         multiplication_factor = ff_multiplication_factor,
                         conv_kernel_size = conv_kernel_size,
                         conv_activation = activation,
-                        conv_first = conv_first), p = ST_p(i))
+                        conv_first = conv_first,
+                        normalize_qv = normalize_qv), p = ST_p(i))
                         for i in range(num_blocks)])
         
         self.final_block = FinalBlock(embedding_dim  = embedding_dim,
@@ -85,6 +90,7 @@ class main_model(SdPModel):
         x = self.conv_init(x)
         ## Add embeddings
         x_raw_output, registers = self.embedding_layer(x, num_registers)
+
         ## Mixing with convs
         for block in self.blocks:
             x_raw_output, registers = block(x_raw_output, registers)
@@ -97,63 +103,52 @@ class main_model(SdPModel):
         if not return_raw_outputs:
             return x_classification_head    
         return x_classification_head, x_raw_output, registers
-
+    
 """
-from training_utilities import MeasureTime
-
 model = main_model(num_blocks = 15, 
                    embedding_dim = 768, 
-                   patch_size=16,
+                   patch_size=16, 
                    conv_first=False, 
-                   stochastic_depth=False, 
-                   conv_kernel_size = 9, 
-                   stochastic_depth_p=[0.3, 0.01],
-                   head_output_from_register=True,
+                   stochastic_depth=True, 
+                   conv_kernel_size = 7, 
+                   stochastic_depth_p=[0.5, 0.1],
+                   head_output_from_register=False,
                    simple_mlp_output=True,
-                   max_image_size = [32,32],
-                   ff_multiplication_factor=2,
+                   max_image_size = [16,16],
+                   ff_multiplication_factor=4,
+                   normalize_qv = True,
                    ).to("mps")
+
+model.return_num_params()
 
 inputs = torch.randn(16, 3, 128, 128).to("mps")
 targets = torch.randint(0, 1000, (16,)).to("mps")
 
-from training_utilities import MeasureTime
-
-with MeasureTime():
-    for i in range(100):
-        x = model(inputs, return_raw_outputs = False, num_registers = 15)
 
 model.return_num_params()
-                  
-
 from torch import optim                   
 criterion = nn.CrossEntropyLoss()
+
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
-
-# Training loop
-num_epochs = 100
-batch_size = 2
-
-
 
 for epoch in range(1000):
 
     optimizer.zero_grad()
     # Forward pass
     outputs = model(inputs)
-    loss = criterion(outputs, targets)
+    loss = F.binary_cross_entropy_with_logits(outputs, F.one_hot(targets,1000).to(torch.float32))
+    #loss = criterion(outputs, targets)
     loss.backward()
     optimizer.step()
     print(loss.item(), epoch)
-
 
     
 for name, lay in model.named_parameters(): 
     if lay.grad == None:
         print(name, lay.grad)
 
-
 """
+
 
 if __name__ == "__main__":
     print("Ok boomer!!!")

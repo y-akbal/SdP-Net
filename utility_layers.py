@@ -34,7 +34,7 @@ class StochasticDepth(torch.nn.Module):
 
             return x + noise_x * x_new, register + noise_register * register_new
         
-        return x_new, register_new
+        return x + x_new, register + register_new
 
 
 class TecherModel(object):
@@ -52,7 +52,7 @@ class TecherModel(object):
         return cls(model)
     def __call__(self, x:torch.tensor)->torch.tensor:
         return self.model(x)
-            
+          
 """
 class m(nn.Module):
     def __init__(self):

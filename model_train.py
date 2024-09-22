@@ -17,7 +17,7 @@ from torch.distributed import init_process_group, destroy_process_group
 ### end of torch ### 
 import hydra
 from omegaconf import DictConfig
-from model import main_model
+from model import MainModel
 from training_tools import Trainer, return_scheduler_optimizer
 from hf_dataset_generator import hf_train_val_data_loader
 from training_utilities import track_accuracy, distributed_loss_track
@@ -59,7 +59,7 @@ def main(cfg : DictConfig):
         ## --- ### 
         ## model_config -- optimizer config -- scheduler config ##
         torch.manual_seed(231424314)
-        model = main_model.from_dict(**model_config)
+        model = MainModel.from_dict(**model_config)
         optimizer, scheduler = return_scheduler_optimizer(model, **optimizer_scheduler_config)
         ## batched train and validation data loader ## 
         train_images, test_images = hf_train_val_data_loader(**data_config)

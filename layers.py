@@ -57,11 +57,14 @@ class ConvMixer(nn.Module):
         x = self.activation(x)
         x = self.layer_norm_2(x)
         return x
-
 """
-layer = conv_mixer().cuda()
-x = torch.randn(100, 768, 14, 14).cuda()
-layer(x)
+layer = ConvMixer(768, kernel_size=9)
+q = 0
+for p in layer.parameters():
+    q += p.shape.numel()
+print(q)
+x = torch.randn(100, 768, 14, 14)
+layer(x).shape
 """
 
 class EmbeddingLayer(nn.Module):
@@ -237,7 +240,11 @@ class EncoderLayer(nn.Module):
 """
 from training_utilities import MeasureTime
 torch.manual_seed(0)
-layer = EncoderLayer(fast_att=False)    
+layer = EncoderLayer(embedding_dim=768, n_head=16, multiplication_factor = 2)    
+q = 0
+for p in layer.parameters():
+    q += p.shape.numel()
+print(q)
 x = torch.randn(10, 768, 55, 55)
 reg = torch.randn(10, 5, 768)
 with MeasureTime():
