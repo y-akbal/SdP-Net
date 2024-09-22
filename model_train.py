@@ -25,13 +25,13 @@ import wandb
 # 
 torch.set_float32_matmul_precision("medium")
 
-try:
+"""try:
     torch.set_default_dtype(torch.bfloat16)
     print("Default dtype is torch.bfloat16")
 except Exception as e:
     print("Something wrong the default dtype is torch.float16")
     torch.set_default_dtype(torch.float16)
-
+"""
 
 ## We replaced function with DDP setup, (in which case we may use FSDP!!!)
 class DDP_setup(object):

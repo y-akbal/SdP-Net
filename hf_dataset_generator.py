@@ -227,7 +227,7 @@ def hf_train_val_data_loader(**kwargs):
     ## --- MixUp and CutMix --- ##
     ## 
 
-    cutmix = v2.CutMix(num_classes = NUM_CLASSES)
+    cutmix = v2.CutMix(num_classes = NUM_CLASSES,)
     mixup = v2.MixUp(num_classes = NUM_CLASSES, alpha = 0.8)
 
     cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])

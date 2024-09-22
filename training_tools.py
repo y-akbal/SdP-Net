@@ -25,6 +25,8 @@ class Trainer:
         total_epochs:int = 300,
         report_every_epoch:int =1, 
         use_ema_model:bool = False, 
+        use_teacher_model:bool = False,
+        teacher_model:Any = None,
     ) -> None:
         self.gpu_id = gpu_id
         self.model_config = model.config
@@ -134,7 +136,7 @@ class Trainer:
             #init_start.record() ## How much time we spent!!!
             self._run_epoch()
             # ## let's log the loss now!!!
-            self.train_loss_logger.log_loss()
+            self.train_loss_logger.log()
             #init_end.record() 
             ##  Epoch is done take one step scheduler, 
             self.scheduler.step()
@@ -142,8 +144,8 @@ class Trainer:
             #print(f"elapsed time: {init_start.elapsed_time(init_end) / 1000}secs")
             if self.gpu_id == 0 and epoch % self.save_every == 0:
                 self._save_checkpoint()
-                ## Let's validate
-                self.validate()
+            ## Let's validate
+            self.validate()
             
             ## You gottta update the EMA model here!!!!
 
@@ -157,12 +159,12 @@ class Trainer:
                 source, targets = source.to(self.gpu_id, non_blocking=True), targets.to(self.gpu_id, non_blocking=True)
                 output = self.model(source)  
                 
-                loss = nn.CrossEntropyLoss()(output, targets)
-                accuracy = (output.argmax(-1) == targets).sum()
+                loss = nn.CrossEntropyLoss()(output, targets).item()
+                accuracy = (output.argmax(-1) == targets).sum().item()
 
                 
-                self.val_loss_logger.update(loss.item())
-                self.val_accuracy_logger.update(batch_accuracy = accuracy.item(), batch_size = targets.shape[0])
+                self.val_loss_logger.update(loss)
+                self.val_accuracy_logger.update(batch_accuracy = accuracy, batch_size = targets.shape[0])
                 #print(loss.item(), accuracy.item(), output.shape, self.val_accuracy_logger.accuracy, self.val_accuracy_logger.epoch)
 
                             
@@ -241,4 +243,24 @@ def return_scheduler_optimizer(model, **kwargs):
     scheduler = torch.optim.lr_scheduler.SequentialLR(optimizer, schedulers=[scheduler0, scheduler1, scheduler2], milestones= [ms1, ms1+ms2])
     
     return optimizer, scheduler
+
+
+class TeacherModel:
+    def __init__(self, 
+                 model: nn.Module, 
+                 compile_model:bool = False):
+        if compile_model:
+            self.model = torch.compile(model)  
+        else:
+            self.model = model.eval()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        with torch.inference_mode():  
+            return self.model(x)  
+
+    def __call__(self, x: torch.Tensor) -> torch.Tensor:
+        return self.forward(x)
+        
+
+
 

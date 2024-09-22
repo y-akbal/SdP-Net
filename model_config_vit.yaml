@@ -33,7 +33,7 @@ trainer_config:
   
 optimizer_scheduler_config:
   optimizer_config:
-    lr: 0.005  #0.0005*batch_size*gradient_accumulation_steps*GPU/512
+    lr: 0.001  #0.0005*batch_size*gradient_accumulation_steps*GPU/512
     weight_decay: 0.05
 
   scheduler_config:

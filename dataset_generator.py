@@ -151,8 +151,8 @@ def fake_data_loader(train_samples:int = 10000,
     train_sampler = DistributedSampler(train_dataset, shuffle=True)
     val_sampler = DistributedSampler(val_dataset, shuffle=False)    
 
-    train_data_loader = DataLoader(train_dataset, sampler=train_sampler, **kwargs)
-    val_data_loader = DataLoader(val_dataset, sampler=val_sampler, **kwargs)
+    train_data_loader = DataLoader(train_dataset, sampler=train_sampler, batch_size = 256, **kwargs)
+    val_data_loader = DataLoader(val_dataset, sampler=val_sampler, batch_size = 256, **kwargs)
 
     return train_data_loader, val_data_loader
 

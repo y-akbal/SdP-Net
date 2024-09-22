@@ -3,8 +3,8 @@ from torch.distributed import (
     all_reduce,
     ReduceOp,
 )
+import torch.distributed as dist
 import wandb
-import os
 
 class distributed_loss_track:
 
@@ -16,7 +16,7 @@ class distributed_loss_track:
         self.counter:int = 0
         self.epoch:int = 0
         self.task = task
-        self.log = wandb_log
+        self.wandb_log = wandb_log
 
 
     def update(self, batch_loss:float):
@@ -39,52 +39,54 @@ class distributed_loss_track:
         except:
             print("Error in all reducing loss")
 
-        if self.log:
+        if self.wandb_log:
                 ## Only the main worker will log the loss -- else all workers will log the loss!!!
-                wandb.log({f"{self.task}_{self.epoch}_loss":self.temp_loss/self.counter})
+                wandb.log({"epoch": self.epoch, f"{self.task}_loss":self.temp_loss/self.counter})
         loss = self.temp_loss/self.counter
         self.reset()
         return loss
 
-        
+        import torch
+
 class track_accuracy:
     def __init__(self, 
                  task = "Validation", 
                  wandb_log = True):
-        self.temp_acc:int = 0
-        self.total_size:int = 0
-        self.epoch:int = 0
+        self.correct = torch.tensor(0.0, device='cuda', requires_grad=False)
+        self.total = torch.tensor(0.0, device='cuda', requires_grad=False)
+        self.epoch = 0
         self.task = task
         self.wandb_log = wandb_log
 
     def update(self, 
-               batch_accuracy:int, 
-               batch_size:int):
-        self.temp_acc += batch_accuracy
-        self.total_size += batch_size
+               batch_accuracy: float, 
+               batch_size: float):
+        self.correct += batch_accuracy
+        self.total += batch_size
     
-    def __all_reduce__(self):
-        loss_tensor = torch.tensor([self.temp_acc, self.total_size], dtype=torch.float32).cuda()
-        all_reduce(loss_tensor, ReduceOp.SUM, async_op=False)
-        self.temp_acc, self.total_size = loss_tensor.cpu().tolist()
-
     def reset(self):
-        self.temp_acc = 0.0
-        self.total_size = 0
+        self.correct.zero_()
+        self.total.zero_()
         self.epoch += 1
     
+    def synchronize(self):
+        dist.all_reduce(self.correct, op=dist.ReduceOp.SUM)
+        dist.all_reduce(self.total, op=dist.ReduceOp.SUM)
+    
     def log(self):
-        try:
-            self.__all_reduce__()
-        except:
-            print("Error in all reducing accuracy")
+        self.synchronize()
+        
+        if self.total > 0:
+            acc = (self.correct / self.total).item()
+        else:
+            acc = 0.0
 
-        if self.wandb_log:
-            wandb.log({f"{self.task}_{self.epoch}_acc":self.temp_acc/self.total_size})
-        acc = self.temp_acc/self.total_size
+        if self.wandb_log and dist.get_rank() == 0:
+            wandb.log({"epoch": self.epoch, f"{self.task}_acc": acc})
+        
+        result = acc
         self.reset()
-        return acc
-
+        return result
 
 class MeasureTime:
     def __init__(self):
