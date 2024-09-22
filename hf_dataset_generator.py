@@ -24,6 +24,7 @@ def get_cache_dir():
 
 def val_transforms(image_size = (320,320),
                    crop_size = (224,224),
+
         mean = [0.485, 0.456, 0.406], 
         std = [0.229, 0.224, 0.225]):
 
@@ -40,7 +41,7 @@ def val_transforms(image_size = (320,320),
 def train_transforms(image_size = (224,224),
                     mean = [0.485, 0.456, 0.406], 
                     std = [0.229, 0.224, 0.225]):
-        ### Here we define the transformation functions for training and testing
+        ### Here we define the transformation functions for training and testing, and maybe repeated augmentations!!!
     transforms_train = transforms.Compose([
         transforms.RGB(),
         transforms.RandomResizedCrop(image_size, interpolation=transforms.InterpolationMode.BICUBIC),
@@ -198,6 +199,7 @@ def hf_train_val_data_loader(**kwargs):
     ###
     cache_dir = get_cache_dir()
     print(f"The datasets is to be cached at {cache_dir}")
+
     dset = load_dataset('imagenet-1k', 
                         keep_in_memory=False,
                         cache_dir = get_cache_dir(),
