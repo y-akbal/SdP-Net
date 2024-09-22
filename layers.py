@@ -30,7 +30,8 @@ class ConvMixer(nn.Module):
     def __init__(self, 
                  embedding_dim:int = 768, 
                  kernel_size:int = 5, 
-                 activation:Callable = nn.GELU()):
+                 activation:Callable = nn.GELU()
+                 ):
         super().__init__()
         self.conv2d = nn.Conv2d(in_channels = embedding_dim, 
                               out_channels = embedding_dim,
@@ -142,6 +143,7 @@ class EncoderLayer(nn.Module):
         ff_dropout: float = 0.2,
         att_dropout: float = 0.2,
         fast_att:bool = True,
+        normalize_qv:bool = True
     ):
         super().__init__()
         assert embedding_dim % n_head == 0, "Number of embedding_dim must be divisible by n_head"
@@ -151,16 +153,17 @@ class EncoderLayer(nn.Module):
         self.head_dim = embedding_dim // n_head
         self.att_dropout = att_dropout
         self.fast_att = fast_att
+        self.normalize_qv = normalize_qv
 
         # Multi-head self-attention
-        self.q_proj = nn.Linear(embedding_dim, embedding_dim)
-        self.k_proj = nn.Linear(embedding_dim, embedding_dim)
-        self.v_proj = nn.Linear(embedding_dim, embedding_dim)
-        self.o_proj = nn.Linear(embedding_dim, embedding_dim)
+        self.q_proj = nn.Linear(embedding_dim, embedding_dim, bias = False)
+        self.k_proj = nn.Linear(embedding_dim, embedding_dim, bias = False)
+        self.v_proj = nn.Linear(embedding_dim, embedding_dim, bias = False)
+        self.o_proj = nn.Linear(embedding_dim, embedding_dim, bias = False)
         
         # Feed-forward network
-        self.ff_linear1 = nn.Linear(embedding_dim, multiplication_factor * embedding_dim)
-        self.ff_linear2 = nn.Linear(multiplication_factor * embedding_dim, embedding_dim)
+        self.ff_linear1 = nn.Linear(embedding_dim, multiplication_factor * embedding_dim, bias = True)
+        self.ff_linear2 = nn.Linear(multiplication_factor * embedding_dim, embedding_dim, bias = True)
         
         # Layer normalization
         self.norm1 = nn.LayerNorm(embedding_dim)
@@ -195,13 +198,21 @@ class EncoderLayer(nn.Module):
         q = self.q_proj(x_norm).view(B, R+H*W, self.n_head, self.head_dim).transpose(1, 2)
         k = self.k_proj(x_norm).view(B, R+H*W, self.n_head, self.head_dim).transpose(1, 2)
         v = self.v_proj(x_norm).view(B, R+H*W, self.n_head, self.head_dim).transpose(1, 2)
-        ## Shall we normalize the q v here ? ? ? ? ? 
+        
+        if self.normalize_qv:
+            q = F.normalize(q, p = 2, dim = -1)
+            k = F.normalize(k, p = 2, dim = -1)
         ## Glad to use flash attention here!!!
         if self.fast_att:
             with sdpa_kernel([SDPBackend.MATH, SDPBackend.FLASH_ATTENTION]):
                 attn_output = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, dropout_p = self.att_dropout if self.training else 0.0)
         else:
-            attn_output = (self.dropout(q @ k.transpose(-1, -2)/self.head_dim**0.5).softmax(-1))@v
+            attn_weights = torch.matmul(q, k.transpose(-1, -2)) / (self.head_dim ** 0.5)
+            if mask is not None:
+                attn_weights = attn_weights.masked_fill(mask == 0, float('-inf'))
+            attn_weights = F.softmax(attn_weights, dim=-1)
+            attn_weights = self.dropout(attn_weights)
+            attn_output = torch.matmul(attn_weights, v)
         
         attn_output = attn_output.transpose(1, 2).contiguous().view(B, R+H*W, C)
         attn_output = self.o_proj(attn_output)
@@ -244,7 +255,8 @@ class Block(nn.Module):
             att_dropout: float = 0.2,
             conv_kernel_size:int = 5,
             conv_activation:Callable = F.gelu,
-            conv_first = False):
+            conv_first = False,
+            normalize_qv:bool = True):
         super().__init__()
         self.t_block = EncoderLayer(
             embedding_dim= embedding_dim,
@@ -253,6 +265,7 @@ class Block(nn.Module):
             multiplication_factor= multiplication_factor,
             ff_dropout=ff_dropout,
             att_dropout=att_dropout,
+            normalize_qv=normalize_qv
         )
         self.conv_block = ConvMixer(
             embedding_dim= embedding_dim,
@@ -288,7 +301,8 @@ class FinalBlock(nn.Module):
             activation_func: Callable = F.gelu,
             multiplication_factor: int = 2,
             ff_dropout: float = 0.2,
-            att_dropout: float = 0.2):
+            att_dropout: float = 0.2,
+            normalize_qv:bool = True):
         super().__init__()
         self.t_block = EncoderLayer(
             embedding_dim= embedding_dim,
@@ -297,6 +311,7 @@ class FinalBlock(nn.Module):
             multiplication_factor= multiplication_factor,
             ff_dropout=ff_dropout,
             att_dropout=att_dropout,
+            normalize_qv=normalize_qv,
         )
     def forward(self, x:torch.tensor, 
                 register:torch.tensor, 
