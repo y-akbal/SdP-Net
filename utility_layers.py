@@ -36,6 +36,21 @@ class StochasticDepth(torch.nn.Module):
         
         return x_new, register_new
 
+class TecherModel:
+    def __init__(self, 
+                 model:nn.Module,
+                 compile_model:bool = False,
+                 ):
+        super().__init__()
+        self.model = model if not compile_model else torch.compile(model)
+    
+    @classmethod
+    def from_torchub(cls,name:str, **kwargs):
+        model = torch.hub.load("pytorch/vision", name, **kwargs)
+        return cls(model)
+    
+    def __call__(self, x:torch.tensor)->torch.tensor:
+        return self.model(x)
             
 """
 class m(nn.Module):
@@ -159,25 +174,3 @@ class SdPModel(nn.Module):
         except Exception as exp:
             print(f"Something went wrong with {exp}!!!!!")
 
-
-@torch.compile
-def KeLu(x:torch.Tensor, a:float = 3.5)->torch.tensor:
-    return torch.where(x < -a, 0, torch.where(x > a, x, 0.5*x*(1+x/a+(1/torch.pi)*torch.sin(x*torch.pi/a))))
-
-
-@torch.compile
-def BCEWithLogitsLoss(input:torch.tensor, 
-                      target:torch.tensor,
-                      num_classes:int = 1000,
-                      smoothing_fac:float = 0.1)->torch.tensor:
-    ## Target is of shape (B, num_classes), we shall do some label smoothing here!!!
-    target_smooted = target*(1-smoothing_fac/num_classes) + smoothing_fac/num_classes
-    return torch.nn.functional.binary_cross_entropy_with_logits(input, target_smooted)
-
-
-"""BCEWithLogitsLoss(torch.randn(1, 1000), torch.rand(1, 1000))
-
-a = torch.zeros(1000)
-a[0] = 0
-
-a*(1-100/1000) + 100/1000"""
