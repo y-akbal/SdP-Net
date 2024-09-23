@@ -11,7 +11,8 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torchvision.transforms import autoaugment, transforms
 # Define the CNN model (same as before)
-from model import main_model
+from model import MainModel
+from tqdm import tqdm
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.mps.device_count()>=1 else "cpu")
@@ -33,38 +34,41 @@ def return_data():
 
     NUM_CLASSES = 100
 
-    cutmix = v2.CutMix(num_classes = NUM_CLASSES)
-    mixup = v2.MixUp(num_classes = NUM_CLASSES, alpha = 0.8)
-
+    # Assuming cutmix_or_mixup is defined globally
+    cutmix = v2.CutMix(num_classes=NUM_CLASSES)
+    mixup = v2.MixUp(num_classes=NUM_CLASSES, alpha=0.8)
     cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
-    collate_fn = lambda batch : cutmix_or_mixup(*default_collate(batch))
 
-    trainset = torchvision.datasets.CIFAR100(root='./data', train=True, download=True, transform=train_transform)
-    testset = torchvision.datasets.CIFAR100(root='./data', train=False, download=True, transform=test_transform)
+    # Define the collate function at the top level  
+    def collate_fn(batch):
+        return cutmix_or_mixup(*default_collate(batch))
 
-    trainloader = DataLoader(trainset, batch_size=256, shuffle=True, num_workers=16, collate_fn=collate_fn)
-    testloader = DataLoader(testset, batch_size=100, shuffle=False, num_workers=8)
+    trainset = torchvision.datasets.CIFAR100(root='./data', train=True, download=True, transform = train_transform)
+    testset = torchvision.datasets.CIFAR100(root='./data', train=False, download=True, transform = test_transform)
+
+    trainloader = DataLoader(trainset, batch_size = 128, shuffle=True, collate_fn=collate_fn)
+    testloader = DataLoader(testset, batch_size = 64, shuffle=False)
 
     return trainloader, testloader
 
-def return_model(compiled = True):
+
+def return_model(compiled = False):
+
     torch.manual_seed(0)
-    model = main_model(
-        embedding_dim=128,
-        num_blocks=10,
-        n_head= 4, 
-        activation= nn.GELU(),
-        patch_size= 16, 
-        conv_kernel_size=5, 
-        output_classes=100, 
-        embedding_dim=128, 
-        num_blocks=5,
-        max_image_size=(16,16),
-        head_output_from_register=True,
-        simple_mlp_output=True,
-        stochastic_depth=False,
-        stochastic_depth_p=[0.9, 0.001],
-        normalize_qv=True
+    model = MainModel(
+        n_head = 8, 
+        activation = nn.GELU(),
+        patch_size = 8, 
+        conv_kernel_size = 7, 
+        output_classes = 100, 
+        embedding_dim = 128, 
+        num_blocks = 10,
+        max_image_size = (16,16),
+        head_output_from_register = False,
+        simple_mlp_output = True,
+        stochastic_depth = True,
+        stochastic_depth_p = [0.9, 0.001],
+        normalize_qv = True
     )
     if compiled and device !="mps":
         model = torch.compile(model.to(device))
@@ -84,29 +88,24 @@ def train(epochs,
           loss_fn,
           optimizer):
     for epoch in range(epochs):
+
         model.train()
         running_loss = 0.0
         total = 0
-
-        for i, (inputs, labels) in enumerate(trainloader):
+        pbar = tqdm(trainloader)
+        for inputs, labels in pbar:
             inputs, labels = inputs.to(device), labels.to(device)
-
             outputs = model(inputs)
-            
-            
-            loss = loss_fn(outputs[0][:, 0, :], labels)
-            
-
+            loss = loss_fn(outputs, labels)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
             running_loss += loss.item()
+            total += 1
+            pbar.set_postfix({'loss': loss.item()})
 
-            _, predicted = torch.max(outputs[0][:, 0, :].data, 1)
-            total += inputs.size(0)
-
-        epoch_loss = running_loss / len(trainloader)
+        epoch_loss = running_loss / total
         print(f'Epoch {epoch + 1}, Loss: {epoch_loss:.4f}')
 
         # Evaluate on test set
@@ -122,8 +121,8 @@ def evaluate(testloader):
         for data in testloader:
             images, labels = data[0].to(device), data[1].to(device)
             outputs = model(images)
-            _, predicted = torch.max(outputs[0][:, 0, :].data, 1)
-            total += labels.size(0)
+            predicted = outputs.argmax(-1)
+            total += labels.shape[0]
             correct += (predicted == labels).sum().item()
 
     accuracy = 100 * correct / total
@@ -133,5 +132,6 @@ def evaluate(testloader):
 if __name__ == "__main__":
     trainloader, testloader = return_data()
     model, loss_fn, optimizer = return_model()
+    print(f"This model has {model.return_num_params()[0]} parameters")
     train(epochs=100, trainloader=trainloader, testloader=testloader, loss_fn=loss_fn, optimizer=optimizer)
     
