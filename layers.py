@@ -26,6 +26,17 @@ class ConvPatcher(nn.Module):
 conv_patcher(patch_size=16)(torch.randn(5, 3, 224,224)).mean()
 """
 
+
+"""#let's write a simple tenosr of shape 1, C, H, W
+#sample from laplace distribution in torch
+x = 10*torch.distributions.laplace.Laplace(torch.tensor([0.0]), torch.tensor([1.0])).sample((2, 3, 2, 2)).squeeze(-1)
+
+(x- x.mean(dim = [-1,-2], keepdim = True))/x.var(dim = [-1,-2], keepdim = True, unbiased = False)**0.5
+
+(x-x.mean((-1,-2,-3)))/x.std((-1,-2,-3), unbiased = False)
+
+nn.GroupNorm(1, 3, eps = 0.0)(x)"""
+
 class ConvMixer(nn.Module):
     def __init__(self, 
                  embedding_dim:int = 768, 
@@ -45,8 +56,8 @@ class ConvMixer(nn.Module):
                                 kernel_size =1,
                                 bias = True,
                                 )
-        self.layer_norm_1 = nn.GroupNorm(1, embedding_dim)
-        self.layer_norm_2 = nn.GroupNorm(1, embedding_dim)
+        self.layer_norm_1 = nn.GroupNorm(32, embedding_dim)
+        self.layer_norm_2 = nn.GroupNorm(32, embedding_dim)
         self.activation = activation
 
     def forward(self, x_:torch.Tensor):
@@ -205,6 +216,7 @@ class EncoderLayer(nn.Module):
         if self.normalize_qv:
             q = F.normalize(q, p = 2, dim = -1)
             k = F.normalize(k, p = 2, dim = -1)
+
         ## Glad to use flash attention here!!!
         if self.fast_att:
             with sdpa_kernel([SDPBackend.MATH, SDPBackend.FLASH_ATTENTION]):

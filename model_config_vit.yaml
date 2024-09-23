@@ -22,6 +22,7 @@ model_config:
   output_head_bias: False
   normalize_qv: True
 
+
 trainer_config:
   compile_model: False
   snapshot_dir: "model"

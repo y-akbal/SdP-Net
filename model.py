@@ -8,8 +8,6 @@ from numpy import arccos, cos
 
 torch.set_float32_matmul_precision('high')
 
-
-
 class MainModel(SdPModel):
     def __init__(self, 
                  embedding_dim:int = 128,
