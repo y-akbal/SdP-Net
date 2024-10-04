@@ -100,7 +100,7 @@ def BCEWithLogitsLoss(num_classes:int = 1000,
     ## Target is of shape (B, num_classes), we shall do some label smoothing here!!!
     
     def loss(input:torch.Tensor, target:torch.Tensor)->torch.tensor:
-    
+        ## Here we do some label smoothing
         target_smooted = target*(1-smoothing_fac/num_classes) + smoothing_fac/num_classes
     
         return torch.nn.functional.binary_cross_entropy_with_logits(input, target_smooted)
