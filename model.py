@@ -18,7 +18,6 @@ class MainModel(SdPModel):
                  patch_size:int = 16,
                  ffn_dropout:float = 0.2,
                  attn_dropout:float = 0.2,
-
                  output_classes:int = 1000,
                  ff_multiplication_factor:int = 4,
                  max_image_size:list[int, int] = [14,14],
@@ -29,7 +28,7 @@ class MainModel(SdPModel):
                  simple_mlp_output:bool = False,
                  output_head_bias:bool = False,
                  normalize_qv:bool = True,
-                 stochastic_depth_p:list[float] = [0.1, 0.01]):
+                 stochastic_depth_p:list[float] = [0.0, 0.0]):
         super().__init__()
         ## oh s***  here we go again ##
         ## RIP CJ!##
@@ -45,8 +44,6 @@ class MainModel(SdPModel):
             max_image_size= max_image_size,
             activation = embedding_activation,
         )
-        ### Helper functions -- Below we apply stochastic depth only when asked!!!
-        ST = lambda x, p: StochasticDepth(x, p) if stochastic_depth else x
         ## The following function will adjust stochastic depth p value according to cosine schedule!!! storchastic_dept_0 -> stochastic_depth_1
         ST_p = lambda i: cos(arccos(stochastic_depth_p[0])*(1 - i/num_blocks) + arccos(stochastic_depth_p[1])*(i/num_blocks))
 
@@ -69,9 +66,8 @@ class MainModel(SdPModel):
                         activation_func = activation,
                         ff_dropout = ffn_dropout,
                         att_dropout = attn_dropout,
-                        drop_p = 0.0                     
+                        drop_p = 0.0,                 
         )
-
 
         self.output_head = ClassificationHead(embedding_dim, 
                                        output_classes,
@@ -109,18 +105,18 @@ model = MainModel(num_blocks = 15,
                    patch_size=16, 
                    conv_first=False, 
                    conv_kernel_size = 7, 
-                   stochastic_depth_p=[0.1, 0.05],
+                   stochastic_depth_p=[0.05, 0.1],
                    head_output_from_register=False,
                    simple_mlp_output=True,
                    max_image_size = [16,16],
                    ff_multiplication_factor=4,
                    normalize_qv = True,
-                   )
+                   ).cuda()
 
 model.return_num_params()
 
-inputs = torch.randn(2, 3, 16, 16)
-targets = torch.randint(0, 1000, (2,))
+inputs = torch.randn(2, 3, 16, 16).cuda()
+targets = torch.randint(0, 1000, (2,)).cuda()
 
 
 model.return_num_params()
@@ -145,6 +141,10 @@ for epoch in range(1000):
 for name, lay in model.named_parameters(): 
     if lay.grad == None:
         print(name, lay.grad)
+
+stochastic_depth_p = [0.0, 0.1]     
+num_blocks = 10   
+ST_p = lambda i: cos(arccos(stochastic_depth_p[0])*(1 - i/num_blocks) + arccos(stochastic_depth_p[1])*(i/num_blocks))
 
 """
 
