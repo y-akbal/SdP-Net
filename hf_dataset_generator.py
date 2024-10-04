@@ -84,6 +84,12 @@ class hf_dataset(Dataset):
         if not self.return_originals:
             return transformed_image, label
         return transformed_image, image, label
+
+"""dataset = load_dataset("timm/imagenet-22k-wds", streaming=True)
+for a in dataset:
+    print(a)
+"""
+
 """
 from datasets import load_dataset
 dset = load_dataset('imagenet-1k', 

@@ -2,10 +2,6 @@ import os
 import sys
 os.environ["OMP_NUM_THREADS"] = "5"
 
-
-
-
-
 import torch
 from torch import nn as nn
 import torch.nn as nn
@@ -44,8 +40,6 @@ class DDP_setup(object):
 
     def __exit__(self, *args):
         destroy_process_group()
-
-
 
 
 @hydra.main(version_base=None, config_path=".", config_name="model_config_vit")
@@ -87,6 +81,7 @@ def main(cfg : DictConfig):
             val_accuracy_logger=val_acc_tracker,
             **trainer_config
         )
+        
         wandb.init(project = "Tiny-SdpNet", config = dict(cfg))
         trainer.train()
 

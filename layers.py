@@ -5,7 +5,7 @@ from torch.nn.parameter import Parameter
 import torch.nn.functional as F
 from typing import Callable
 from torch.nn.attention import SDPBackend, sdpa_kernel
-
+from utility_layers import StochasticDepth as SD
 class ConvPatcher(nn.Module):
     def __init__(self, 
                  embedding_dim = 128, 
@@ -157,7 +157,8 @@ class EncoderLayer(nn.Module):
         ff_dropout: float = 0.2,
         att_dropout: float = 0.2,
         fast_att:bool = True,
-        normalize_qv:bool = True
+        normalize_qv:bool = True,
+        drop_p:float = 0.1
     ):
         super().__init__()
         assert embedding_dim % n_head == 0, "Number of embedding_dim must be divisible by n_head"
@@ -167,7 +168,9 @@ class EncoderLayer(nn.Module):
         self.head_dim = embedding_dim // n_head
         self.att_dropout = att_dropout
         self.fast_att = fast_att
-        self.normalize_qv = normalize_qv
+        self.q_norm = nn.LayerNorm(self.head_dim) if normalize_qv else nn.Identity()
+        self.k_norm = nn.LayerNorm(self.head_dim) if normalize_qv else nn.Identity()
+        self.drop_path1, self.drop_path2 = (SD(drop_p), SD(drop_p)) if drop_p > 0 else (nn.Identity(), nn.Identity())
 
         # Multi-head self-attention
         self.q_proj = nn.Linear(embedding_dim, embedding_dim, bias = False)
@@ -207,15 +210,14 @@ class EncoderLayer(nn.Module):
 
         # Multi-head self-attention
         residual = x_flat_register
+
         x_norm = self.norm1(x_flat_register)
         
         q = self.q_proj(x_norm).view(B, R+H*W, self.n_head, self.head_dim).transpose(1, 2)
         k = self.k_proj(x_norm).view(B, R+H*W, self.n_head, self.head_dim).transpose(1, 2)
         v = self.v_proj(x_norm).view(B, R+H*W, self.n_head, self.head_dim).transpose(1, 2)
-        
-        if self.normalize_qv:
-            q = F.normalize(q, p = 2, dim = -1)
-            k = F.normalize(k, p = 2, dim = -1)
+    
+        q, k = self.q_norm(q), self.k_norm(k) 
 
         ## Glad to use flash attention here!!!
         if self.fast_att:
@@ -230,16 +232,15 @@ class EncoderLayer(nn.Module):
             attn_output = torch.matmul(attn_weights, v)
         
         attn_output = attn_output.transpose(1, 2).contiguous().view(B, R+H*W, C)
-        attn_output = self.o_proj(attn_output)
-        
-        
-        x_flat = residual + self.dropout(attn_output)
+        attn_output = self.dropout(self.o_proj(attn_output))
+
+        x_flat = residual + self.drop_path1(attn_output)
+
         # Feed-forward network !!!
         residual = x_flat
         x_norm = self.norm2(x_flat)
-        x_ff = self.ff_linear2(self.dropout(self.activation(self.ff_linear1(x_norm))))
-        x_flat = residual + self.dropout(x_ff)
-        
+        x_ff = self.dropout(self.ff_linear2(self.dropout(self.activation(self.ff_linear1(x_norm)))))
+        x_flat = residual + self.drop_path2(x_ff)
         # we split the register token from x_flat!!!
         register, x_flat = x_flat.split([R, H*W], dim = -2)
         
@@ -252,16 +253,15 @@ class EncoderLayer(nn.Module):
 """
 from training_utilities import MeasureTime
 torch.manual_seed(0)
-layer = EncoderLayer(embedding_dim=768, n_head=16, multiplication_factor = 2)    
+layer = EncoderLayer(embedding_dim=768, n_head=16, multiplication_factor = 2, fast_att=False, normalize_qv=True)    
 q = 0
 for p in layer.parameters():
     q += p.shape.numel()
 print(q)
-x = torch.randn(10, 768, 55, 55)
-reg = torch.randn(10, 5, 768)
-with MeasureTime():
-    layer.eval()
-    layer(x, reg)
+x = torch.randn(1, 768, 55, 55)
+reg = torch.randn(1, 5, 768)
+layer.eval()
+layer(x, reg)[1].shape
 """
 class Block(nn.Module):
     def __init__(
@@ -275,7 +275,8 @@ class Block(nn.Module):
             conv_kernel_size:int = 5,
             conv_activation:Callable = F.gelu,
             conv_first = False,
-            normalize_qv:bool = True):
+            normalize_qv:bool = True,
+            drop_p:float = 0.1):
         super().__init__()
         self.t_block = EncoderLayer(
             embedding_dim= embedding_dim,
@@ -284,7 +285,8 @@ class Block(nn.Module):
             multiplication_factor= multiplication_factor,
             ff_dropout=ff_dropout,
             att_dropout=att_dropout,
-            normalize_qv=normalize_qv
+            normalize_qv=normalize_qv,
+            drop_p = drop_p
         )
         self.conv_block = ConvMixer(
             embedding_dim= embedding_dim,
@@ -321,7 +323,8 @@ class FinalBlock(nn.Module):
             multiplication_factor: int = 2,
             ff_dropout: float = 0.2,
             att_dropout: float = 0.2,
-            normalize_qv:bool = True):
+            normalize_qv:bool = True,
+            drop_p:float = 0.0):
         super().__init__()
         self.t_block = EncoderLayer(
             embedding_dim= embedding_dim,
@@ -331,6 +334,7 @@ class FinalBlock(nn.Module):
             ff_dropout=ff_dropout,
             att_dropout=att_dropout,
             normalize_qv=normalize_qv,
+            drop_p=drop_p,
         )
     def forward(self, x:torch.tensor, 
                 register:torch.tensor, 

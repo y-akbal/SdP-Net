@@ -11,8 +11,7 @@ model_config:
   patch_size: 16
   ffn_dropout: 0.3
   attn_dropout: 0.3
-  stochastic_depth: False
-  stochastic_depth_p: [0.2, 0.1]
+  stochastic_depth_p: [0.0, 0.0]
   output_classes: 1000
   max_image_size: [16,16]
   max_num_registers: 5

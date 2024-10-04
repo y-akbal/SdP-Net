@@ -4,9 +4,31 @@ from typing import Union
 
 
 
-
-
 class StochasticDepth(torch.nn.Module):
+    def __init__(self, 
+                 p: float = 0.2,
+                 ):
+        super().__init__()
+        """Thank you timm!!!"""
+        assert 0<p<1, "p must be a positive number or <1"
+        self.p = p
+
+    def forward(self, 
+                x:torch.Tensor)->torch.Tensor:
+        if self.training:
+
+            size = [1]*x.ndim
+
+            noise_x = torch.empty(size, dtype = x.dtype, device= x.device, requires_grad = False).bernoulli(1-self.p).div(1-self.p)
+            
+            return noise_x*x
+        
+        return x
+
+
+
+
+class StochasticDepth_2(torch.nn.Module):
     def __init__(self, 
                  module: torch.nn.Module, 
                  p: float = 0.2,
@@ -31,9 +53,9 @@ class StochasticDepth(torch.nn.Module):
             
             noise_register = noise_x.squeeze([-1, -2])
 
-            return x + noise_x * x_new, register + noise_register * register_new
+            return x_new, noise_register * register_new
         
-        return x + x_new, register + register_new
+        return x_new, register_new
 
 
 class TecherModel(object):
