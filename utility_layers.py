@@ -155,7 +155,7 @@ class SdPModel(nn.Module):
         ## This dude will return the number of parameters
         ## Here we use complex numbers for no purpose a tall
         params = sum([param.numel()*1j if param.requires_grad else param.numel() for param in self.parameters()])
-        return int(params.imag), int(params.real)
+        return {"Trainable_params": int(params.imag),  "Non_trainable_params": int(params.real)}
 
     ## The methods will work in tandem with the methods from_dict ## 
     ## They may not function if you use __init__ method!!! ##

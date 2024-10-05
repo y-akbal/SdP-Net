@@ -56,9 +56,11 @@ def main(cfg : DictConfig):
         model = MainModel.from_dict(**model_config)
         optimizer, scheduler = return_scheduler_optimizer(model, **optimizer_scheduler_config)
         ## batched train and validation data loader ## 
-        #train_images, test_images = hf_train_val_data_loader(**data_config)
-        from dataset_generator import fake_data_loader
-        train_images, test_images = fake_data_loader()
+        if bool(cfg["DEBUG_MODE"]):
+            from dataset_generator import fake_data_loader
+            train_images, test_images = fake_data_loader()
+        else:
+            train_images, test_images = hf_train_val_data_loader(**data_config)
     
         gpu_id = int(os.environ["LOCAL_RANK"]) ### this local rank is determined by torch run!!!
     

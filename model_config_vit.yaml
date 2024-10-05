@@ -1,3 +1,7 @@
+DEBUG_MODE: False
+## If you set debug mode to True, the model will be trained on a small subset of a fake data
+## This is useful for debugging the model and the training pipeline
+
 wandb_config:
   project: "SdPNet"
   group: "XL"
