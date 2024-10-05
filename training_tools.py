@@ -27,7 +27,6 @@ class Trainer:
         report_every_epoch:int =1, 
         use_ema_model:bool = False, 
         use_cross_entropy:bool = True,
-        use_teacher_model:bool = False,
         teacher_model:Any = None,
     ) -> None:
         self.gpu_id = gpu_id
@@ -174,8 +173,11 @@ class Trainer:
                 #print(loss.item(), accuracy.item(), output.shape, self.val_accuracy_logger.accuracy, self.val_accuracy_logger.epoch)
 
                             
-            self.val_loss_logger.log()
-            self.val_accuracy_logger.log()   
+            val_loss = self.val_loss_logger.log()
+            val_acc = self.val_accuracy_logger.log()   
+
+        if self.gpu_id == 0:
+            print(f"Epoch | {self.epoch} - validation loss is {val_loss}, accuracy is {val_acc}")
     
     ## Some tools ## 
     def _load_checkpoint(self, checkpoint_file):

@@ -23,14 +23,14 @@ model_config:
 
 
 trainer_config:
-  compile_model: False
+  compile_model: True
   snapshot_dir: "model"
   snapshot_name: "model_1.pt"
   save_every: 1
   total_epochs: 300
   gradient_accumulation_steps: 1
   report_every_epoch: 1
-  use_cross_entropy: True #True for cross entropy False for BCEloss
+  use_cross_entropy: False #True for cross entropy False for BCEloss
   
   
 optimizer_scheduler_config:

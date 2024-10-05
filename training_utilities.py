@@ -46,8 +46,7 @@ class distributed_loss_track:
         loss = self.temp_loss/self.counter
         self.reset()
         return loss
-
-        import torch
+        
 
 class track_accuracy:
     def __init__(self, 
@@ -101,6 +100,8 @@ def BCEWithLogitsLoss(num_classes:int = 1000,
     ## Target is of shape (B, num_classes), we shall do some label smoothing here!!!
     
     def loss(input:torch.Tensor, target:torch.Tensor)->torch.tensor:
+        if target.dim() == 1:
+            target = torch.nn.functional.one_hot(target, num_classes)
         ## Here we do some label smoothing
         target_smoothed = target*(1-label_smoothing) + label_smoothing/num_classes
     
