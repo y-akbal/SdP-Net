@@ -4,7 +4,7 @@ wandb_config:
 
 model_config:
   num_blocks: 15
-  embedding_dim: 768
+  embedding_dim: 128
   n_head: 16
   ff_multiplication_factor: 4
   conv_kernel_size: 7
@@ -30,7 +30,7 @@ trainer_config:
   total_epochs: 300
   gradient_accumulation_steps: 1
   report_every_epoch: 1
-  use_cross_entropy: False #True for cross entropy False for BCEloss
+  use_cross_entropy: True #True for cross entropy False for BCEloss
   
   
 optimizer_scheduler_config:

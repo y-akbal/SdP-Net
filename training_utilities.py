@@ -5,6 +5,7 @@ from torch.distributed import (
 )
 import torch.distributed as dist
 import wandb
+from typing import Callable
 
 class distributed_loss_track:
 
@@ -96,14 +97,14 @@ def KeLu(x:torch.Tensor, a:float = 3.5)->torch.tensor:
 
 @torch.compile
 def BCEWithLogitsLoss(num_classes:int = 1000,
-                      smoothing_fac:float = 0.1)->torch.tensor:
+                      label_smoothing:float = 0.1)->Callable[[torch.Tensor, torch.Tensor], torch.Tensor] :
     ## Target is of shape (B, num_classes), we shall do some label smoothing here!!!
     
     def loss(input:torch.Tensor, target:torch.Tensor)->torch.tensor:
         ## Here we do some label smoothing
-        target_smooted = target*(1-smoothing_fac/num_classes) + smoothing_fac/num_classes
+        target_smoothed = target*(1-label_smoothing) + label_smoothing/num_classes
     
-        return torch.nn.functional.binary_cross_entropy_with_logits(input, target_smooted)
+        return torch.nn.functional.binary_cross_entropy_with_logits(input, target_smoothed)
     
     return loss
 

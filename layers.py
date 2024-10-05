@@ -170,7 +170,8 @@ class EncoderLayer(nn.Module):
         self.fast_att = fast_att
         self.q_norm = nn.LayerNorm(self.head_dim) if normalize_qv else nn.Identity()
         self.k_norm = nn.LayerNorm(self.head_dim) if normalize_qv else nn.Identity()
-        self.drop_path1, self.drop_path2 = (SD(drop_p), SD(drop_p)) if drop_p > 6.13e-17 else (nn.Identity(), nn.Identity())
+        ## Stochastic Depth for attention and feed-forward network
+        self.drop_path1, self.drop_path2 = (SD(drop_p), SD(drop_p)) if drop_p > 1e-5 else (nn.Identity(), nn.Identity())
 
         # Multi-head self-attention
         self.q_proj = nn.Linear(embedding_dim, embedding_dim, bias = False)
