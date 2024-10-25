@@ -8,44 +8,44 @@ wandb_config:
 
 model_config:
   num_blocks: 15
-  embedding_dim: 128
+  embedding_dim: 768
   n_head: 16
   ff_multiplication_factor: 4
   conv_kernel_size: 7
   patch_size: 16
   ffn_dropout: 0.3
   attn_dropout: 0.3
-  stochastic_depth_p: [0.0, 0.0]
+  stochastic_depth_p: [0.1, 0.5]
   output_classes: 1000
   max_image_size: [16,16]
   max_num_registers: 5
   conv_first: False
   head_output_from_register: True
   simple_mlp_output: False
-  output_head_bias: False
-  normalize_qv: True
+  output_head_bias: False 
+  normalize_qv: True #True for normalizing qv False for not normalizing qv
 
 
 trainer_config:
-  compile_model: True
+  compile_model: False
   snapshot_dir: "model"
   snapshot_name: "model_1.pt"
   save_every: 1
-  total_epochs: 300
+  total_epochs: 350 ## Do not forget to change to T_0 below
   gradient_accumulation_steps: 1
   report_every_epoch: 1
-  use_cross_entropy: False #True for cross entropy False for BCEloss
+  use_cross_entropy: True #True for cross entropy False for BCEloss
   
   
 optimizer_scheduler_config:
   optimizer_config:
-    lr: 0.001  #0.0005*batch_size*gradient_accumulation_steps*GPU/512
+    lr: 0.0015  #0.0005*batch_size*gradient_accumulation_steps*GPU/512
     weight_decay: 0.05
 
   scheduler_config:
     cosine:
-      T_0: 300
-      eta_min: 0.0000088
+      T_0: 350
+      eta_min: 1e-5
     constant_scheduler:
       factor: 0.001
       total_iters: 2

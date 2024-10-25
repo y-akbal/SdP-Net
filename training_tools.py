@@ -35,7 +35,7 @@ class Trainer:
         self.model = DDP(self.model, device_ids=[gpu_id])
         #
         if compile_model:
-            self.model = torch.compile(self.model)
+            self.model = torch.compile(self.model,  dynamic = True)
         if use_ema_model:
             self.ema_model = None
         #
