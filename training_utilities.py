@@ -18,8 +18,7 @@ class distributed_loss_track:
         self.epoch:int = 0
         self.task = task
         self.wandb_log = wandb_log
-
-
+    
     def update(self, batch_loss:float):
         self.temp_loss += batch_loss
         self.counter += 1
