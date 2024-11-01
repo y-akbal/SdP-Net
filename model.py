@@ -64,8 +64,10 @@ class MainModel(SdPModel):
         self.final_block = FinalBlock(embedding_dim  = embedding_dim,
                         n_head = n_head,
                         activation_func = activation,
+                        multiplication_factor = ff_multiplication_factor,
                         ff_dropout = ffn_dropout,
                         att_dropout = attn_dropout,
+                        normalize_qv = normalize_qv,
                         drop_p = 0.0,                 
         )
 
