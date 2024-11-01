@@ -22,11 +22,11 @@ This is actually a less serious weekend project called SlapDash-Net which can be
 |  S     |  76M      |   12      |  16         |     7     | 512       | ?        | 
 |  M     |  86M      |   12      |  16         |     7     | 768       | ?        | 
 |  L     |  86M      |   12      |  16         |     7     | 768       | ?        | 
-|  XL    |  86M      |   15      |  16         |     7     | 768       | ?        | 
+|  XL    |  86M      |   15      |  16         |     7     | 768       | 79.8     | 
 
 
 
-Bitter lesson: Training has not started yet!
+Bitter lesson: The biggest model gives 79.8 acc on Imagenet1k. Still training the others on time permitting.
 
 # Optimizers
 

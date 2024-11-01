@@ -93,7 +93,7 @@ class Trainer:
         if (batch_enum+1)%self.grad_accum_steps == 0:
             # every 2 iterations we update the grads!!!
             self.scaler.unscale_(self.optimizer)
-            torch.nn.utils.clip_grad_norm_(self.model.parameters(), 3)
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), 5)
             self.scaler.step(self.optimizer)
             self.scaler.update()
 
