@@ -60,16 +60,6 @@ class MainModel(SdPModel):
                         normalize_qv = normalize_qv,
                         drop_p=ST_p(i))
                         for i in range(num_blocks)])
-        
-        self.final_block = FinalBlock(embedding_dim  = embedding_dim,
-                        n_head = n_head,
-                        activation_func = activation,
-                        multiplication_factor = ff_multiplication_factor,
-                        ff_dropout = ffn_dropout,
-                        att_dropout = attn_dropout,
-                        normalize_qv = normalize_qv,
-                        drop_p = 0.0,                 
-        )
 
         self.output_head = ClassificationHead(embedding_dim, 
                                        output_classes,
@@ -91,9 +81,6 @@ class MainModel(SdPModel):
         ## Mixing with convs
         for block in self.blocks:
             x_raw_output, registers = block(x_raw_output, registers)
-        
-        ## The final output layer does not contain any convolutional blocks!!
-        x_raw_output, registers = self.final_block(x_raw_output, registers)
         ## Here depending on your needs we may further put a head, because the last conv layer in which case will not be used!
         
         x_classification_head = self.output_head(x_raw_output, registers)
@@ -102,23 +89,23 @@ class MainModel(SdPModel):
         return x_classification_head, x_raw_output, registers
     
 """
-model = MainModel(num_blocks = 15, 
-                   embedding_dim = 768, 
-                   patch_size=16, 
+model = MainModel(num_blocks = 12, 
+                   embedding_dim = 512, 
+                   patch_size=14, 
                    conv_first=False, 
-                   conv_kernel_size = 7, 
+                   conv_kernel_size = 9, 
                    stochastic_depth_p=[0.05, 0.1],
                    head_output_from_register=False,
                    simple_mlp_output=True,
                    max_image_size = [16,16],
                    ff_multiplication_factor=4,
                    normalize_qv = True,
-                   ).cuda()
+                   )
 
 model.return_num_params()
 
-inputs = torch.randn(2, 3, 16, 16).cuda()
-targets = torch.randint(0, 1000, (2,)).cuda()
+inputs = torch.randn(2, 3, 16, 16)
+targets = torch.randint(0, 1000, (2,))
 
 
 model.return_num_params()
