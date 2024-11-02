@@ -37,11 +37,12 @@ x = 10*torch.distributions.laplace.Laplace(torch.tensor([0.0]), torch.tensor([1.
 
 nn.GroupNorm(1, 3, eps = 0.0)(x)"""
 
-class ConvMixer(nn.Module):
+class Shooter(nn.Module):
     def __init__(self, 
                  embedding_dim:int = 768, 
                  kernel_size:int = 5, 
-                 activation:Callable = nn.GELU()
+                 final_activation:Callable = nn.Sigmoid(),
+                 activation:Callable = F.gelu,
                  ):
         super().__init__()
         self.conv2d = nn.Conv2d(in_channels = embedding_dim, 
@@ -49,33 +50,28 @@ class ConvMixer(nn.Module):
                               kernel_size = kernel_size,
                               groups = embedding_dim,
                               padding = "same",
-                              bias = True,
+                              bias = False,
                               )
         self.conv1d = nn.Conv2d(in_channels = embedding_dim,
-                                out_channels = embedding_dim,
+                                out_channels = 1,
                                 kernel_size =1,
-                                bias = True,
+                                bias = False,
                                 )
         self.layer_norm_1 = nn.GroupNorm(32, embedding_dim)
-        self.layer_norm_2 = nn.GroupNorm(32, embedding_dim)
-        self.activation = activation
+        self.activation = final_activation
+        self.conv_activation = activation
 
     def forward(self, x_:torch.Tensor):
         x = self.conv2d(x_)
-        x = self.activation(x)
         x = self.layer_norm_1(x)+x_
         x = self.conv1d(x)
         x = self.activation(x)
-        x = self.layer_norm_2(x)
         return x
+        
 """
-layer = ConvMixer(768, kernel_size=9)
-q = 0
-for p in layer.parameters():
-    q += p.shape.numel()
-print(q)
+layer = Shooter(768, 5, activation = nn.Sigmoid())
 x = torch.randn(100, 768, 14, 14)
-layer(x).shape
+(layer(x)*x).mean()
 """
 
 class EmbeddingLayer(nn.Module):
@@ -289,58 +285,29 @@ class Block(nn.Module):
             normalize_qv=normalize_qv,
             drop_p = drop_p
         )
-        self.conv_block = ConvMixer(
-            embedding_dim= embedding_dim,
-            kernel_size=conv_kernel_size,
-            activation=conv_activation
+        self.conv_block = Shooter(
+            embedding_dim = embedding_dim,
+            kernel_size = conv_kernel_size,
+            activation = conv_activation,
+            final_activation= nn.Sigmoid()
         )
-        self.conv_first = conv_first
     def forward(self, x:torch.tensor, 
                 register:torch.tensor, 
                 mask:torch.tensor = None)->tuple[torch.tensor, torch.tensor]:
-        
-        if not self.conv_first:
-            x, register = self.t_block(x, register, mask)
-            x = self.conv_block(x)
-            return x, register
-        x = self.conv_block(x)
-        return self.t_block(x, register, mask)
+
+        x, register = self.t_block(x, register, mask)
+        return x*self.conv_block(x), register
 
 
 """
-bl = block(conv_first=False)
+bl = Block(conv_first=False)
 bl.eval()
+x = torch.randn(1, 768, 16, 16)
+register = torch.randn(1, 5, 768)
 x, register = bl(x, register)
 x.shape
 register.shape
 """
-
-class FinalBlock(nn.Module):
-    def __init__(
-            self, 
-            embedding_dim: int = 768,
-            n_head: int = 8,
-            activation_func: Callable = F.gelu,
-            multiplication_factor: int = 2,
-            ff_dropout: float = 0.2,
-            att_dropout: float = 0.2,
-            normalize_qv:bool = True,
-            drop_p:float = 0.0):
-        super().__init__()
-        self.t_block = EncoderLayer(
-            embedding_dim= embedding_dim,
-            n_head = n_head,
-            activation_func=activation_func,
-            multiplication_factor= multiplication_factor,
-            ff_dropout=ff_dropout,
-            att_dropout=att_dropout,
-            normalize_qv=normalize_qv,
-            drop_p=drop_p,
-        )
-    def forward(self, x:torch.tensor, 
-                register:torch.tensor, 
-                mask:torch.tensor = None)->tuple[torch.tensor, torch.tensor]:
-        return self.t_block(x, register, mask)
 
 
 class ClassificationHead(nn.Module):
@@ -383,8 +350,8 @@ class ClassificationHead(nn.Module):
 
 """
 torch.manual_seed(0)
-head = classification_head(768, 1000, from_register= True, simple_output= False)
-head(torch.randn(10, 14*14, 768)).std()
+head = ClassificationHead(768, 1000, from_register= True, simple_output= False)
+head(torch.randn(10, 14*14, 768), torch.randn(10, 5, 768)).std()
 """
 
 
