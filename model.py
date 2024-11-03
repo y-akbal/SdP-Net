@@ -23,7 +23,6 @@ class MainModel(SdPModel):
                  max_image_size:list[int, int] = [14,14],
                  max_num_registers:int = 5,
                  embedding_activation:Callable = None,
-                 conv_first:bool = True,
                  head_output_from_register:bool = False,
                  simple_mlp_output:bool = False,
                  output_head_bias:bool = False,
