@@ -1,7 +1,7 @@
 import torch
 from torch import nn as nn
 from torch.nn import functional as F
-from layers import ConvMixer, EmbeddingLayer, ConvPatcher, Block, FinalBlock, ClassificationHead
+from layers import Shooter, EmbeddingLayer, ConvPatcher, Block, ClassificationHead
 from utility_layers import SdPModel, StochasticDepth
 from typing import Callable, Optional, Any, Union
 from numpy import arccos, cos
@@ -55,7 +55,6 @@ class MainModel(SdPModel):
                         multiplication_factor = ff_multiplication_factor,
                         conv_kernel_size = conv_kernel_size,
                         conv_activation = activation,
-                        conv_first = conv_first,
                         normalize_qv = normalize_qv,
                         drop_p=ST_p(i))
                         for i in range(num_blocks)])
@@ -88,10 +87,9 @@ class MainModel(SdPModel):
         return x_classification_head, x_raw_output, registers
     
 """
-model = MainModel(num_blocks = 12, 
+model = MainModel(num_blocks = 15, 
                    embedding_dim = 512, 
                    patch_size=14, 
-                   conv_first=False, 
                    conv_kernel_size = 9, 
                    stochastic_depth_p=[0.05, 0.1],
                    head_output_from_register=False,
@@ -112,16 +110,17 @@ from torch import optim
 criterion = nn.CrossEntropyLoss()
 
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
-
+model.train()
 for epoch in range(1000):
 
     optimizer.zero_grad()
     # Forward pass
     outputs = model(inputs)
+    
     loss_1 = F.binary_cross_entropy_with_logits(outputs, F.one_hot(targets,1000).to(torch.float32))
-    with torch.no_grad():
-        loss_2 = criterion(outputs, targets)
-    loss_1.backward()
+    loss_2 = criterion(outputs, targets)
+    loss = loss_1 + loss_2
+    loss.backward()
     optimizer.step()
     print(loss_1.item(), loss_2.item(), epoch)
 
