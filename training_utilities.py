@@ -93,22 +93,49 @@ def KeLu(x:torch.Tensor, a:float = 3.5)->torch.tensor:
     return torch.where(x < -a, 0, torch.where(x > a, x, 0.5*x*(1+x/a+(1/torch.pi)*torch.sin(x*torch.pi/a))))
 
 
-
-
-
-def CrossEntropyLoss(main_model:nn.Module, teacher_model:nn.Module = None,
+def CrossEntropyLoss(main_model:nn.Module, 
+                    teacher_model:nn.Module = None,
+                    type:str = "hard",
+                    loss_coef:list[float] = [0.1, 0.2],
+                    Temperature:float = 5,
                     num_classes:int = 1000,
-                    label_smoothing:float = 0.1)->Callable[[torch.Tensor, torch.Tensor], torch.Tensor] :
+                    label_smoothing:float = 0.1,
+                    hard_label_smoothing:float = 0.1)->Callable[[torch.Tensor, torch.Tensor], torch.Tensor] :
     ## Target is of shape (B, num_classes), we shall do some label smoothing here!!!
     
     def loss(input:torch.Tensor, target:torch.Tensor)->torch.tensor:
+        
         if target.dim() == 1:
             target = torch.nn.functional.one_hot(target, num_classes)
         ## Here we do some label smoothing
-        target_smoothed = target*(1-label_smoothing) + label_smoothing/num_classes
-    
-        return torch.nn.functional.binary_cross_entropy_with_logits(input, target_smoothed)
-    
+        if label_smoothing > 0:
+            target_smoothed = target*(1-label_smoothing) + label_smoothing/num_classes
+        
+        target_smoothed = target
+        main_model_logits = main_model(input)
+        main_model_loss = torch.nn.functional.cross_entropy(main_model_logits, target_smoothed)
+
+        if teacher_model:
+            with torch.no_grad():
+                teacher_model.eval()
+                teacher_logits = teacher_model(input)
+                teacher_hard_probs = teacher_logits.argmax(-1)
+                
+                if hard_label_smoothing > 0:
+                    teacher_hard_probs = teacher_hard_probs*(1-hard_label_smoothing) + hard_label_smoothing/num_classes
+                
+                teacher_soft_probs = teacher_logits.div(Temperature).softmax(-1)
+            ## Do something here 
+            soft_loss = torch.nn.functional.cross_entropy(main_model_loss, teacher_soft_probs)
+            ## If not hard loss!!!
+            if type != "hard":
+                return main_model_loss+loss_coef[0]*soft_loss
+            
+            teacher_hard_loss = torch.nn.functional.cross_entropy(main_model_loss, teacher_hard_probs)
+            return main_model_loss+loss_coef[0]*soft_loss + loss_coef[1]*teacher_hard_loss
+        
+        return main_model_loss
+
     return loss
 
 
