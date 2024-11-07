@@ -6,6 +6,7 @@ import torch.nn.functional as F
 from typing import Callable
 from torch.nn.attention import SDPBackend, sdpa_kernel
 from utility_layers import StochasticDepth as SD
+from typing import Tuple
 class ConvPatcher(nn.Module):
     def __init__(self, 
                  embedding_dim = 128, 
@@ -18,12 +19,19 @@ class ConvPatcher(nn.Module):
                               stride = patch_size, 
                               bias = False
                               )
+        self.norm = nn.GroupNorm(32, embedding_dim)
         self.patch_size = patch_size
     def forward(self, x:torch.Tensor)->torch.Tensor:
         ## B, 3, H, W --> B, out_channels, H//PATCH_SIZE, W//PATCH_SIZE ### 
-        return self.conv(x) 
+        x = self.conv(x) 
+        return self.norm(x)
 """
-conv_patcher(patch_size=16)(torch.randn(5, 3, 224,224)).mean()
+x, x_n = ConvPatcher(patch_size=16)(10*torch.randn(5, 3, 224,224)+1)
+x_r = x.reshape(5, 32, 4, 14, 14)
+x = (x_r - x_r.mean([-1,-2,-3], keepdim = True))/(x_r.var([-1,-2,-3], keepdim = True, unbiased = False)+1e-05)**0.5
+x_r = x.reshape(5, 128, 14, 14)
+x_r ## This dudes agree!!!
+x_n
 """
 
 
@@ -90,7 +98,7 @@ class EmbeddingLayer(nn.Module):
         super().__init__()
         ### -- ###
         self.max_num_registers = max_num_registers
-        self.activation = activation if activation != None else lambda x: x
+        self.activation = activation if activation != None else torch.Identity()
         ###
         self.register_embedding_layer = nn.Embedding(max_num_registers, embedding_dim)
         self.vertical_embedding_layer = nn.Embedding(max_image_size[0], embedding_dim)
@@ -110,25 +118,17 @@ class EmbeddingLayer(nn.Module):
 
         self.register_buffer(
             "vertical_embedding",
-            torch.tensor(
-                [i for i in range(max_image_size[0])],
-                dtype=torch.int,
-                requires_grad=False,
-            ),
+            torch.arange(max_image_size[0], dtype=torch.int),
         )
 
         self.register_buffer(
             "horizontal_embedding",
-            torch.tensor(
-                [i for i in range(max_image_size[1])],
-                dtype=torch.int,
-                requires_grad=False,
-            ),
+            torch.arange(max_image_size[1], dtype=torch.int),
         )
     
     def forward(self, 
                 x:torch.Tensor, 
-                num_registers:int = 0)->tuple[torch.Tensor, torch.Tensor]:
+                num_registers:int = 0)->Tuple[torch.Tensor, torch.Tensor]:
         B, C, H, W = x.shape
         ## NO NEED TO COMPUTE THESE DUDES FOR EACH FORWARD PASS!!!!! Do we have kind a caching mechanism?
         register_embeddings = self.register_embedding_layer(self.register_embeddings[:num_registers+1])
