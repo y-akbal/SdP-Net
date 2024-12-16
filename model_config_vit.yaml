@@ -7,24 +7,28 @@ wandb_config:
   group: "XL"
 
 model_config:
-  num_blocks: 15
-  embedding_dim: 128
-  n_head: 16
-  ff_multiplication_factor: 4
-  conv_kernel_size: 7
-  patch_size: 16
-  ffn_dropout: 0.3
-  attn_dropout: 0.3
-  stochastic_depth_p: [0.1, 0.1]
+  embedding_dim: 768
+  num_blocks: 6
+  n_head: 8
+  activation: "gelu"
+  embedding_activation: "none"
+  conv_kernel_size: 3
+  patch_size: 14
+  ffn_dropout: 0.2
+  attn_dropout: 0.2
   output_classes: 1000
-  max_image_size: [16,16]
-  max_num_registers: 6
+  conv_block_num: 2
+  ff_multiplication_factor: 4
+  max_image_size: [16, 16]
+  max_num_registers: 5
   conv_first: False
   head_output_from_register: True
-  simple_mlp_output: True
-  output_head_bias: False 
-  normalize_qv: True #True for normalizing qv False for not normalizing qv
-
+  simple_mlp_output: False
+  output_head_bias: False
+  normalize_qv: True
+  stochastic_depth_p: [0.0, 0.0]
+  mixer_deptwise_bias: False
+  mixer_ffn_bias: False
 
 trainer_config:
   compile_model: False
@@ -35,9 +39,11 @@ trainer_config:
   gradient_accumulation_steps: 1
   report_every_epoch: 1
   use_cross_entropy: True #True for cross entropy False for BCEloss
-  
+  label_smoothing: 0.1
+  ema_decay: 0.999
   
 optimizer_scheduler_config:
+  optimizer: "ADAMW"
   optimizer_config:
     lr: 0.0015  #0.0005*batch_size*gradient_accumulation_steps*GPU/512
     weight_decay: 0.05
@@ -61,7 +67,7 @@ data:
 
 
   train_data_details:
-   batch_size: 8 #0.005*batch_size*grad_accumulation_step*gpu/512
+   batch_size: 16 #0.005*batch_size*grad_accumulation_step*gpu/512
    num_workers: 12
    pin_memory: True
    persistent_workers: True

@@ -6,7 +6,25 @@ import torch.nn.functional as F
 from typing import Callable
 from torch.nn.attention import SDPBackend, sdpa_kernel
 from utility_layers import StochasticDepth as SD
-from typing import Tuple
+from typing import Tuple, Callable
+
+
+class LayerNorm(nn.Module):
+    def __init__(self, 
+                 embedding_dim:int, 
+                 eps:float = 1e-6):
+        super().__init__()
+        self.gamma = nn.Parameter(torch.ones(embedding_dim))
+        self.beta = nn.Parameter(torch.zeros(embedding_dim))
+        self.eps = eps
+    def forward(self, x:torch.Tensor)->torch.Tensor:
+        mean = x.mean([1], keepdims=True)
+        var = x.var([1], keepdims=True, unbiased=False)
+        x = (x-mean)/(var+self.eps)**0.5
+        return self.gamma[:, None, None]*x + self.beta[:, None, None]
+
+
+
 class ConvPatcher(nn.Module):
     def __init__(self, 
                  embedding_dim = 128, 
@@ -19,14 +37,11 @@ class ConvPatcher(nn.Module):
                               stride = patch_size, 
                               bias = False
                               )
-        self.norm = nn.GroupNorm(32, embedding_dim)
-        self.patch_size = patch_size
     def forward(self, x:torch.Tensor)->torch.Tensor:
         ## B, 3, H, W --> B, out_channels, H//PATCH_SIZE, W//PATCH_SIZE ### 
-        x = self.conv(x) 
-        return self.norm(x)
+        return self.conv(x) 
 """
-x, x_n = ConvPatcher(patch_size=16)(10*torch.randn(5, 3, 224,224)+1)
+ConvPatcher(patch_size=16)(torch.randn(5, 3, 224,224)+1).mean()
 x_r = x.reshape(5, 32, 4, 14, 14)
 x = (x_r - x_r.mean([-1,-2,-3], keepdim = True))/(x_r.var([-1,-2,-3], keepdim = True, unbiased = False)+1e-05)**0.5
 x_r = x.reshape(5, 128, 14, 14)
@@ -49,41 +64,53 @@ class ConvMixer(nn.Module):
     def __init__(self, 
                  embedding_dim:int = 768, 
                  kernel_size:int = 5, 
-                 activation:Callable = nn.GELU()
+                 activation:Callable = nn.GELU(),
+                 drop_p:float = 0.0,
+                 mixer_ffn_bias:bool = True,
+                 mixer_deptwise_bias:bool = True,
                  ):
         super().__init__()
-        self.conv2d = nn.Conv2d(in_channels = embedding_dim, 
+        self.conv2d = nn.Sequential(*[nn.Conv2d(in_channels = embedding_dim, 
                               out_channels = embedding_dim,
                               kernel_size = kernel_size,
                               groups = embedding_dim,
                               padding = "same",
-                              bias = True,
-                              )
-        self.conv1d = nn.Conv2d(in_channels = embedding_dim,
+                              bias = mixer_deptwise_bias,
+                              ), nn.Conv2d(in_channels = embedding_dim,
                                 out_channels = embedding_dim,
                                 kernel_size =1,
-                                bias = True,
-                                )
-        self.layer_norm_1 = nn.GroupNorm(32, embedding_dim)
-        self.layer_norm_2 = nn.GroupNorm(32, embedding_dim)
-        self.activation = activation
+                                bias = mixer_ffn_bias)])
+        self.conv1d = nn.Sequential(*[nn.Conv2d(in_channels = embedding_dim,
+                                out_channels = 4*embedding_dim,
+                                kernel_size =1,
+                                bias = mixer_ffn_bias),
+                                activation,
+                                nn.Conv2d(in_channels = 4*embedding_dim, 
+                                          out_channels = embedding_dim, 
+                                          kernel_size = 1, 
+                                          bias = mixer_ffn_bias)
+                                ])
 
-    def forward(self, x_:torch.Tensor):
-        x = self.conv2d(x_)
-        x = self.activation(x)
-        x = self.layer_norm_1(x)+x_
-        x = self.conv1d(x)
-        x = self.activation(x)
-        x = self.layer_norm_2(x)
+        self.layer_norm_1 = LayerNorm(embedding_dim)
+        self.layer_norm_2 = LayerNorm(embedding_dim)
+        self.activation = activation
+        self.drop_path_1 = SD(drop_p) if drop_p > 1e-5 else nn.Identity()
+        self.drop_path_2 = SD(drop_p) if drop_p > 1e-5 else nn.Identity()
+
+
+    def forward(self, x:torch.Tensor):
+        x_ = self.drop_path_2(self.activation(self.conv2d(self.layer_norm_1(x)))) + x
+        x =  self.drop_path_1(self.conv1d(self.layer_norm_2(x_))) + x_
         return x
+
 """
-layer = ConvMixer(768, kernel_size=9)
+layer = ConvMixer(768, kernel_size=7, drop_p=0.5)
+x = torch.randn(2, 768, 14, 14)
+layer(x).mean()
 q = 0
 for p in layer.parameters():
     q += p.shape.numel()
 print(q)
-x = torch.randn(100, 768, 14, 14)
-layer(x).shape
 """
 
 class EmbeddingLayer(nn.Module):
@@ -98,7 +125,7 @@ class EmbeddingLayer(nn.Module):
         super().__init__()
         ### -- ###
         self.max_num_registers = max_num_registers
-        self.activation = activation if activation != None else torch.Identity()
+        self.activation = activation if activation != None else torch.nn.Identity()
         ###
         self.register_embedding_layer = nn.Embedding(max_num_registers, embedding_dim)
         self.vertical_embedding_layer = nn.Embedding(max_image_size[0], embedding_dim)
@@ -145,8 +172,41 @@ class EmbeddingLayer(nn.Module):
         return  self.activation(x), expanded_register_embeddings
 
 """
-x = embedding_layer(max_image_size=[15,15])(torch.randn(2, 768, 15, 15), 0)
+EmbeddingLayer(max_image_size=[15,15])(torch.randn(3, 768, 15, 15), 2)[0].shape
 """
+
+class ConvEmbedding(nn.Module):
+    def __init__(self,
+                 embedding_dim:int = 768,
+                 kernel_size:int = 5,
+                 activation:Callable = nn.GELU(),
+                 max_image_size:list[int, int] = [14,14],
+                 seed:int = 0,
+                 trainable_bone:bool = False,
+                 ):
+        super().__init__()
+        torch.manual_seed(seed)
+        self.conv2d = nn.Conv2d(in_channels = embedding_dim, 
+                      out_channels = embedding_dim,
+                      kernel_size = kernel_size,
+                      groups = embedding_dim,
+                      bias = False,
+                      )
+        self.kernel_size = kernel_size
+        if trainable_bone:
+            self.register_parameter("bone", Parameter(0.02*torch.randn(1, embedding_dim, 
+                             max_image_size[0]+kernel_size, 
+                             max_image_size[1]+kernel_size)))
+        else:
+            self.register_buffer("bone", 0.02*torch.randn(1, embedding_dim, 
+                             max_image_size[0]+kernel_size, 
+                             max_image_size[1]+kernel_size,
+                             requires_grad=False))
+        self.activation = activation
+        
+    def forward(self, x:torch.Tensor)->torch.Tensor:
+            return self.activation(x + self.conv2d(self.bone[:,:,:x.shape[-2]+self.kernel_size-1, :x.shape[-1]+self.kernel_size-1]))
+     
 class EncoderLayer(nn.Module):
     def __init__(
         self,
@@ -251,33 +311,42 @@ class EncoderLayer(nn.Module):
         return x, register  # Output shape: (B, C, H, W), (B, R, C)
 
 
+
+
 """
 from training_utilities import MeasureTime
-torch.manual_seed(0)
-layer = EncoderLayer(embedding_dim=768, n_head=16, multiplication_factor = 2, fast_att=False, normalize_qv=True)    
 q = 0
 for p in layer.parameters():
     q += p.shape.numel()
 print(q)
-x = torch.randn(1, 768, 55, 55)
+torch.manual_seed(0)
+layer = EncoderLayer(embedding_dim=768, 
+                    n_head=16, 
+                    multiplication_factor = 4, 
+                    fast_att=True, 
+                    normalize_qv=True)    
+x = torch.randn(1, 768, 14, 14)
 reg = torch.randn(1, 5, 768)
-layer.eval()
-layer(x, reg)[1].shape
+layer(x, reg)[1].std()
 """
 class Block(nn.Module):
     def __init__(
             self, 
             embedding_dim: int = 768,
             n_head: int = 8,
-            activation_func: Callable = F.gelu,
+            conv_block_num:int = 2,
+            activation_func: Callable = nn.GELU(),
             multiplication_factor: int = 2,
             ff_dropout: float = 0.2,
             att_dropout: float = 0.2,
             conv_kernel_size:int = 5,
-            conv_activation:Callable = F.gelu,
+            conv_activation:Callable = nn.GELU(),
             conv_first = False,
             normalize_qv:bool = True,
-            drop_p:float = 0.1):
+            mixer_ffn_bias:bool = False,
+            mixer_deptwise_bias:bool = False,
+            drop_p:float = 0.1,
+            fast_att:bool = True,):
         super().__init__()
         self.t_block = EncoderLayer(
             embedding_dim= embedding_dim,
@@ -287,34 +356,42 @@ class Block(nn.Module):
             ff_dropout=ff_dropout,
             att_dropout=att_dropout,
             normalize_qv=normalize_qv,
-            drop_p = drop_p
-        )
-        self.conv_block = ConvMixer(
+            drop_p = drop_p,
+            fast_att=fast_att)
+        
+        self.conv_blocks = nn.Sequential(*[ConvMixer(
             embedding_dim= embedding_dim,
             kernel_size=conv_kernel_size,
-            activation=conv_activation
-        )
+            activation=conv_activation,
+            drop_p=drop_p,
+            mixer_deptwise_bias=mixer_deptwise_bias,
+            mixer_ffn_bias=mixer_ffn_bias) for _ in range(conv_block_num)]) 
+
         self.conv_first = conv_first
+
     def forward(self, x:torch.tensor, 
                 register:torch.tensor, 
                 mask:torch.tensor = None)->tuple[torch.tensor, torch.tensor]:
         
         if not self.conv_first:
             x, register = self.t_block(x, register, mask)
-            x = self.conv_block(x)
+            x = self.conv_blocks(x)
             return x, register
-        x = self.conv_block(x)
+        x = self.conv_blocks(x)
         return self.t_block(x, register, mask)
 
 
 """
-bl = block(conv_first=False)
+Block()
+bl = Block(conv_first=False, conv_block_num=1, mixer_ffn_bias=True, mixer_deptwise_bias=True)
+x = torch.randn(1, 768, 14, 14)
+register = torch.randn(1, 5, 768)
 bl.eval()
 x, register = bl(x, register)
 x.shape
 register.shape
-"""
 
+"""
 class FinalBlock(nn.Module):
     def __init__(
             self, 
@@ -339,7 +416,8 @@ class FinalBlock(nn.Module):
         )
     def forward(self, x:torch.tensor, 
                 register:torch.tensor, 
-                mask:torch.tensor = None)->tuple[torch.tensor, torch.tensor]:
+                mask:torch.tensor = None
+                )->tuple[torch.tensor, torch.tensor]:
         return self.t_block(x, register, mask)
 
 
@@ -378,15 +456,8 @@ class ClassificationHead(nn.Module):
 
     def forward(self, x:torch.tensor, registers:torch.tensor)-> torch.tensor:
         if self.from_register:
-            return self.output_head(registers)[:, 0, :]
+            return self.output_head(registers.mean(-2))
         return self.output_head(x)
-
-"""
-torch.manual_seed(0)
-head = classification_head(768, 1000, from_register= True, simple_output= False)
-head(torch.randn(10, 14*14, 768)).std()
-"""
-
 
 
 

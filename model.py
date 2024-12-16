@@ -8,31 +8,57 @@ from numpy import arccos, cos
 
 torch.set_float32_matmul_precision('high')
 
+from training_utilities import KeLu
+
+activations = {
+    "relu": nn.ReLU(),
+    "gelu": nn.GELU(),
+    "fast_gelu": nn.GELU("fast"),
+    "tanh": nn.Tanh(),
+    "sigmoid": nn.Sigmoid(),
+    "leaky_relu": nn.LeakyReLU(),
+    "selu": nn.SELU(),
+    "none": nn.Identity(),
+    "kelu": KeLu,
+    "none": nn.Identity(),
+}
+
+
+
+
 class MainModel(SdPModel):
     def __init__(self, 
                  embedding_dim:int = 128,
                  num_blocks:int = 10,
                  n_head:int = 4,                 
-                 activation:Callable = nn.GELU("tanh"),
+                 activation:Callable = "gelu",
                  conv_kernel_size:int = 5,
                  patch_size:int = 16,
                  ffn_dropout:float = 0.2,
                  attn_dropout:float = 0.2,
                  output_classes:int = 1000,
+                 conv_block_num:int = 2,
                  ff_multiplication_factor:int = 4,
                  max_image_size:list[int, int] = [14,14],
                  max_num_registers:int = 5,
-                 embedding_activation:Callable = None,
+                 embedding_activation:Callable = "none",
                  conv_first:bool = True,
                  head_output_from_register:bool = False,
                  simple_mlp_output:bool = False,
                  output_head_bias:bool = False,
                  normalize_qv:bool = True,
-                 stochastic_depth_p:list[float] = [0.0, 0.0]):
+                 stochastic_depth_p:list[float] = [0.0, 0.0],
+                 mixer_deptwise_bias:bool = False,
+                 mixer_ffn_bias:bool = False,  
+                 fast_att:bool = True,              
+                 ):
         super().__init__()
         ## oh s***  here we go again ##
         ## RIP CJ!##
         ### -- ##
+        activation = activations[activation.lower()] if isinstance(activation, str) else activation
+        embedding_activation = activations[embedding_activation.lower()] if isinstance(embedding_activation, str) else embedding_activation
+        
         self.conv_init = ConvPatcher(
                 embedding_dim= embedding_dim,
                 patch_size= patch_size,
@@ -57,8 +83,13 @@ class MainModel(SdPModel):
                         conv_kernel_size = conv_kernel_size,
                         conv_activation = activation,
                         conv_first = conv_first,
+                        conv_block_num = conv_block_num,
                         normalize_qv = normalize_qv,
-                        drop_p=ST_p(i))
+                        drop_p=ST_p(i),
+                        mixer_deptwise_bias = mixer_deptwise_bias,
+                        mixer_ffn_bias = mixer_ffn_bias,
+                        fast_att=fast_att,
+                        )
                         for i in range(num_blocks)])
         
         self.final_block = FinalBlock(embedding_dim  = embedding_dim,
@@ -78,6 +109,14 @@ class MainModel(SdPModel):
                                        simple_output = simple_mlp_output,
                                        bias = output_head_bias,
                                        )
+        self.__init_weights__()
+    def __init_weights__(self):
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.trunc_normal_(m.weight, std=0.01, )
+            elif isinstance(m, nn.Conv2d):
+                nn.init.trunc_normal_(m.weight, std=0.01)
+
 
     def forward(self, 
                 x:torch.tensor, 
@@ -102,24 +141,25 @@ class MainModel(SdPModel):
         return x_classification_head, x_raw_output, registers
     
 """
-model = MainModel(num_blocks = 15, 
+model = MainModel(num_blocks = 6, 
                    embedding_dim = 768, 
                    patch_size=16, 
                    conv_first=False, 
+                   conv_block_num=1,
                    conv_kernel_size = 7, 
-                   stochastic_depth_p=[0.05, 0.1],
-                   head_output_from_register=False,
+                   stochastic_depth_p=[0.0, 0.9],
+                   head_output_from_register=True,
                    simple_mlp_output=True,
                    max_image_size = [16,16],
                    ff_multiplication_factor=4,
                    normalize_qv = True,
-                   ).cuda()
+                   )
 
 model.return_num_params()
 
-inputs = torch.randn(2, 3, 16, 16).cuda()
-targets = torch.randint(0, 1000, (2,)).cuda()
-
+inputs = torch.randn(2, 3, 224, 224)
+targets = torch.randint(0, 1000, (2,))
+model(inputs).std()
 
 model.return_num_params()
 from torch import optim                   

@@ -25,9 +25,10 @@ class Trainer:
         snapshot_dir:str = "model",
         total_epochs:int = 300,
         report_every_epoch:int =1, 
-        use_ema_model:bool = False, 
+        ema_decay:float = 0.999,
         use_cross_entropy:bool = True,
         teacher_model:Any = None,
+        label_smoothing:float = 0.1
     ) -> None:
         self.gpu_id = gpu_id
         self.model_config = model.config
@@ -35,9 +36,9 @@ class Trainer:
         self.model = DDP(self.model, device_ids=[gpu_id])
         #
         if compile_model:
-            self.model = torch.compile(self.model,  dynamic = True)
-        if use_ema_model:
-            self.ema_model = None
+            self.model = torch.compile(self.model,  dynamic = True, fullgraph=False)
+        if ema_decay > 0:
+            self.ema_model = EMA_model(self.model, decay=ema_decay)
         #
         self.snapshot_dir = snapshot_dir
         self.snapshot_name = snapshot_name
@@ -68,9 +69,9 @@ class Trainer:
             print(f"There is a problem with loading the model weights and the problem is: {e}")
         ## loss_fn
         if use_cross_entropy:
-            self.loss_fn = nn.CrossEntropyLoss(label_smoothing = 0.1).to(gpu_id)
+            self.loss_fn = nn.CrossEntropyLoss(label_smoothing = label_smoothing).to(gpu_id)
         else:
-            self.loss_fn = t.BCEWithLogitsLoss(label_smoothing = 0.1, num_classes = 1000)
+            self.loss_fn = t.BCEWithLogitsLoss(label_smoothing = label_smoothing, num_classes = 1000)
 
         
     def _run_batch(self, 
@@ -113,6 +114,9 @@ class Trainer:
             init_end.record()
             torch.cuda.synchronize()
             # log the batch loss onto local logger!!!
+            # update ema
+            if hasattr(self, "ema_model"):
+                self.ema_model.update_parameters(self.model)
             self.train_loss_logger.update(batch_loss)
             ## print the loss
             if (self.gpu_id == 0) and i % 500 == 0:
@@ -149,6 +153,8 @@ class Trainer:
             #print(f"elapsed time: {init_start.elapsed_time(init_end) / 1000}secs")
             if self.gpu_id == 0 and epoch % self.save_every == 0:
                 self._save_checkpoint()
+                if hasattr(self, "ema_model"):
+                    self.ema_model.save_ema_model()
             ## Let's validate
             self.validate()
             
@@ -271,4 +277,29 @@ class TeacherModel:
         
 
 
+
+
+class EMA_model:
+    def __init__(self, 
+                 model: nn.Module, 
+                 decay: float = 0.999,
+                 device = "cuda",
+                 ema_model_name: str = "ema_model.pt"):
+        self.ema_weights = {k: v.clone().detach() for k, v in model.state_dict().items()}
+        self.decay = decay
+        self.ema_model_name = ema_model_name
+    def update_parameters(self, 
+                          model: nn.Module)-> None:
+        with torch.no_grad():
+            for keys, values in model.state_dict().items():
+                if "num_batches_tracked" or "running" in keys:
+                    self.ema_weights[keys].copy_(values)
+                self.ema_weights[keys] = self.decay*self.ema_weights[keys] + (1-self.decay)*values.detach()
+    def state_dict(self):
+        return self.ema_weights
+    def save_ema_model(self):
+        weights =  {k: v.cpu() for k, v in self.ema_weights.items()}
+        torch.save(weights, self.ema_model_name)
+
+        
 

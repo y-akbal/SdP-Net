@@ -88,12 +88,10 @@ class track_accuracy:
         return result
 
 
-@torch.compile
 def KeLu(x:torch.Tensor, a:float = 3.5)->torch.tensor:
     return torch.where(x < -a, 0, torch.where(x > a, x, 0.5*x*(1+x/a+(1/torch.pi)*torch.sin(x*torch.pi/a))))
 
 
-@torch.compile
 def BCEWithLogitsLoss(num_classes:int = 1000,
                       label_smoothing:float = 0.1)->Callable[[torch.Tensor, torch.Tensor], torch.Tensor] :
     ## Target is of shape (B, num_classes), we shall do some label smoothing here!!!

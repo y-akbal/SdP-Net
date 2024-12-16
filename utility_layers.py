@@ -17,7 +17,8 @@ class StochasticDepth(torch.nn.Module):
                 x:torch.Tensor)->torch.Tensor:
         if self.training:
 
-            size = [1]*x.ndim
+            size = (x.shape[0],) + (1,)*(x.ndim-1)
+
 
             noise_x = torch.empty(size, dtype = x.dtype, device= x.device, requires_grad = False).bernoulli(1-self.p).div(1-self.p)
             
@@ -36,7 +37,7 @@ class StochasticDepth_2(torch.nn.Module):
         super().__init__()
         """Thank you timm!!!"""
         assert 0<p<1, "p must be a positive number or <1"
-        self.p = p
+        self.p = float(p)
         self.module: torch.nn.Module = module
 
     def forward(self, 
