@@ -1,7 +1,7 @@
 import torch
 from torch import nn as nn
 from torch.nn import functional as F
-from layers import ConvMixer, EmbeddingLayer, ConvPatcher, Block, FinalBlock, ClassificationHead
+from layers import ConvMixer, EmbeddingLayer, ConvPatcher, Block, FinalBlock, ClassificationHead, ConvEmbedding
 from utility_layers import SdPModel, StochasticDepth
 from typing import Callable, Optional, Any, Union
 from numpy import arccos, cos
@@ -50,7 +50,9 @@ class MainModel(SdPModel):
                  stochastic_depth_p:list[float] = [0.0, 0.0],
                  mixer_deptwise_bias:bool = False,
                  mixer_ffn_bias:bool = False,  
-                 fast_att:bool = True,              
+                 fast_att:bool = True,     
+                 conv_embedding:bool = False,    
+                 conv_embedding_kernel_size:int = 5,     
                  ):
         super().__init__()
         ## oh s***  here we go again ##
@@ -63,13 +65,21 @@ class MainModel(SdPModel):
                 embedding_dim= embedding_dim,
                 patch_size= patch_size,
         )
-        
-        self.embedding_layer = EmbeddingLayer(
+        if not conv_embedding:
+            self.embedding_layer = EmbeddingLayer(
             embedding_dim= embedding_dim,
             max_num_registers=max_num_registers,
             max_image_size= max_image_size,
             activation = embedding_activation,
         )
+        else:
+            self.embedding_layer = ConvEmbedding(
+            embedding_dim= embedding_dim,
+            max_num_registers=max_num_registers,
+            max_image_size= max_image_size,
+            kernel_size=conv_embedding_kernel_size,
+            activation = embedding_activation)
+                        
         ## The following function will adjust stochastic depth p value according to cosine schedule!!! storchastic_dept_0 -> stochastic_depth_1
         ST_p = lambda i: cos(arccos(stochastic_depth_p[0])*(1 - i/num_blocks) + arccos(stochastic_depth_p[1])*(i/num_blocks))
 

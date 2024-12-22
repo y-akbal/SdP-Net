@@ -136,11 +136,7 @@ class EmbeddingLayer(nn.Module):
         ### ----###
         self.register_buffer(
             "register_embeddings",
-            torch.tensor(
-                [i for i in range(self.max_num_registers)],
-                dtype=torch.int,
-                requires_grad=False,
-            ),
+            torch.arange(max_num_registers, dtype=torch.int),
         )
 
         self.register_buffer(
@@ -181,6 +177,7 @@ class ConvEmbedding(nn.Module):
                  kernel_size:int = 5,
                  activation:Callable = nn.GELU(),
                  max_image_size:list[int, int] = [14,14],
+                 max_num_registers:int = 5,
                  seed:int = 0,
                  trainable_bone:bool = False,
                  ):
@@ -202,11 +199,23 @@ class ConvEmbedding(nn.Module):
                              max_image_size[0]+kernel_size, 
                              max_image_size[1]+kernel_size,
                              requires_grad=False))
-        self.activation = activation
+        self.register_buffer("register", torch.arange(1, max_num_registers+1, dtype = torch.int))
+        self.register_embedding_layer = nn.Embedding(max_num_registers, embedding_dim)
+        self.activation = activation if activation != None else torch.nn.Identity()
         
-    def forward(self, x:torch.Tensor)->torch.Tensor:
-            return self.activation(x + self.conv2d(self.bone[:,:,:x.shape[-2]+self.kernel_size-1, :x.shape[-1]+self.kernel_size-1]))
-     
+    def forward(self, x:torch.Tensor, 
+                num_registers:int = 3)->torch.Tensor:
+        B, C, H, W = x.shape
+        conv_embedding = self.activation(x + self.conv2d(self.bone[:,:,:x.shape[-2]+self.kernel_size-1, :x.shape[-1]+self.kernel_size-1]))
+        register_embeddings = self.register_embedding_layer(self.register[:num_registers+1])
+        #Expand the embeddings though not the best memory efficient way!!!
+        expanded_register_embeddings = register_embeddings.expand(B, register_embeddings.shape[-2] ,C)
+        return conv_embedding, expanded_register_embeddings
+
+"""
+ConvEmbedding(max_num_registers=7)(torch.randn(2, 768, 15, 15), 4)[0].shape
+"""
+
 class EncoderLayer(nn.Module):
     def __init__(
         self,

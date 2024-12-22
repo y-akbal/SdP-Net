@@ -22,7 +22,7 @@ cifar100_mean = (0.5071, 0.4867, 0.4408)
 cifar100_std = (0.2675, 0.2565, 0.2761)
 cifar10_mean =  [0.4914, 0.4822, 0.4465]
 cifar10_std =  [0.2470, 0.2435, 0.2616]
-NUM_CLASSES = 10
+NUM_CLASSES = 100
 
 
 
@@ -52,9 +52,9 @@ def return_data():
     # Define the collate function at the top level  
     def collate_fn(batch):
         return cutmix_or_mixup(*default_collate(batch))
-    trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform = train_transform)
-    testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform = test_transform)
-    trainloader = DataLoader(trainset, batch_size = 256, shuffle=True, collate_fn=collate_fn)
+    trainset = torchvision.datasets.CIFAR100(root='./data', train=True, download=True, transform = train_transform)
+    testset = torchvision.datasets.CIFAR100(root='./data', train=False, download=True, transform = test_transform)
+    trainloader = DataLoader(trainset, batch_size = 64, shuffle=True, collate_fn=collate_fn)
     testloader = DataLoader(testset, batch_size = 256, shuffle=False)
     return trainloader, testloader
 
@@ -63,9 +63,9 @@ def return_model(compiled = False):
 
     torch.manual_seed(0)
     model = MainModel(
-        embedding_dim=256,
-        num_blocks=4,
-        n_head=8,
+        embedding_dim=128,
+        num_blocks=16,
+        n_head=4,
         activation="gelu",
         conv_kernel_size=5,
         patch_size=2,
@@ -82,10 +82,12 @@ def return_model(compiled = False):
         simple_mlp_output=False,
         output_head_bias=False,
         normalize_qv=True,
-        stochastic_depth_p=[0.0, 0.0],
+        stochastic_depth_p=[0.0, 0.2],
         mixer_deptwise_bias=False,
         mixer_ffn_bias=False,
         fast_att=True,
+        conv_embedding=True,
+        conv_embedding_kernel_size=5,
     )
     if compiled and device !="mps":
         model = torch.compile(model.to(device), fullgraph = True, dynamic=True)
@@ -102,8 +104,8 @@ def return_model(compiled = False):
 
     scheduler0 = torch.optim.lr_scheduler.ConstantLR(optimizer, factor=0.001)
     scheduler1 = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=0.001)
-    scheduler2 = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, 7 , 150)
-    scheduler = torch.optim.lr_scheduler.SequentialLR(optimizer, schedulers=[scheduler0, scheduler1, scheduler2], milestones= [1, 5])
+    scheduler2 = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, 25 , 150)
+    scheduler = torch.optim.lr_scheduler.SequentialLR(optimizer, schedulers=[scheduler0, scheduler1, scheduler2], milestones= [1, 25])
     return model, loss_fn, optimizer, ema_model, scheduler
 
 from training_tools import EMA_model
@@ -143,12 +145,7 @@ def train(epochs,
 
             ema_model.update_parameters(model)
             ema.update_parameters(model)
-
         scheduler.step()
-        for key, value in model.state_dict().items():
-            if "running" in key:
-                print(key, value.mean().item())
-
         epoch_loss = running_loss / total
         print(f'Epoch {epoch + 1}, Loss: {epoch_loss:.4f}')
 

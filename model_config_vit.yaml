@@ -29,6 +29,8 @@ model_config:
   stochastic_depth_p: [0.0, 0.0]
   mixer_deptwise_bias: False
   mixer_ffn_bias: False
+  conv_embedding: False
+  conv_embedding_kernel_size: 5  ## Is not active if conv_embedding is False
 
 trainer_config:
   compile_model: False
