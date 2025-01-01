@@ -183,12 +183,8 @@ class ConvEmbedding(nn.Module):
                  ):
         super().__init__()
         torch.manual_seed(seed)
-        self.conv2d = nn.Conv2d(in_channels = embedding_dim, 
-                      out_channels = embedding_dim,
-                      kernel_size = kernel_size,
-                      groups = embedding_dim,
-                      bias = False,
-                      )
+        self.conv2d = nn.AvgPool2d(kernel_size, 
+                                   stride=1)
         self.kernel_size = kernel_size
         if trainable_bone:
             self.register_parameter("bone", Parameter(0.02*torch.randn(1, embedding_dim, 
@@ -206,7 +202,7 @@ class ConvEmbedding(nn.Module):
     def forward(self, x:torch.Tensor, 
                 num_registers:int = 3)->torch.Tensor:
         B, C, H, W = x.shape
-        conv_embedding = self.activation(x + self.conv2d(self.bone[:,:,:x.shape[-2]+self.kernel_size-1, :x.shape[-1]+self.kernel_size-1]))
+        conv_embedding = self.activation(x + self.conv2d(self.bone[:,:,:H+self.kernel_size-1, :W+self.kernel_size-1]))
         register_embeddings = self.register_embedding_layer(self.register[:num_registers+1])
         #Expand the embeddings though not the best memory efficient way!!!
         expanded_register_embeddings = register_embeddings.expand(B, register_embeddings.shape[-2] ,C)
