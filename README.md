@@ -22,11 +22,11 @@ This is actually a less serious weekend project called SlapDash-Net which can be
 |  S     |  76M      |   12      |  16         |     7     | 512       | ?        | 
 |  M     |  86M      |   12      |  16         |     7     | 768       | ?        | 
 |  L     |  86M      |   12      |  16         |     7     | 768       | ?        | 
-|  XL    |  86M      |   15      |  16         |     7     | 768       | 79.8     | 
+|  XL    |  101      |   15      |  14         |     7     | 768       | 82.1     | 
 
 
 
-Bitter lesson: The biggest model gives 79.8 acc on Imagenet1k. Still training the others on time permitting.
+Bitter lesson: The biggest model gives 82.1 acc on Imagenet1K. Still training the others on time permitting. 
 
 # Optimizers
 
@@ -43,12 +43,6 @@ RandAugment + Random erase + Random resize+ CutMix + MixUp + Dropout(0.2) (Only 
 #TODO
 
 0) Gating mechanism in FFN?
-1) EMA Model (This is important for future use!!!)
-2) Gradient Accumulation -- larger learning rate (ok!!!)
-3) Register tokens (VITs need registers)
-4) Stochastic Depth (Further research is needed!!!)
-5) No more batchnorm layers (Layer norm is implemented here!!!)
-6) If possible binary loss - instead of cross-entropy loss (Resnet strikes back!!!)
-7) Write kind-of-a unit-test for intermediate activations!!! (ok!!!)
-8) Write trainer class from scratch -- if possible do some subclassing kinda thing!!!
+1) LayerScale --> This will be needed for deeper networks!
+2) Neighborhood embedding --> See layers ConvEmbedding layer (A larger embedding look up dictionary is used and for an individual patch, a neighbour of embeddings are averaged!)
 9) Use KeLü activation instead of GeLu (KeLü implemented but may not be really optimized!)
