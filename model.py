@@ -24,8 +24,6 @@ activations = {
 }
 
 
-
-
 class MainModel(SdPModel):
     def __init__(self, 
                  embedding_dim:int = 128,
@@ -149,7 +147,28 @@ class MainModel(SdPModel):
         if not return_raw_outputs:
             return x_classification_head    
         return x_classification_head, x_raw_output, registers
-    
+
+"""import os
+from os import path
+path_ = path.join("/home/sahmaran/Desktop","model_1.pt")
+
+weights = torch.load(path_)
+weights.keys()
+weights["model_state_dict"].keys()
+
+def preprocess(weights:dict):
+    new_weights = {}
+    for key in weights.keys():
+        new_key = key.replace("module.", "")
+        new_weights[new_key] = weights[key]
+    return new_weights
+
+model = MainModel.from_dict(**weights["model_config"])
+model.load_state_dict(preprocess(weights["model_state_dict"]))
+model.eval()
+model(torch.randn(1, 3, 224,224))
+"""
+
 """
 model = MainModel(num_blocks = 6, 
                    embedding_dim = 768, 

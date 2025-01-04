@@ -10,11 +10,15 @@ This is actually a less serious weekend project called SlapDash-Net which can be
   <li> We would like to hybridize things,</li>
   <li> We do bizzare combinations for the mere reason: because we would like to!!!,</li>
   <li> In SdP-Net we trust!</li>
-  
 </ul> 
 
-# Training Details
+The setup is as follows:
 
+(Patcher + Embedding Layer) + 5 x CLS_tokens --> N x (SDP_NeT_Blocks) --> Encoder_Layer + CLS_tks --> CLS_tks.mean(-2) -> MLP -> Logits
+
+where SDP_NeT_Blocks = 2 x (DW_Conv + MLP) + Transformer_Encoder_Blocks. CLS tokens attend the image only through attention blocks. They are able to attend each other as well. 
+
+# Training Details
 
 | #Size  |  #Params  |  #Blocks  |  Patch_size | Conv_Size | Embed_Dim | Top1 Acc | 
 | :---:  | :-------: |  :------: | :------:    | :------:  | :-----:   | :-----:  | 
@@ -22,11 +26,9 @@ This is actually a less serious weekend project called SlapDash-Net which can be
 |  S     |  76M      |   12      |  16         |     7     | 512       | ?        | 
 |  M     |  86M      |   12      |  16         |     7     | 768       | ?        | 
 |  L     |  86M      |   12      |  16         |     7     | 768       | ?        | 
-|  XL    |  101      |   15      |  14         |     7     | 768       | 82.1     | 
+|  XL    |  101 M    |   17      |  14         |     7     | 768       | 82.1     | 
 
-
-
-Bitter lesson: The biggest model gives 82.1 acc on Imagenet1K. Still training the others on time permitting. 
+Bitter lesson: The biggest model gives 82.2 acc on Imagenet1K, EMA of this model gives slightly better result. Trained only for 200 epochs. The Weights of the trained models can be publicized upon request.
 
 # Optimizers
 
@@ -46,3 +48,4 @@ RandAugment + Random erase + Random resize+ CutMix + MixUp + Dropout(0.2) (Only 
 1) LayerScale --> This will be needed for deeper networks!
 2) Neighborhood embedding --> See layers ConvEmbedding layer (A larger embedding look up dictionary is used and for an individual patch, a neighbour of embeddings are averaged!)
 9) Use KeLü activation instead of GeLu (KeLü implemented but may not be really optimized!)
+7) Use BCE loss.
