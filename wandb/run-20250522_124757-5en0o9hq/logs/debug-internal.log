@@ -1,0 +1,10 @@
+{"time":"2025-05-22T12:47:57.448635762+03:00","level":"INFO","msg":"using version","core version":"0.18.3"}
+{"time":"2025-05-22T12:47:57.448643182+03:00","level":"INFO","msg":"created symlink","path":"/home/sahmaran/Desktop/Repos/SdP-Net/wandb/run-20250522_124757-5en0o9hq/logs/debug-core.log"}
+{"time":"2025-05-22T12:47:57.470129486+03:00","level":"ERROR","msg":"dialing: google: could not find default credentials. See https://cloud.google.com/docs/authentication/external/set-up-adc for more information"}
+{"time":"2025-05-22T12:47:57.472440982+03:00","level":"INFO","msg":"created new stream","id":"5en0o9hq"}
+{"time":"2025-05-22T12:47:57.472457492+03:00","level":"INFO","msg":"stream: started","id":"5en0o9hq"}
+{"time":"2025-05-22T12:47:57.472462932+03:00","level":"INFO","msg":"writer: Do: started","stream_id":{"value":"5en0o9hq"}}
+{"time":"2025-05-22T12:47:57.472485662+03:00","level":"INFO","msg":"sender: started","stream_id":{"value":"5en0o9hq"}}
+{"time":"2025-05-22T12:47:57.472466922+03:00","level":"INFO","msg":"handler: started","stream_id":{"value":"5en0o9hq"}}
+{"time":"2025-05-22T12:47:57.833757459+03:00","level":"INFO","msg":"wandb-core","!BADKEY":null}
+{"time":"2025-05-22T12:47:57.834349506+03:00","level":"INFO","msg":"Starting system monitor"}

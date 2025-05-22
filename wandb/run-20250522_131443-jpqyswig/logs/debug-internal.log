@@ -1,0 +1,10 @@
+{"time":"2025-05-22T13:14:43.109825543+03:00","level":"INFO","msg":"using version","core version":"0.18.3"}
+{"time":"2025-05-22T13:14:43.109832314+03:00","level":"INFO","msg":"created symlink","path":"/home/sahmaran/Desktop/Repos/SdP-Net/wandb/run-20250522_131443-jpqyswig/logs/debug-core.log"}
+{"time":"2025-05-22T13:14:43.121139278+03:00","level":"ERROR","msg":"dialing: google: could not find default credentials. See https://cloud.google.com/docs/authentication/external/set-up-adc for more information"}
+{"time":"2025-05-22T13:14:43.123839591+03:00","level":"INFO","msg":"created new stream","id":"jpqyswig"}
+{"time":"2025-05-22T13:14:43.123851011+03:00","level":"INFO","msg":"stream: started","id":"jpqyswig"}
+{"time":"2025-05-22T13:14:43.123856791+03:00","level":"INFO","msg":"writer: Do: started","stream_id":{"value":"jpqyswig"}}
+{"time":"2025-05-22T13:14:43.123863481+03:00","level":"INFO","msg":"handler: started","stream_id":{"value":"jpqyswig"}}
+{"time":"2025-05-22T13:14:43.123881201+03:00","level":"INFO","msg":"sender: started","stream_id":{"value":"jpqyswig"}}
+{"time":"2025-05-22T13:14:43.437720801+03:00","level":"INFO","msg":"wandb-core","!BADKEY":null}
+{"time":"2025-05-22T13:14:43.438330306+03:00","level":"INFO","msg":"Starting system monitor"}

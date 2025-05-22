@@ -1,0 +1,10 @@
+{"time":"2025-05-22T12:55:49.639679645+03:00","level":"INFO","msg":"using version","core version":"0.18.3"}
+{"time":"2025-05-22T12:55:49.639690975+03:00","level":"INFO","msg":"created symlink","path":"/home/sahmaran/Desktop/Repos/SdP-Net/wandb/run-20250522_125549-eyizp03m/logs/debug-core.log"}
+{"time":"2025-05-22T12:55:49.658793644+03:00","level":"ERROR","msg":"dialing: google: could not find default credentials. See https://cloud.google.com/docs/authentication/external/set-up-adc for more information"}
+{"time":"2025-05-22T12:55:49.661021433+03:00","level":"INFO","msg":"created new stream","id":"eyizp03m"}
+{"time":"2025-05-22T12:55:49.661031243+03:00","level":"INFO","msg":"stream: started","id":"eyizp03m"}
+{"time":"2025-05-22T12:55:49.661045943+03:00","level":"INFO","msg":"sender: started","stream_id":{"value":"eyizp03m"}}
+{"time":"2025-05-22T12:55:49.661039243+03:00","level":"INFO","msg":"writer: Do: started","stream_id":{"value":"eyizp03m"}}
+{"time":"2025-05-22T12:55:49.661044833+03:00","level":"INFO","msg":"handler: started","stream_id":{"value":"eyizp03m"}}
+{"time":"2025-05-22T12:55:50.017433119+03:00","level":"INFO","msg":"wandb-core","!BADKEY":null}
+{"time":"2025-05-22T12:55:50.018458738+03:00","level":"INFO","msg":"Starting system monitor"}

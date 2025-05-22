@@ -1,0 +1,10 @@
+{"time":"2025-05-22T12:48:51.166418755+03:00","level":"INFO","msg":"using version","core version":"0.18.3"}
+{"time":"2025-05-22T12:48:51.166425285+03:00","level":"INFO","msg":"created symlink","path":"/home/sahmaran/Desktop/Repos/SdP-Net/wandb/run-20250522_124851-icnjs8aa/logs/debug-core.log"}
+{"time":"2025-05-22T12:48:51.186888253+03:00","level":"ERROR","msg":"dialing: google: could not find default credentials. See https://cloud.google.com/docs/authentication/external/set-up-adc for more information"}
+{"time":"2025-05-22T12:48:51.189259938+03:00","level":"INFO","msg":"created new stream","id":"icnjs8aa"}
+{"time":"2025-05-22T12:48:51.189271829+03:00","level":"INFO","msg":"stream: started","id":"icnjs8aa"}
+{"time":"2025-05-22T12:48:51.189288119+03:00","level":"INFO","msg":"handler: started","stream_id":{"value":"icnjs8aa"}}
+{"time":"2025-05-22T12:48:51.189281979+03:00","level":"INFO","msg":"sender: started","stream_id":{"value":"icnjs8aa"}}
+{"time":"2025-05-22T12:48:51.189276709+03:00","level":"INFO","msg":"writer: Do: started","stream_id":{"value":"icnjs8aa"}}
+{"time":"2025-05-22T12:48:51.551223637+03:00","level":"INFO","msg":"wandb-core","!BADKEY":null}
+{"time":"2025-05-22T12:48:51.551791323+03:00","level":"INFO","msg":"Starting system monitor"}

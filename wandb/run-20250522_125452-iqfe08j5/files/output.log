@@ -1,0 +1,182 @@
+[GPU0] Epoch 1
+[rank0]:W0522 12:54:53.875000 22094 site-packages/torch/_logging/_internal.py:1089] [0/0] Profiler function <class 'torch.autograd.profiler.record_function'> will be ignored
+Error executing job with overrides: []
+Traceback (most recent call last):
+  File "/home/sahmaran/Desktop/Repos/SdP-Net/model_train.py", line 96, in main
+    trainer.train()
+  File "/home/sahmaran/Desktop/Repos/SdP-Net/training_tools.py", line 146, in train
+    self._run_epoch()
+  File "/home/sahmaran/Desktop/Repos/SdP-Net/training_tools.py", line 113, in _run_epoch
+    batch_loss = self._run_batch(source, targets, batch_enum = i)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/Desktop/Repos/SdP-Net/training_tools.py", line 86, in _run_batch
+    output = self.model(source)
+             ^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/eval_frame.py", line 574, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/external_utils.py", line 45, in inner
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/nn/parallel/distributed.py", line 1643, in forward
+    else self._run_ddp_forward(*inputs, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/nn/parallel/distributed.py", line 1459, in _run_ddp_forward
+    return self.module(*inputs, **kwargs)  # type: ignore[index]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/Desktop/Repos/SdP-Net/model.py", line 140, in forward
+    x_raw_output, registers = block(x_raw_output, registers)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/convert_frame.py", line 1374, in __call__
+    return hijacked_callback(
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/convert_frame.py", line 1164, in __call__
+    result = self._inner_convert(
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/convert_frame.py", line 547, in __call__
+    return _compile(
+           ^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/convert_frame.py", line 986, in _compile
+    guarded_code = compile_inner(code, one_graph, hooks, transform)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/convert_frame.py", line 715, in compile_inner
+    return _compile_inner(code, one_graph, hooks, transform)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_utils_internal.py", line 95, in wrapper_function
+    return function(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/convert_frame.py", line 750, in _compile_inner
+    out_code = transform_code_object(code, transform)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/bytecode_transformation.py", line 1361, in transform_code_object
+    transformations(instructions, code_options)
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/convert_frame.py", line 231, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/convert_frame.py", line 662, in transform
+    tracer.run()
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/symbolic_convert.py", line 2868, in run
+    super().run()
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/symbolic_convert.py", line 1052, in run
+    while self.step():
+          ^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/symbolic_convert.py", line 962, in step
+    self.dispatch_table[inst.opcode](self, inst)
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/symbolic_convert.py", line 3048, in RETURN_VALUE
+    self._return(inst)
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/symbolic_convert.py", line 3033, in _return
+    self.output.compile_subgraph(
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/output_graph.py", line 1136, in compile_subgraph
+    self.compile_and_call_fx_graph(
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/output_graph.py", line 1382, in compile_and_call_fx_graph
+    compiled_fn = self.call_user_compiler(gm)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/output_graph.py", line 1432, in call_user_compiler
+    return self._call_user_compiler(gm)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/output_graph.py", line 1483, in _call_user_compiler
+    raise BackendCompilerFailed(self.compiler_fn, e).with_traceback(
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/output_graph.py", line 1462, in _call_user_compiler
+    compiled_fn = compiler_fn(gm, self.example_inputs())
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/backends/distributed.py", line 528, in compile_fn
+    submod_compiler.run(*example_inputs)
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/fx/interpreter.py", line 167, in run
+    self.env[node] = self.run_node(node)
+                     ^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/backends/distributed.py", line 265, in run_node
+    compiled_submod_real = self.compile_submod(real_mod, new_args, kwargs)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/backends/distributed.py", line 180, in compile_submod
+    self.compiler(input_mod, args),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/repro/after_dynamo.py", line 130, in __call__
+    compiled_gm = compiler_fn(gm, example_inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/__init__.py", line 2340, in __call__
+    return compile_fx(model_, inputs_, config_patches=self.config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 1863, in compile_fx
+    return aot_autograd(
+           ^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_dynamo/backends/common.py", line 83, in __call__
+    cg = aot_module_simplified(gm, example_inputs, **self.kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_functorch/aot_autograd.py", line 1155, in aot_module_simplified
+    compiled_fn = dispatch_and_compile()
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_functorch/aot_autograd.py", line 1131, in dispatch_and_compile
+    compiled_fn, _ = create_aot_dispatcher_function(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_functorch/aot_autograd.py", line 580, in create_aot_dispatcher_function
+    return _create_aot_dispatcher_function(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_functorch/aot_autograd.py", line 830, in _create_aot_dispatcher_function
+    compiled_fn, fw_metadata = compiler_fn(
+                               ^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/jit_compile_runtime_wrappers.py", line 660, in aot_dispatch_autograd
+    ) = fakified_out_wrapper.pre_compile(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 533, in pre_compile
+    self.out_metas = [
+                     ^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 534, in <listcomp>
+    n.meta["val"] for n in (list(fw_module.graph.nodes)[-1].args[0])
+    ^^^^^^
+torch._dynamo.exc.BackendCompilerFailed: backend='compile_fn' raised:
+AttributeError: 'int' object has no attribute 'meta'
+
+While executing %submod_0 : [num_users=6] = call_module[target=submod_0](args = (%l_register_, %s0, %s5, %l_x_, %s2, %s3, %l_self_modules_t_block_modules_norm1_parameters_weight_, %l_self_modules_t_block_modules_norm1_parameters_bias_, %l_self_modules_t_block_modules_q_proj_parameters_weight_, %l_self_modules_t_block_n_head, %l_self_modules_t_block_head_dim), kwargs = {})
+Original traceback:
+None
+
+Set TORCH_LOGS="+dynamo" and TORCHDYNAMO_VERBOSE=1 for more information
+
+
+You can suppress this exception and fall back to eager by setting:
+    import torch._dynamo
+    torch._dynamo.config.suppress_errors = True
+
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.
+Exception ignored in atexit callback: <function _MultiProcessingDataLoaderIter._clean_up_worker at 0x7566816ad080>
+Traceback (most recent call last):
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1612, in _clean_up_worker
+    w.join(timeout=_utils.MP_STATUS_CHECK_INTERVAL)
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/multiprocessing/process.py", line 149, in join
+    res = self._popen.wait(timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/multiprocessing/popen_fork.py", line 40, in wait
+    if not wait([self.sentinel], timeout):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/multiprocessing/connection.py", line 947, in wait
+    ready = selector.select(timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/selectors.py", line 415, in select
+    fd_event_list = self._selector.poll(timeout)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt:

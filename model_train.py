@@ -45,6 +45,12 @@ class DDP_setup(object):
 @hydra.main(version_base=None, config_path=".", config_name="model_config_vit")
 def main(cfg : DictConfig):
     ## We will do everything with the following context window
+    ## Set dataset dir
+    try:
+        os.environ["HF_DATASETS_CACHE"]
+        Warning("HF_DATASETS_CACHE is not set, using default!!!")
+    except KeyError:
+        os.environ["HF_DATASETS_CACHE"] = cfg["data"]["dataset_dir"]
     with DDP_setup():
         ## model configuration ##
         model_config, optimizer_scheduler_config = cfg["model_config"], cfg["optimizer_scheduler_config"]

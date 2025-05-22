@@ -1,0 +1,44 @@
+_wandb:
+    value:
+        cli_version: 0.18.3
+        m: []
+        python_version: 3.11.8
+        t:
+            "1":
+                - 1
+                - 41
+                - 49
+                - 50
+                - 51
+                - 55
+                - 105
+            "2":
+                - 1
+                - 41
+                - 49
+                - 50
+                - 51
+                - 55
+                - 105
+            "3":
+                - 16
+                - 23
+                - 55
+            "4": 3.11.8
+            "5": 0.18.3
+            "8":
+                - 5
+            "12": 0.18.3
+            "13": linux-x86_64
+DEBUG_MODE:
+    value: false
+data:
+    value: '{''dataset_dir'': ''/home/sahmaran/Desktop/IMGNET'', ''Num_Classes'': 1000, ''train_image_size'': [224, 224], ''val_image_size'': [320, 320], ''val_crop_size'': [224, 224], ''train_data_details'': {''batch_size'': 64, ''num_workers'': 12, ''pin_memory'': True, ''persistent_workers'': True, ''prefetch_factor'': 4, ''drop_last'': True}, ''val_data_details'': {''batch_size'': 128, ''num_workers'': 4, ''pin_memory'': True, ''drop_last'': True}}'
+model_config:
+    value: '{''embedding_dim'': 768, ''num_blocks'': 6, ''n_head'': 8, ''activation'': ''gelu'', ''embedding_activation'': ''none'', ''conv_kernel_size'': 3, ''patch_size'': 14, ''ffn_dropout'': 0.2, ''attn_dropout'': 0.2, ''output_classes'': 1000, ''conv_block_num'': 2, ''ff_multiplication_factor'': 4, ''max_image_size'': [16, 16], ''max_num_registers'': 5, ''conv_first'': False, ''head_output_from_register'': True, ''simple_mlp_output'': False, ''output_head_bias'': False, ''normalize_qv'': True, ''stochastic_depth_p'': [0.0, 0.9], ''mixer_deptwise_bias'': False, ''mixer_ffn_bias'': False, ''conv_embedding'': False, ''conv_embedding_kernel_size'': 5}'
+optimizer_scheduler_config:
+    value: '{''optimizer'': ''ADAMW'', ''optimizer_config'': {''lr'': 0.0015, ''weight_decay'': 0.05}, ''scheduler_config'': {''cosine'': {''T_0'': 350, ''eta_min'': 1e-05}, ''constant_scheduler'': {''factor'': 0.001, ''total_iters'': 2}, ''linear_scheduler'': {''total_iters'': 5, ''start_factor'': 0.001}}}'
+trainer_config:
+    value: '{''compile_model'': False, ''snapshot_dir'': ''model'', ''snapshot_name'': ''model_1.pt'', ''save_every'': 1, ''total_epochs'': 350, ''gradient_accumulation_steps'': 1, ''report_every_epoch'': 1, ''use_cross_entropy'': True, ''label_smoothing'': 0.1, ''ema_decay'': 0.999}'
+wandb_config:
+    value: '{''project'': ''SdPNet'', ''group'': ''XL''}'

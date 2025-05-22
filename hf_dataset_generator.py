@@ -11,7 +11,6 @@ import torchvision.transforms.v2 as transforms
 from torchvision.transforms import v2
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
-from torchvision.transforms import v2
 from torch.utils.data import default_collate
 
 disable_progress_bar()
@@ -95,7 +94,6 @@ for a in dataset["train"]:
 """
 """
 from datasets import load_dataset
-
 dset = load_dataset('imagenet-1k', 
                     trust_remote_code=True, num_proc = 4, keep_in_memory=False, cache_dir = get_cache_dir())
 
@@ -296,8 +294,6 @@ class RepeatAugSampler(Sampler):
     def set_epoch(self, epoch):
         self.epoch = epoch
 
-
-
 def hf_train_val_data_loader(**kwargs):
     ### 
     ### This dude prepares the training and validation data ###
@@ -305,30 +301,24 @@ def hf_train_val_data_loader(**kwargs):
     ###
     cache_dir = get_cache_dir()
     print(f"The datasets is to be cached at {cache_dir}")
-
-    dset = load_dataset('imagenet-1k', 
+    dset = load_dataset(kwargs["dataset"], 
                         keep_in_memory=False,
-                        cache_dir = get_cache_dir(),
+                        cache_dir = cache_dir,
                         num_proc = 4, 
                         )
-    
-
     dset_train, dset_test = dset["train"], dset["validation"]    
     train_crop_size, val_image_size, val_crop_size = kwargs["train_image_size"], kwargs["val_image_size"], kwargs["val_crop_size"]
 
+    ## We better find out the number of classes in the dataset 
     try:
         NUM_CLASSES = kwargs["Num_Classes"]
     except Exception:
         NUM_CLASSES = 1000
 
-
     train_transforms_, val_transforms_ = train_transforms(image_size = train_crop_size), val_transforms(image_size = val_image_size, crop_size = val_crop_size)
-
     dset_train, dset_test = hf_dataset(dset_train, train_transforms_), hf_dataset(dset_test, val_transforms_)
-
-    kwargs_train = kwargs["train_data_details"]
-    kwargs_test = kwargs["val_data_details"]
-    ##
+    kwargs_train, kwargs_test = kwargs["train_data_details"], kwargs["val_data_details"]
+    ## Samplers
     train_sampler = RepeatAugSampler(dset_train, shuffle = True)
     val_sampler = DistributedSampler(dset_test, shuffle = False)
     ## 
@@ -336,12 +326,8 @@ def hf_train_val_data_loader(**kwargs):
     ## 
     cutmix = v2.CutMix(num_classes = NUM_CLASSES,)
     mixup = v2.MixUp(num_classes = NUM_CLASSES, alpha = 0.8)
-
     cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
-
     collate_fn = lambda batch : cutmix_or_mixup(*default_collate(batch))
-
-
     train_data = DataLoader(
         dataset= dset_train,
         sampler = train_sampler,
@@ -353,6 +339,5 @@ def hf_train_val_data_loader(**kwargs):
         sampler = val_sampler,
         **kwargs_test,
     )
-    
     return train_data, test_data
 

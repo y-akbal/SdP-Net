@@ -1,0 +1,98 @@
+[GPU0] Epoch 1
+
+0 Batch passed the average loss is 6.9267730712890625, lr is [1.5e-06] -- 1.9460272216796874secs to pass a batch!
+10 Batch passed the average loss is 6.9004926681518555, lr is [1.5e-06] -- 0.390076171875secs to pass a batch!
+20 Batch passed the average loss is 6.930792808532715, lr is [1.5e-06] -- 0.3904437561035156secs to pass a batch!
+30 Batch passed the average loss is 6.939633369445801, lr is [1.5e-06] -- 0.39046383666992185secs to pass a batch!
+40 Batch passed the average loss is 6.9357452392578125, lr is [1.5e-06] -- 0.39119366455078125secs to pass a batch!
+50 Batch passed the average loss is 6.904552459716797, lr is [1.5e-06] -- 0.3914641418457031secs to pass a batch!
+60 Batch passed the average loss is 6.910674571990967, lr is [1.5e-06] -- 0.3928473815917969secs to pass a batch!
+70 Batch passed the average loss is 6.925455093383789, lr is [1.5e-06] -- 0.392979736328125secs to pass a batch!
+80 Batch passed the average loss is 6.905346393585205, lr is [1.5e-06] -- 0.39260693359375secs to pass a batch!
+90 Batch passed the average loss is 6.898473739624023, lr is [1.5e-06] -- 0.3930649719238281secs to pass a batch!
+100 Batch passed the average loss is 6.89298152923584, lr is [1.5e-06] -- 0.39249456787109377secs to pass a batch!
+110 Batch passed the average loss is 6.920801639556885, lr is [1.5e-06] -- 0.39350042724609374secs to pass a batch!
+120 Batch passed the average loss is 6.9127092361450195, lr is [1.5e-06] -- 0.39279330444335936secs to pass a batch!
+130 Batch passed the average loss is 6.914085388183594, lr is [1.5e-06] -- 0.3924629821777344secs to pass a batch!
+140 Batch passed the average loss is 6.922382354736328, lr is [1.5e-06] -- 0.3921252746582031secs to pass a batch!
+150 Batch passed the average loss is 6.8922810554504395, lr is [1.5e-06] -- 0.39281765747070313secs to pass a batch!
+160 Batch passed the average loss is 6.910693168640137, lr is [1.5e-06] -- 0.39288226318359376secs to pass a batch!
+170 Batch passed the average loss is 6.935873508453369, lr is [1.5e-06] -- 0.39284066772460935secs to pass a batch!
+180 Batch passed the average loss is 6.948413848876953, lr is [1.5e-06] -- 0.3924327392578125secs to pass a batch!
+190 Batch passed the average loss is 6.918754577636719, lr is [1.5e-06] -- 0.3928515930175781secs to pass a batch!
+Traceback (most recent call last):
+  File "/home/sahmaran/Desktop/Repos/SdP-Net/model_train.py", line 101, in <module>
+    main()
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/hydra/main.py", line 94, in decorated_main
+    _run_hydra(
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/hydra/_internal/utils.py", line 394, in _run_hydra
+    _run_app(
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/hydra/_internal/utils.py", line 457, in _run_app
+    run_and_report(
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/hydra/_internal/utils.py", line 220, in run_and_report
+    return func()
+           ^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/hydra/_internal/utils.py", line 458, in <lambda>
+    lambda: hydra.run(
+            ^^^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/hydra/_internal/hydra.py", line 119, in run
+    ret = run_job(
+          ^^^^^^^^
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/hydra/core/utils.py", line 186, in run_job
+    ret.return_value = task_function(task_cfg)
+                       ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/Desktop/Repos/SdP-Net/model_train.py", line 96, in main
+    trainer.train()
+  File "/home/sahmaran/Desktop/Repos/SdP-Net/training_tools.py", line 146, in train
+    self._run_epoch()
+  File "/home/sahmaran/Desktop/Repos/SdP-Net/training_tools.py", line 113, in _run_epoch
+    batch_loss = self._run_batch(source, targets, batch_enum = i)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sahmaran/Desktop/Repos/SdP-Net/training_tools.py", line 91, in _run_batch
+    self.scaler.scale(loss).backward()
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_tensor.py", line 626, in backward
+    torch.autograd.backward(
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/autograd/__init__.py", line 347, in backward
+    _engine_run_backward(
+  File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/autograd/graph.py", line 823, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/sahmaran/Desktop/Repos/SdP-Net/model_train.py", line 101, in <module>
+[rank0]:     main()
+[rank0]:   File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/hydra/main.py", line 94, in decorated_main
+[rank0]:     _run_hydra(
+[rank0]:   File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/hydra/_internal/utils.py", line 394, in _run_hydra
+[rank0]:     _run_app(
+[rank0]:   File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/hydra/_internal/utils.py", line 457, in _run_app
+[rank0]:     run_and_report(
+[rank0]:   File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/hydra/_internal/utils.py", line 220, in run_and_report
+[rank0]:     return func()
+[rank0]:            ^^^^^^
+[rank0]:   File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/hydra/_internal/utils.py", line 458, in <lambda>
+[rank0]:     lambda: hydra.run(
+[rank0]:             ^^^^^^^^^^
+[rank0]:   File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/hydra/_internal/hydra.py", line 119, in run
+[rank0]:     ret = run_job(
+[rank0]:           ^^^^^^^^
+[rank0]:   File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/hydra/core/utils.py", line 186, in run_job
+[rank0]:     ret.return_value = task_function(task_cfg)
+[rank0]:                        ^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/sahmaran/Desktop/Repos/SdP-Net/model_train.py", line 96, in main
+[rank0]:     trainer.train()
+[rank0]:   File "/home/sahmaran/Desktop/Repos/SdP-Net/training_tools.py", line 146, in train
+[rank0]:     self._run_epoch()
+[rank0]:   File "/home/sahmaran/Desktop/Repos/SdP-Net/training_tools.py", line 113, in _run_epoch
+[rank0]:     batch_loss = self._run_batch(source, targets, batch_enum = i)
+[rank0]:                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/sahmaran/Desktop/Repos/SdP-Net/training_tools.py", line 91, in _run_batch
+[rank0]:     self.scaler.scale(loss).backward()
+[rank0]:   File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/_tensor.py", line 626, in backward
+[rank0]:     torch.autograd.backward(
+[rank0]:   File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/autograd/__init__.py", line 347, in backward
+[rank0]:     _engine_run_backward(
+[rank0]:   File "/home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/torch/autograd/graph.py", line 823, in _engine_run_backward
+[rank0]:     return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]: KeyboardInterrupt

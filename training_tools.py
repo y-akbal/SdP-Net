@@ -119,7 +119,7 @@ class Trainer:
                 self.ema_model.update_parameters(self.model)
             self.train_loss_logger.update(batch_loss)
             ## print the loss
-            if (self.gpu_id == 0) and i % 500 == 0:
+            if (self.gpu_id == 0) and i % 10 == 0:
                 print(f"{i} Batch passed the average loss is {batch_loss}, lr is {self.scheduler.get_last_lr()} -- {init_start.elapsed_time(init_end) / 1000}secs to pass a batch!")
             ### -- ###
 

@@ -1,0 +1,10 @@
+{"time":"2025-05-22T13:13:56.998544077+03:00","level":"INFO","msg":"using version","core version":"0.18.3"}
+{"time":"2025-05-22T13:13:56.998550737+03:00","level":"INFO","msg":"created symlink","path":"/home/sahmaran/Desktop/Repos/SdP-Net/wandb/run-20250522_131356-dd6uxagc/logs/debug-core.log"}
+{"time":"2025-05-22T13:13:57.009789771+03:00","level":"ERROR","msg":"dialing: google: could not find default credentials. See https://cloud.google.com/docs/authentication/external/set-up-adc for more information"}
+{"time":"2025-05-22T13:13:57.012047631+03:00","level":"INFO","msg":"created new stream","id":"dd6uxagc"}
+{"time":"2025-05-22T13:13:57.012058261+03:00","level":"INFO","msg":"stream: started","id":"dd6uxagc"}
+{"time":"2025-05-22T13:13:57.012074931+03:00","level":"INFO","msg":"handler: started","stream_id":{"value":"dd6uxagc"}}
+{"time":"2025-05-22T13:13:57.012064681+03:00","level":"INFO","msg":"writer: Do: started","stream_id":{"value":"dd6uxagc"}}
+{"time":"2025-05-22T13:13:57.012071231+03:00","level":"INFO","msg":"sender: started","stream_id":{"value":"dd6uxagc"}}
+{"time":"2025-05-22T13:13:57.340085673+03:00","level":"INFO","msg":"wandb-core","!BADKEY":null}
+{"time":"2025-05-22T13:13:57.34090398+03:00","level":"INFO","msg":"Starting system monitor"}

@@ -1,0 +1,5 @@
+[2025-05-22 13:12:58,437][datasets.load][WARNING] - Using the latest cached version of the dataset since imagenet-1k couldn't be found on the Hugging Face Hub
+[2025-05-22 13:12:58,437][datasets.packaged_modules.cache.cache][WARNING] - Found the latest cached dataset configuration 'default' at /home/sahmaran/Desktop/IMGNET/imagenet-1k/default/1.0.0/07900defe1ccf3404ea7e5e876a64ca41192f6c07406044771544ef1505831e8 (last modified on Tue Aug 13 13:28:10 2024).
+[2025-05-22 13:12:58,437][datasets.info][INFO] - Loading Dataset Infos from /home/sahmaran/miniconda3/envs/torch/lib/python3.11/site-packages/datasets/packaged_modules/cache
+[2025-05-22 13:12:58,438][datasets.builder][INFO] - Overwrite dataset info from restored data version if exists.
+[2025-05-22 13:12:58,438][datasets.info][INFO] - Loading Dataset info from /home/sahmaran/Desktop/IMGNET/imagenet-1k/default/1.0.0/07900defe1ccf3404ea7e5e876a64ca41192f6c07406044771544ef1505831e8

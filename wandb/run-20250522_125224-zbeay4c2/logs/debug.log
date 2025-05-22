@@ -1,0 +1,26 @@
+2025-05-22 12:52:24,360 INFO    MainThread:20395 [wandb_setup.py:_flush():79] Current SDK version is 0.18.3
+2025-05-22 12:52:24,360 INFO    MainThread:20395 [wandb_setup.py:_flush():79] Configure stats pid to 20395
+2025-05-22 12:52:24,360 INFO    MainThread:20395 [wandb_setup.py:_flush():79] Loading settings from /home/sahmaran/.config/wandb/settings
+2025-05-22 12:52:24,360 INFO    MainThread:20395 [wandb_setup.py:_flush():79] Loading settings from /home/sahmaran/Desktop/Repos/SdP-Net/wandb/settings
+2025-05-22 12:52:24,360 INFO    MainThread:20395 [wandb_setup.py:_flush():79] Loading settings from environment variables: {}
+2025-05-22 12:52:24,360 INFO    MainThread:20395 [wandb_setup.py:_flush():79] Applying setup settings: {'mode': None, '_disable_service': None}
+2025-05-22 12:52:24,360 INFO    MainThread:20395 [wandb_setup.py:_flush():79] Inferring run settings from compute environment: {'program_relpath': 'model_train.py', 'program_abspath': '/home/sahmaran/Desktop/Repos/SdP-Net/model_train.py', 'program': '/home/sahmaran/Desktop/Repos/SdP-Net/model_train.py'}
+2025-05-22 12:52:24,360 INFO    MainThread:20395 [wandb_setup.py:_flush():79] Applying login settings: {}
+2025-05-22 12:52:24,360 INFO    MainThread:20395 [wandb_init.py:_log_setup():532] Logging user logs to /home/sahmaran/Desktop/Repos/SdP-Net/wandb/run-20250522_125224-zbeay4c2/logs/debug.log
+2025-05-22 12:52:24,360 INFO    MainThread:20395 [wandb_init.py:_log_setup():533] Logging internal logs to /home/sahmaran/Desktop/Repos/SdP-Net/wandb/run-20250522_125224-zbeay4c2/logs/debug-internal.log
+2025-05-22 12:52:24,360 INFO    MainThread:20395 [wandb_init.py:init():617] calling init triggers
+2025-05-22 12:52:24,360 INFO    MainThread:20395 [wandb_init.py:init():624] wandb.init called with sweep_config: {}
+config: {'DEBUG_MODE': False, 'wandb_config': {'project': 'SdPNet', 'group': 'XL'}, 'model_config': {'embedding_dim': 768, 'num_blocks': 6, 'n_head': 8, 'activation': 'gelu', 'embedding_activation': 'none', 'conv_kernel_size': 3, 'patch_size': 14, 'ffn_dropout': 0.2, 'attn_dropout': 0.2, 'output_classes': 1000, 'conv_block_num': 2, 'ff_multiplication_factor': 4, 'max_image_size': [16, 16], 'max_num_registers': 5, 'conv_first': False, 'head_output_from_register': True, 'simple_mlp_output': False, 'output_head_bias': False, 'normalize_qv': True, 'stochastic_depth_p': [0.0, 0.9], 'mixer_deptwise_bias': False, 'mixer_ffn_bias': False, 'conv_embedding': False, 'conv_embedding_kernel_size': 5}, 'trainer_config': {'compile_model': False, 'snapshot_dir': 'model', 'snapshot_name': 'model_1.pt', 'save_every': 1, 'total_epochs': 350, 'gradient_accumulation_steps': 1, 'report_every_epoch': 1, 'use_cross_entropy': True, 'label_smoothing': 0.1, 'ema_decay': 0.999}, 'optimizer_scheduler_config': {'optimizer': 'ADAMW', 'optimizer_config': {'lr': 0.0015, 'weight_decay': 0.05}, 'scheduler_config': {'cosine': {'T_0': 350, 'eta_min': 1e-05}, 'constant_scheduler': {'factor': 0.001, 'total_iters': 2}, 'linear_scheduler': {'total_iters': 5, 'start_factor': 0.001}}}, 'data': {'dataset_dir': '/home/sahmaran/Desktop/IMGNET', 'Num_Classes': 1000, 'train_image_size': [224, 224], 'val_image_size': [320, 320], 'val_crop_size': [224, 224], 'train_data_details': {'batch_size': 64, 'num_workers': 12, 'pin_memory': True, 'persistent_workers': True, 'prefetch_factor': 4, 'drop_last': True}, 'val_data_details': {'batch_size': 128, 'num_workers': 4, 'pin_memory': True, 'drop_last': True}}}
+2025-05-22 12:52:24,360 INFO    MainThread:20395 [wandb_init.py:init():667] starting backend
+2025-05-22 12:52:24,360 INFO    MainThread:20395 [wandb_init.py:init():671] sending inform_init request
+2025-05-22 12:52:24,362 INFO    MainThread:20395 [backend.py:_multiprocessing_setup():104] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2025-05-22 12:52:24,362 INFO    MainThread:20395 [wandb_init.py:init():684] backend started and connected
+2025-05-22 12:52:24,363 INFO    MainThread:20395 [wandb_init.py:init():779] updated telemetry
+2025-05-22 12:52:24,365 INFO    MainThread:20395 [wandb_init.py:init():812] communicating run to backend with 90.0 second timeout
+2025-05-22 12:52:24,760 INFO    MainThread:20395 [wandb_init.py:init():863] starting run threads in backend
+2025-05-22 12:52:24,836 INFO    MainThread:20395 [wandb_run.py:_console_start():2465] atexit reg
+2025-05-22 12:52:24,836 INFO    MainThread:20395 [wandb_run.py:_redirect():2313] redirect: wrap_raw
+2025-05-22 12:52:24,836 INFO    MainThread:20395 [wandb_run.py:_redirect():2378] Wrapping output streams.
+2025-05-22 12:52:24,836 INFO    MainThread:20395 [wandb_run.py:_redirect():2403] Redirects installed.
+2025-05-22 12:52:24,837 INFO    MainThread:20395 [wandb_init.py:init():907] run started, returning control to user process
+2025-05-22 12:53:46,806 WARNING MsgRouterThr:20395 [router.py:message_loop():77] message_loop has been closed

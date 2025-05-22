@@ -1,0 +1,5 @@
+[GPU0] Epoch 1
+
+0 Batch passed the average loss is 6.927236080169678, lr is [1.5e-06] -- 2.47273974609375secs to pass a batch!
+10 Batch passed the average loss is 6.9111175537109375, lr is [1.5e-06] -- 0.551173095703125secs to pass a batch!
+Traceback (most recent call last):
